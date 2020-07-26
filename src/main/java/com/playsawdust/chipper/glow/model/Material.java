@@ -1,37 +1,75 @@
 package com.playsawdust.chipper.glow.model;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.joml.Vector3d;
+import org.joml.Vector3dc;
 
-public interface Material {
-	/**
-	 * Gets an attribute of this Material
-	 * @param <T> The type of the data represented by this MaterialAttribute
-	 * @param attribute the MaterialAttribute to return a value for
-	 * @return the value of this MaterialAttribute, or null if no value is defined for this Material.
-	 */
-	public <T,U> @Nullable T getMaterialAttribute(MaterialAttribute<T> attribute);
+public interface Material extends MaterialAttributeContainer {
 	
+	/** Immutable Material exposing Blinn-Phong attributes */
 	public static class BlinnPhong implements Material {
 		private double specularity = 0.0;
-		private Vector3d diffuseColor = new Vector3d(1, 1, 1);
+		private @NonNull Vector3d diffuseColor = new Vector3d(1, 1, 1);
 		private double opacity = 1.0;
 		
-		private String diffuseTextureId;
-		private String normalTextureId;
-		private String specTextureId;
+		private @Nullable String diffuseTextureId;
+		private @Nullable String normalTextureId;
+		private @Nullable String specTextureId;
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		public <T, U> @Nullable T getMaterialAttribute(MaterialAttribute<T> attribute) {
+		public <T> @Nullable T getMaterialAttribute(MaterialAttribute<T> attribute) {
 			if (attribute==MaterialAttribute.DIFFUSE_COLOR) return (T) diffuseColor;
 			if (attribute==MaterialAttribute.OPACITY) return (T) Double.valueOf(opacity);
 			if (attribute==MaterialAttribute.SPECULARITY) return (T) Double.valueOf(specularity);
 			if (attribute==MaterialAttribute.DIFFUSE_TEXTURE_ID) return (@Nullable T) diffuseTextureId;
 			if (attribute==MaterialAttribute.SPECULAR_TEXTURE_ID) return (@Nullable T) specTextureId;
 			if (attribute==MaterialAttribute.NORMAL_TEXTURE_ID) return (@Nullable T) normalTextureId;
+			
 			return null;
 		}
+		
+		@Override
+		public <T> void putMaterialAttribute(MaterialAttribute<T> attribute, T value) {
+			if (attribute==MaterialAttribute.DIFFUSE_COLOR) { diffuseColor = new Vector3d((Vector3d) value); return; }
+			if (attribute==MaterialAttribute.OPACITY) { opacity = (Double)value; return; }
+			if (attribute==MaterialAttribute.SPECULARITY) { specularity = (Double)value; return; }
+			if (attribute==MaterialAttribute.DIFFUSE_TEXTURE_ID) { diffuseTextureId = (String)value; return; }
+			if (attribute==MaterialAttribute.SPECULAR_TEXTURE_ID) { specTextureId = (String)value; return; }
+			if (attribute==MaterialAttribute.NORMAL_TEXTURE_ID) { normalTextureId = (String)value; return; }
+		}
+		
+		//TODO: Return old value
+		@Override
+		public <T> @Nullable T removeMaterialAttribute(MaterialAttribute<T> attribute) {
+			if (attribute==MaterialAttribute.DIFFUSE_COLOR) { diffuseColor.set(1, 1, 1); return null; }
+			if (attribute==MaterialAttribute.OPACITY) { opacity = 1.0; return null; }
+			if (attribute==MaterialAttribute.SPECULARITY) { specularity = 0.0; return null; }
+			if (attribute==MaterialAttribute.DIFFUSE_TEXTURE_ID) { diffuseTextureId = null; return null; }
+			if (attribute==MaterialAttribute.SPECULAR_TEXTURE_ID) { specTextureId = null; return null; }
+			if (attribute==MaterialAttribute.NORMAL_TEXTURE_ID) { normalTextureId = null; return null; }
+			
+			return null;
+		}
+
+		@Override
+		public void clearMaterialAttributes() {
+			specularity = 0.0;
+			diffuseColor.set(1, 1, 1);
+			opacity = 1.0;
+			diffuseTextureId = null;
+			normalTextureId = null;
+			specTextureId = null;
+		}
+		
+		public double getSpecularity() { return specularity; }
+		public double getOpacity() { return opacity; }
+		public Vector3dc getDiffuseColor() { return diffuseColor; }
+		public void getDiffuseColor(Vector3d result) { result.set(diffuseColor); }
+		public @Nullable String getDiffuseTextureId() { return diffuseTextureId; }
+		public @Nullable String getNormalTextureId() { return normalTextureId; }
+		public @Nullable String getSpecularTextureId() { return specTextureId; }
 		
 		public static Builder builder() {
 			return new Builder();
@@ -88,20 +126,14 @@ public interface Material {
 		}
 	}
 	
-	/*
-	public static class Generic implements Material {
-		private Map<MaterialAttribute<?>, Object> attributes = new HashMap<>();
-		
-		//TODO: Move to builder syntax
-		public <T> void set(MaterialAttribute<T> attribute, T t) {
-			attributes.put(attribute, t);
-		}
-		
-		@SuppressWarnings("unchecked")
+	/** Mutable material that starts with no attributes, suitable for any material workflow. */
+	public static class Generic implements Material, MaterialAttributeDelegateHolder {
+		private SimpleMaterialAttributeContainer delegate = new SimpleMaterialAttributeContainer();
+
 		@Override
-		public <T> @Nullable T getMaterialAttribute(MaterialAttribute<T> attribute) {
-			return (T) attributes.get(attribute);
+		public MaterialAttributeContainer getDelegate() {
+			return delegate;
 		}
-	}*/
+	}
 	
 }

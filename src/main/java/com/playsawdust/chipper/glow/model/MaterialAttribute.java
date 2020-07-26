@@ -1,15 +1,11 @@
 package com.playsawdust.chipper.glow.model;
 
 import org.joml.Vector3dc;
-import org.joml.Vector4dc;
 
 /**
  * Represents some quality of a surface or a property at a vertex. For instance, UV location, diffuse color, or specularity.
  * Attributes could exist at either the vertex or material granularity. If a vertex value exists, and the pass supports per-vertex
  * values, vertices will override the material.
- * 
- * <p>The type parameter T is the immutable type for this attribute, returned from a direct query. For instance, a surface normal would be `Vec3di`.
- * <o>The type parameter U is the mutable type for this attribute, returned from a joml-style query. A surface normal would be `Vec3d`.
  */
 public class MaterialAttribute<T> {
 	private String name;
@@ -40,21 +36,21 @@ public class MaterialAttribute<T> {
 	public static MaterialAttribute<Vector3dc> DIFFUSE_COLOR = new MaterialAttribute<>("diffuseColor");
 	public static MaterialAttribute<Double> SPECULARITY = new MaterialAttribute<>("specularity");
 	
-	/** Not required. The surface normal in model-space.*/
+	/** The surface normal in model-space.*/
 	public static MaterialAttribute<Vector3dc> NORMAL = new MaterialAttribute<>("normal");
 	
 	/**
-	 * Not required. A model-space vector 90 degrees away from the normal vector, pointing so that it will skim across ("tangent to") the surface left-to-right. Between the normal and
+	 * A model-space vector 90 degrees away from the normal vector, pointing so that it will skim across ("tangent to") the surface left-to-right. Between the normal and
 	 * the tangent, a matrix can be constructed to translate back and forth between model-space (where {0,0,1} points towards the front of the model) and tangent-space
 	 * (where {0,0,1} points "up" out of the polygon). Since the incoming light and the camera vector are available in model-space or world-space, this enables normal maps
 	 * to be constructed in their "own" local space but used at different angles outside the XZ plane.
 	 */
 	public static MaterialAttribute<Vector3dc> TANGENT = new MaterialAttribute<>("tangent");
 	
-	/** Not required. This can be found from the crossproduct of the normal and tangent inside the vertex shader, so generally this shouldn't be used for material or vertex attributes. */
+	/** This can be found from the crossproduct of the normal and tangent inside the vertex shader, so generally this shouldn't be used for material or vertex attributes. */
 	public static MaterialAttribute<Vector3dc> BITANGENT = new MaterialAttribute<>("bitangent");
 	
-	/** Not required. At 0 opacity, geometry is invisible. At 1 opacity, geometry is completely solid. Note that opacity can be controled at a finer-grained level using a diffuse texture. */
+	/** At 0 opacity, geometry is invisible. At 1 opacity, geometry is completely solid. Note that opacity can be controled at a finer-grained level using a diffuse texture. */
 	public static MaterialAttribute<Double> OPACITY = new MaterialAttribute<>("opacity");
 	
 	/*
