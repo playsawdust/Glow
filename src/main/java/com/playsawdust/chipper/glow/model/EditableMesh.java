@@ -1,7 +1,9 @@
 package com.playsawdust.chipper.glow.model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.joml.Vector2d;
 import org.joml.Vector2dc;
 import org.joml.Vector3d;
@@ -13,6 +15,9 @@ public class EditableMesh {
 	private ArrayList<Vertex> vertices = new ArrayList<>();
 	private ArrayList<Edge> edges = new ArrayList<>();
 	private ArrayList<Face> faces = new ArrayList<>();
+	
+	private transient Object cacheData = null;
+	private transient Object cacheOwner = null;
 	
 	public Material getMaterial() { return material; }
 	
@@ -62,8 +67,8 @@ public class EditableMesh {
 	}
 	
 	public void removeEdge(int index) {
-		edges.remove(index);
-		//TODO: Subset cleanup
+		Edge edge = edges.remove(index);
+		if (edge!=null) cleanupEdgeRemoval(edge);
 	}
 	
 	public void removeEdge(Edge edge) {
@@ -93,9 +98,47 @@ public class EditableMesh {
 		if (removed) cleanupFaceRemoval(face);
 	}
 	
+	/**
+	 * Caches flattened vertex attribute data in a way that, if resubmitted to the same RenderPass, can facilitate fast, dynamic render.
+	 * @param owner The RenderPass or other vertex attribute data consumer
+	 * @param data Vertex attribute data for reuse
+	 */
+	public void cache(Object owner, Object data) {
+		this.cacheOwner = owner;
+		this.cacheData = data;
+	}
+	
+	/**
+	 * Grabs vertex attribute data previously cached for reuse, provided that it has not been invalidated by a previous draw call.
+	 * @param owner The caller - a RenderPass or other vertex attribute data consumer
+	 * @return Data cached from a previous flatten operation on this mesh
+	 */
+	@SuppressWarnings("unchecked")
+	public <T> @Nullable T getCache(Object owner, Class<T> cacheDataClass) {
+		if (cacheData==null) return null;
+		
+		if (cacheOwner!=null && owner==cacheOwner) {
+			if (cacheDataClass.isAssignableFrom(cacheData.getClass())) {
+				return (T) cacheData;
+			} else {
+				return null;
+			}
+		} else {
+			return null;
+		}
+	}
+	
+	/**
+	 * Invalidates cached flat vertex attribute data on this mesh.
+	 */
+	public void clearCache() {
+		cacheOwner = null;
+		cacheData = null;
+	}
+	
 	//Deduplicates vertices, edges, and faces, and removes orphaned edges and vertices. Does any other consistency checks worth doing
 	public void cleanup() {
-		//TODO: Dedupe vertices first, so everything orphaned as a result just gets cleaned up
+		//TODO: Dedupe vertices first, so everything orphaned as a result just gets cleaned up here
 		
 		ArrayList<Edge> removedEdges = new ArrayList<>();
 		for(Edge e : edges) {
@@ -135,8 +178,28 @@ public class EditableMesh {
 		}
 	}
 	
-	/** Check all vertices of an edge which is no longer in the model, and if they're orphaned, remove them. */
+	/**
+	 * Check for side-effects of removing an edge which is no longer in the model.
+	 * <ul>
+	 *   <li>Remove all faces which relied on the edge
+	 *   <li>Remove all vertices which no longer contribute to an edge or face
+	 * </ul>
+	 */
 	protected void cleanupEdgeRemoval(Edge removedEdge) {
+		ArrayList<Face> removedFaces = new ArrayList<>();
+		for(Face f : faces) {
+			if (f.edges.contains(removedEdge)) {
+				removedFaces.add(f);
+			}
+		}
+		for(Face f : removedFaces) {
+			if (faces.contains(f)) {
+				faces.remove(f);
+				cleanupFaceRemoval(f); //Additional edges and vertices may need killing at this point. Won't explode because additional edges from this call will be orphaned.
+			}
+		}
+		
+		
 		if (isOrphaned(removedEdge.a)) {
 			vertices.remove(removedEdge.a);
 		}
@@ -198,5 +261,45 @@ public class EditableMesh {
 	public static class Face {
 		ArrayList<Edge> edges = new ArrayList<>(); //size must be at least 3. This is mostly for bookkeeping.
 		ArrayList<Vertex> vertices = new ArrayList<>(); //size must be at least 3, size must match edges.size, all vertices must be present in edges, and must be listed in counter-clockwise order to express facing.
+		
+		/** Takes vertices and edges and makes sure that they match, pulling new edges from meshEdgeList if they exist,
+		 * or adding them to meshEdgeList if not present. Important note here, edges are a nice cached fiction, but
+		 * vertices are real ground truth, as the winding order also determines facing.
+		 */
+		public void cleanup(ArrayList<Edge> meshEdgeList) {
+			ArrayList<Edge> oldEdges = edges;
+			edges = new ArrayList<>();
+			Vertex lastVertex = null;
+			for(Vertex v : vertices) {
+				if (lastVertex!=null) {
+					
+					//Grab our existing edge if it exists
+					Edge e = getEdge(oldEdges, v, lastVertex);
+					
+					if (e==null) {
+						//Not present in our local edge cache, so grab it from the mesh if present
+						e = getEdge(meshEdgeList, v, lastVertex);
+						
+						if (e==null) {
+							//Not in local cache *or* mesh, so invent a new one and record it in the mesh
+							e = new Edge(v, lastVertex);
+							meshEdgeList.add(e);
+						}
+					}
+					edges.add(e);
+				}
+				
+				lastVertex = v;
+			}
+		}
+		
+		private Edge getEdge(ArrayList<Edge> edges, Vertex a, Vertex b) {
+			for(Edge e : edges) {
+				if (a.equals(e.a) && b.equals(e.b)) return e;
+				if (b.equals(e.a) && a.equals(e.b)) return e;
+			}
+			
+			return null;
+		}
 	}
 }
