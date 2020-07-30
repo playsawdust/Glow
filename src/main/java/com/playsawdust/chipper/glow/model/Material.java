@@ -6,6 +6,16 @@ import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
 public interface Material extends MaterialAttributeContainer {
+	public static Generic GENERIC = new Generic()
+			.with(MaterialAttribute.DIFFUSE_COLOR, new Vector3d(1,1,1))
+			.with(MaterialAttribute.OPACITY, Double.valueOf(1.0))
+			.with(MaterialAttribute.SPECULARITY, Double.valueOf(0.2));
+	
+	public static Generic RED_PLASTIC = new Generic()
+			.with(MaterialAttribute.DIFFUSE_COLOR, new Vector3d(1.0, 0.5, 0.5))
+			.with(MaterialAttribute.OPACITY, Double.valueOf(1.0))
+			.with(MaterialAttribute.SPECULARITY, Double.valueOf(0.6));
+	
 	
 	/** Immutable Material exposing Blinn-Phong attributes */
 	public static class BlinnPhong implements Material {
@@ -126,13 +136,31 @@ public interface Material extends MaterialAttributeContainer {
 		}
 	}
 	
-	/** Mutable material that starts with no attributes, suitable for any material workflow. */
+	/** Mutable material that starts with no attributes, suitable for any material workflow. Can be frozen to create immutable objects. */
 	public static class Generic implements Material, MaterialAttributeDelegateHolder {
+		private volatile boolean frozen = false;
 		private SimpleMaterialAttributeContainer delegate = new SimpleMaterialAttributeContainer();
 
 		@Override
 		public MaterialAttributeContainer getDelegate() {
 			return delegate;
+		}
+		
+		public <T> Generic with(MaterialAttribute<T> attrib, T value) {
+			if (frozen) throw new IllegalStateException("Cannot edit a frozen Material");
+			delegate.putMaterialAttribute(attrib, value);
+			return this;
+		}
+		
+		public Generic freeze() {
+			this.frozen = true;
+			return this;
+		}
+		
+		@Override
+		public <T> void putMaterialAttribute(@NonNull MaterialAttribute<T> attribute, @NonNull T value) {
+			if (frozen) throw new IllegalStateException("Cannot edit a frozen Material");
+			delegate.putMaterialAttribute(attribute, value);
 		}
 	}
 	
