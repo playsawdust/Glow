@@ -1,7 +1,8 @@
 package com.playsawdust.chipper.glow.model;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.List;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.joml.Vector2d;
@@ -30,10 +31,7 @@ public class EditableMesh {
 	}
 	
 	public void addVertex(Vector3dc pos, Vector2dc uv) {
-		Vertex toAdd = new Vertex();
-		toAdd.pos = new Vector3d(pos);
-		toAdd.uv = new Vector2d(uv);
-		vertices.add(toAdd);
+		vertices.add(new Vertex(new Vector3d(pos), new Vector2d(uv)));
 	}
 	
 	public void addVertex(Vertex v) {
@@ -96,6 +94,10 @@ public class EditableMesh {
 	public void removeFace(Face face) {
 		boolean removed = faces.remove(face);
 		if (removed) cleanupFaceRemoval(face);
+	}
+	
+	public Iterable<Face> faces() {
+		return Collections.unmodifiableList(faces);
 	}
 	
 	/**
@@ -236,6 +238,16 @@ public class EditableMesh {
 		protected Vector2d uv;
 		protected SimpleMaterialAttributeContainer attributes = new SimpleMaterialAttributeContainer();
 		
+		public Vertex(Vector3d pos) {
+			this.pos = new Vector3d(pos);
+			this.uv = new Vector2d(0, 0);
+		}
+
+		public Vertex(Vector3d pos, Vector2d uv) {
+			this.pos = new Vector3d(pos);
+			this.uv = new Vector2d(uv);
+		}
+
 		@Override
 		public MaterialAttributeContainer getDelegate() {
 			return attributes;
@@ -262,6 +274,17 @@ public class EditableMesh {
 		ArrayList<Edge> edges = new ArrayList<>(); //size must be at least 3. This is mostly for bookkeeping.
 		ArrayList<Vertex> vertices = new ArrayList<>(); //size must be at least 3, size must match edges.size, all vertices must be present in edges, and must be listed in counter-clockwise order to express facing.
 		
+		public Face() {} //degenerate face though
+		
+		public Face(Vertex a, Vertex b, Vertex c) {
+			this.vertices.add(a);
+			this.vertices.add(b);
+			this.vertices.add(c);
+			this.edges.add(new Edge(a, b));
+			this.edges.add(new Edge(b, c));
+			this.edges.add(new Edge(c, a));
+		}
+
 		/** Takes vertices and edges and makes sure that they match, pulling new edges from meshEdgeList if they exist,
 		 * or adding them to meshEdgeList if not present. Important note here, edges are a nice cached fiction, but
 		 * vertices are real ground truth, as the winding order also determines facing.

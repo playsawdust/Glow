@@ -1,13 +1,23 @@
 package com.playsawdust.chipper.glow.model;
 
+import java.util.ArrayList;
+
 public class Model {
-	public static class Submodel {
-		private Material material;
-		private EditableMesh mesh;
-		
-		public Submodel(Material mat, EditableMesh mesh) {
-			this.material = mat;
-			this.mesh = mesh;
-		}
+	private ArrayList<EditableMesh> meshes = new ArrayList<>();
+
+	public void addMesh(EditableMesh mesh) {
+		meshes.add(mesh);
+	}
+	
+	public int getMeshCount() {
+		return meshes.size();
+	}
+	
+	public EditableMesh getMesh(int index) {
+		return meshes.get(index);
+	}
+	
+	public Iterable<EditableMesh> meshes() {
+		return this.meshes;
 	}
 }
