@@ -10,7 +10,7 @@ import org.joml.Vector2dc;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
-public class EditableMesh {
+public class Mesh {
 	
 	private Material material;
 	private ArrayList<Vertex> vertices = new ArrayList<>();
@@ -58,6 +58,8 @@ public class EditableMesh {
 	
 	public void addEdge(Edge edge) {
 		edges.add(edge);
+		if (!vertices.contains(edge.a)) vertices.add(edge.a);
+		if (!vertices.contains(edge.b)) vertices.add(edge.b); 
 	}
 	
 	public void addEdge(Vertex a, Vertex b) {
@@ -84,6 +86,12 @@ public class EditableMesh {
 	
 	public void addFace(Face face) {
 		faces.add(face);
+		for(Vertex v : face.vertices()) {
+			if (!vertices.contains(v)) vertices.add(v);
+		}
+		for(Edge e : face.edges()) {
+			if (!edges.contains(e)) edges.add(e);
+		}
 	}
 	
 	public void removeFace(int index) {
@@ -323,6 +331,14 @@ public class EditableMesh {
 			}
 			
 			return null;
+		}
+
+		public Iterable<Vertex> vertices() {
+			return Collections.unmodifiableList(vertices);
+		}
+		
+		public Iterable<Edge> edges() {
+			return Collections.unmodifiableList(edges);
 		}
 	}
 }

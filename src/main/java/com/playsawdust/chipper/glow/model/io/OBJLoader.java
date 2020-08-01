@@ -13,7 +13,7 @@ import org.joml.Vector3d;
 
 import com.google.common.io.CharStreams;
 
-import com.playsawdust.chipper.glow.model.EditableMesh;
+import com.playsawdust.chipper.glow.model.Mesh;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.model.Model;
 
@@ -27,7 +27,7 @@ public class OBJLoader implements ModelLoader {
 		
 		ArrayList<IndexedFace> indexedFaces = new ArrayList<>();
 		
-		EditableMesh mesh = new EditableMesh();
+		Mesh mesh = new Mesh();
 		//ArrayList<EditableMesh.Edge> edges = new ArrayList<>();
 		//ArrayList<EditableMesh.Face> faces = new ArrayList<>(); 
 		
@@ -62,16 +62,24 @@ public class OBJLoader implements ModelLoader {
 			
 		}
 		
-		System.out.println("Loaded "+positions+" vertex locations and "+indexedFaces.size()+" faces.");
+		if (positions.size()==0 || indexedFaces.size()==0) return null; //This probably wasn't an obj file
+		
+		//System.out.println("Loaded "+positions+" vertex locations and "+indexedFaces.size()+" faces.");
 		
 		for(IndexedFace face : indexedFaces) {
 			if (face.a==null || face.b==null || face.c==null) {
-				System.out.println("INVALID FACE");
+				//System.out.println("INVALID FACE");
 				continue;
 			}
 			//System.out.println("Deindexing ("+face.a.v+"|"+face.a.vt+"|"+face.a.vn+"), ("+face.b.v+"|"+face.b.vt+"|"+face.b.vn+"), "+face.c.v+"|"+face.c.vt+"|"+face.c.vn+")");
-			EditableMesh.Face deIndexed = deref(face, positions, texcoords, normals);
+			Mesh.Face deIndexed = deref(face, positions, texcoords, normals);
 			mesh.addFace(deIndexed);
+			//for(EditableMesh.Vertex vertex : deIndexed.vertices()) {
+			//	mesh.addVertex(vertex);
+			//}
+			//for(EditableMesh.Edge edge : deIndexed.edges()) {
+			//	mesh.addEdge(edge);
+			//}
 		}
 		
 		//Generate data for vertexes which don't have it
@@ -92,6 +100,7 @@ public class OBJLoader implements ModelLoader {
 		
 		Model result = new Model();
 		result.addMesh(mesh);
+		System.out.println("Faces: "+mesh.getFaceCount()+" Vertices: "+mesh.getVertexCount());
 		return result;
 	}
 	
@@ -106,28 +115,28 @@ public class OBJLoader implements ModelLoader {
 		return list.get(pos);
 	}
 	
-	private static EditableMesh.Vertex deref(IndexedVertex v,  ArrayList<Vector3d> positions, ArrayList<Vector2d> textures, ArrayList<Vector3d> normals) {
+	private static Mesh.Vertex deref(IndexedVertex v,  ArrayList<Vector3d> positions, ArrayList<Vector2d> textures, ArrayList<Vector3d> normals) {
 		Vector3d pos = deref(v.v-1, positions);
 		Vector2d tex = deref2(v.vt-1, textures);
 		Vector3d col = new Vector3d(1,1,1);
 		Vector3d normal = deref(v.vn-1, normals);
 		
-		EditableMesh.Vertex result = new EditableMesh.Vertex(pos, tex);
+		Mesh.Vertex result = new Mesh.Vertex(pos, tex);
 		result.putMaterialAttribute(MaterialAttribute.DIFFUSE_COLOR, col);
 		result.putMaterialAttribute(MaterialAttribute.NORMAL, normal);
 		
 		return result;
 	}
 	
-	private static EditableMesh.Face deref(IndexedFace f, ArrayList<Vector3d> positions, ArrayList<Vector2d> textures, ArrayList<Vector3d> normals) {
-		EditableMesh.Vertex a = deref(f.a, positions, textures, normals);
-		EditableMesh.Vertex b = deref(f.b, positions, textures, normals);
-		EditableMesh.Vertex c = deref(f.c, positions, textures, normals);
+	private static Mesh.Face deref(IndexedFace f, ArrayList<Vector3d> positions, ArrayList<Vector2d> textures, ArrayList<Vector3d> normals) {
+		Mesh.Vertex a = deref(f.a, positions, textures, normals);
+		Mesh.Vertex b = deref(f.b, positions, textures, normals);
+		Mesh.Vertex c = deref(f.c, positions, textures, normals);
 		
 		//Face result = new Face(a,b,c);
 		//result.genFaceNormal();
 		//return result;
-		return new EditableMesh.Face(a,b,c);
+		return new Mesh.Face(a,b,c);
 	}
 	
 	

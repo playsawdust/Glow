@@ -3,9 +3,9 @@ package com.playsawdust.chipper.glow.model;
 import java.util.ArrayList;
 
 public class Model {
-	private ArrayList<EditableMesh> meshes = new ArrayList<>();
+	private ArrayList<Mesh> meshes = new ArrayList<>();
 
-	public void addMesh(EditableMesh mesh) {
+	public void addMesh(Mesh mesh) {
 		meshes.add(mesh);
 	}
 	
@@ -13,11 +13,11 @@ public class Model {
 		return meshes.size();
 	}
 	
-	public EditableMesh getMesh(int index) {
+	public Mesh getMesh(int index) {
 		return meshes.get(index);
 	}
 	
-	public Iterable<EditableMesh> meshes() {
+	public Iterable<Mesh> meshes() {
 		return this.meshes;
 	}
 }

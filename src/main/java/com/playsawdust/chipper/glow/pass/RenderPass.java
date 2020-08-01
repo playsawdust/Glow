@@ -1,4 +1,4 @@
-package com.playsawdust.chipper.glow.stage;
+package com.playsawdust.chipper.glow.pass;
 
 public interface RenderPass {
 	

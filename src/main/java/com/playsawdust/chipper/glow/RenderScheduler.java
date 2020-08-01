@@ -3,7 +3,8 @@ package com.playsawdust.chipper.glow;
 import java.util.ArrayList;
 
 import com.playsawdust.chipper.glow.model.ImmutableModel;
-import com.playsawdust.chipper.glow.stage.RenderPass;
+import com.playsawdust.chipper.glow.pass.MeshPass;
+import com.playsawdust.chipper.glow.pass.RenderPass;
 
 public class RenderScheduler {
 	private ArrayList<RenderPass> passes = new ArrayList<>();
@@ -48,5 +49,13 @@ public class RenderScheduler {
 		for(RenderPass pass : passes) {
 			pass.apply();
 		}
+	}
+	
+	public static RenderScheduler createDefaultScheduler() {
+		RenderScheduler result = new RenderScheduler();
+		
+		result.passes.add(new MeshPass());
+		
+		return result;
 	}
 }

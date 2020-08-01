@@ -1,7 +1,7 @@
-package com.playsawdust.chipper.glow.stage;
+package com.playsawdust.chipper.glow.pass;
 
-public class PostProcessPass implements RenderPass {
-
+public class GuiPass implements RenderPass {
+	
 	@Override
 	public void apply() {
 		
@@ -14,7 +14,7 @@ public class PostProcessPass implements RenderPass {
 
 	@Override
 	public void enqueue(Object o) {
-		throw new UnsupportedOperationException();
+		//TODO: Implement
 	}
 
 }
