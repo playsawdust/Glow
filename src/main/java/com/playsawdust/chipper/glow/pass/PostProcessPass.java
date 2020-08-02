@@ -1,5 +1,7 @@
 package com.playsawdust.chipper.glow.pass;
 
+import org.joml.Vector3dc;
+
 public class PostProcessPass implements RenderPass {
 
 	@Override
@@ -13,7 +15,7 @@ public class PostProcessPass implements RenderPass {
 	}
 
 	@Override
-	public void enqueue(Object o) {
+	public void enqueue(Object o, Vector3dc position) {
 		throw new UnsupportedOperationException();
 	}
 
