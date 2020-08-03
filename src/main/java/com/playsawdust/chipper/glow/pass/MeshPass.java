@@ -4,15 +4,21 @@ import java.util.ArrayList;
 
 import org.joml.Vector3dc;
 
+import com.playsawdust.chipper.glow.gl.MeshFlattener;
 import com.playsawdust.chipper.glow.model.Mesh;
 import com.playsawdust.chipper.glow.model.Model;
 
 public class MeshPass implements RenderPass {
 	
 	private ArrayList<Entry> scheduled = new ArrayList<>();
+	private MeshFlattener buffer = new MeshFlattener();
 	
 	@Override
 	public void apply() {
+		if (buffer.getLayout().size()==0) {
+			
+		}
+		
 		for(Entry entry : scheduled) {
 			Mesh mesh = entry.mesh;
 			for(Mesh.Face face : mesh.faces()) {
