@@ -1,0 +1,6 @@
+General future goals:
+* Fake heterogeneous compute: Prefer on-GPU compute, but perform CPU compute if that isn't present. Declare input and output buffer sizes ahead of time, load input up with byte[], then call a method on the compute procedure to make the buffer available either on-GPU (which can be faked from-CPU by uploading it as a Buffer) or on-CPU (which can be faked from-GPU by downloading the buffer to the client). If both are called, one is effectively ignored.
+
+* Face streaming
+
+* Indexed model support

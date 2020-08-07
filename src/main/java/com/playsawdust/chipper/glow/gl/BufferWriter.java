@@ -85,10 +85,13 @@ interface BufferWriter<T> {
 		short result = (short) ((s << FP16_SIGN_SHIFT) | (outE << FP16_EXPONENT_SHIFT) | outM);
 		buf.putShort(result);
 	};
+	
+	//TODO: This doesn't work. Needs a rewrite with the correct values
+	/*
 	public static BufferWriter<Double> WRITE_DOUBLE_TO_USHORT_NORMALIZED = (buf, it)->{
 		double d = it.doubleValue()*Short.MAX_VALUE;
 		buf.putShort((short)d);
-	};
+	};*/
 	public static BufferWriter<Double> WRITE_DOUBLE_TO_FLOAT = (buf, it)->{ buf.putFloat(it.floatValue()); };
 	public static BufferWriter<Double> WRITE_DOUBLE_TO_DOUBLE = (buf, it)->{ buf.putDouble(it); };
 	public static BufferWriter<Double> WRITE_DOUBLE_TO_INT = (buf, it)->{ buf.putInt(it.intValue()); };

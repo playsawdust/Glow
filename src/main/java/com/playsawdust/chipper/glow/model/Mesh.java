@@ -241,28 +241,6 @@ public class Mesh {
 		this.material = m;
 	}
 	
-	public static class Vertex implements MaterialAttributeContainer, MaterialAttributeDelegateHolder {
-		protected Vector3d pos;
-		protected Vector2d uv;
-		protected SimpleMaterialAttributeContainer attributes = new SimpleMaterialAttributeContainer();
-		
-		public Vertex(Vector3d pos) {
-			this.pos = new Vector3d(pos);
-			this.uv = new Vector2d(0, 0);
-		}
-
-		public Vertex(Vector3d pos, Vector2d uv) {
-			this.pos = new Vector3d(pos);
-			this.uv = new Vector2d(uv);
-		}
-
-		@Override
-		public MaterialAttributeContainer getDelegate() {
-			return attributes;
-		}
-		
-	}
-	
 	/** Basically a tuple of two vertices, defines a polygon edge */
 	public static class Edge {
 		Vertex a;

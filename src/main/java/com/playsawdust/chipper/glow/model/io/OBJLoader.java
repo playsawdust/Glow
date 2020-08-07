@@ -16,6 +16,7 @@ import com.google.common.io.CharStreams;
 import com.playsawdust.chipper.glow.model.Mesh;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.model.Model;
+import com.playsawdust.chipper.glow.model.Vertex;
 
 public class OBJLoader implements ModelLoader {
 
@@ -115,13 +116,13 @@ public class OBJLoader implements ModelLoader {
 		return list.get(pos);
 	}
 	
-	private static Mesh.Vertex deref(IndexedVertex v,  ArrayList<Vector3d> positions, ArrayList<Vector2d> textures, ArrayList<Vector3d> normals) {
+	private static Vertex deref(IndexedVertex v,  ArrayList<Vector3d> positions, ArrayList<Vector2d> textures, ArrayList<Vector3d> normals) {
 		Vector3d pos = deref(v.v-1, positions);
 		Vector2d tex = deref2(v.vt-1, textures);
 		Vector3d col = new Vector3d(1,1,1);
 		Vector3d normal = deref(v.vn-1, normals);
 		
-		Mesh.Vertex result = new Mesh.Vertex(pos, tex);
+		Vertex result = new Vertex(pos, tex);
 		result.putMaterialAttribute(MaterialAttribute.DIFFUSE_COLOR, col);
 		result.putMaterialAttribute(MaterialAttribute.NORMAL, normal);
 		
@@ -129,9 +130,9 @@ public class OBJLoader implements ModelLoader {
 	}
 	
 	private static Mesh.Face deref(IndexedFace f, ArrayList<Vector3d> positions, ArrayList<Vector2d> textures, ArrayList<Vector3d> normals) {
-		Mesh.Vertex a = deref(f.a, positions, textures, normals);
-		Mesh.Vertex b = deref(f.b, positions, textures, normals);
-		Mesh.Vertex c = deref(f.c, positions, textures, normals);
+		Vertex a = deref(f.a, positions, textures, normals);
+		Vertex b = deref(f.b, positions, textures, normals);
+		Vertex c = deref(f.c, positions, textures, normals);
 		
 		//Face result = new Face(a,b,c);
 		//result.genFaceNormal();

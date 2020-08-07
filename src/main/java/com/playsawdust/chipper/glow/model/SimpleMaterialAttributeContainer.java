@@ -50,4 +50,17 @@ public class SimpleMaterialAttributeContainer implements MaterialAttributeContai
 	public void clearMaterialAttributes() {
 		attributes.clear();
 	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (o == null) return false;
+		if (!(o instanceof SimpleMaterialAttributeContainer)) return false;
+		SimpleMaterialAttributeContainer that = (SimpleMaterialAttributeContainer)o;
+		return (that.attributes.equals(this.attributes));
+	}
+	
+	@Override
+	public int hashCode() {
+		return attributes.hashCode();
+	}
 }
