@@ -11,8 +11,8 @@ import com.playsawdust.chipper.glow.model.Vertex;
 
 public class MeshFlattener {
 	private VertexBuffer.Layout layout = new VertexBuffer.Layout();
-	private ByteBuffer clientBuffer;
-	int vertexCount = 0;
+	//private ByteBuffer clientBuffer;
+	//int vertexCount = 0;
 	
 	public VertexBuffer.Layout getLayout() { return layout; }
 	
@@ -26,10 +26,10 @@ public class MeshFlattener {
 	 * @param mesh
 	 * @return
 	 */
-	public VertexBuffer uploadMesh(Mesh mesh) {
-		if (clientBuffer == null) {
-			clientBuffer = MemoryUtil.memAlloc(bufferSize(mesh));
-		}
+	public static VertexBuffer uploadMesh(Mesh mesh, VertexBuffer.Layout layout) {
+		ByteBuffer clientBuffer = MemoryUtil.memAlloc(bufferSize(mesh, layout));
+		int vertexCount = 0;
+		
 		List<MaterialAttribute<?>> attributes = layout.getAttributes();
 		for(Mesh.Face face : mesh.faces()) {
 			
@@ -60,12 +60,16 @@ public class MeshFlattener {
 		return result;
 	}
 	
+	//public VertexBuffer uploadMesh(Mesh mesh) {
+	//	MeshFlattener.uploadMesh(mesh, layout);
+	//}
+	
 	/**
 	 * Gets the exact size in bytes that the provided Mesh will take up if flattened.
 	 * 
 	 * <p>NOTE: Flattening will fail at AT MOST 715,827,882 triangles divided by the Layout's byteCount
 	 */
-	public int bufferSize(Mesh mesh) {
+	public static int bufferSize(Mesh mesh, VertexBuffer.Layout layout) {
 		return layout.getByteCount()*mesh.getFaceCount()*3;
 	}
 }

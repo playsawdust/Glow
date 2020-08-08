@@ -1,5 +1,7 @@
 package com.playsawdust.chipper.glow.model;
 
+import org.joml.Vector2d;
+import org.joml.Vector2dc;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
@@ -28,6 +30,12 @@ public class MaterialAttribute<T> {
 	public String toString() {
 		return "{ \"MaterialAttribute\": \""+name+"\" }";
 	}
+	
+	/* Universal attributes
+	 * These attributes are important for pretty much any lighting model, but usually won't make sense in a material.
+	 */
+	public static MaterialAttribute<Vector3dc> POSITION = new MaterialAttribute<>("position", Vector3dc.class, new Vector3d(0,0,0));
+	public static MaterialAttribute<Vector2dc> UV = new MaterialAttribute<>("uv", Vector2dc.class, new Vector2d(0,0));
 	
 	/* Texture map IDs for Blinn-Phong
 	 * Intended for Material use. Texture IDs shouldn't be used in vertex attributes unless you're submitting to a texarray pass or flattening them away with an atlas model.

@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 
 import org.joml.Vector3dc;
 
-interface BufferWriter<T> {
+public interface BufferWriter<T> {
 	public void write(ByteBuffer buf, T data);
 	
 	/**

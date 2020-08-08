@@ -22,6 +22,10 @@ public class Window {
 		if (handle==NULL) throw new RuntimeException("Window creation failed.");
 	}
 	
+	public long handle() {
+		return this.handle;
+	}
+	
 	public void show() {
 		GLFW.glfwShowWindow(handle);
 	}
@@ -32,6 +36,13 @@ public class Window {
 	
 	public void destroy() {
 		GLFW.glfwDestroyWindow(handle);
+	}
+	
+	/**
+	 * Asks GLFW to make this window's context current
+	 */
+	public void makeContextCurrent() {
+		GLFW.glfwMakeContextCurrent(handle);
 	}
 	
 	/**
@@ -80,4 +91,5 @@ public class Window {
 			super(message);
 		}
 	}
+	
 }

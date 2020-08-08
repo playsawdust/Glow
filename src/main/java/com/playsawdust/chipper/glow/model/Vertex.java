@@ -1,10 +1,12 @@
 package com.playsawdust.chipper.glow.model;
 
 import org.joml.Vector2d;
+import org.joml.Vector2dc;
 import org.joml.Vector3d;
+import org.joml.Vector3dc;
 
-public class Vertex implements MaterialAttributeContainer, MaterialAttributeDelegateHolder {
-	protected Vector3d pos;
+public class Vertex implements MaterialAttributeContainer {
+	protected Vector3d pos; //TODO: Do pos and uv really need to be broken out? They can be stuffed into the attribute container now O_o
 	protected Vector2d uv;
 	protected SimpleMaterialAttributeContainer attributes = new SimpleMaterialAttributeContainer();
 	
@@ -18,9 +20,33 @@ public class Vertex implements MaterialAttributeContainer, MaterialAttributeDele
 		this.uv = new Vector2d(uv);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public MaterialAttributeContainer getDelegate() {
-		return attributes;
+	public <T> T getMaterialAttribute(MaterialAttribute<T> attribute) {
+		if (attribute==MaterialAttribute.POSITION) return (T) pos;
+		if (attribute==MaterialAttribute.UV) return (T) uv;
+		return attributes.getMaterialAttribute(attribute);
+	}
+	
+	@Override
+	public <T> void putMaterialAttribute(MaterialAttribute<T> attribute, T value) {
+		if (attribute==MaterialAttribute.POSITION) {
+			pos.set((Vector3dc) value);
+		} else if (attribute==MaterialAttribute.UV) {
+			uv.set((Vector2dc) value);
+		} else {
+			attributes.putMaterialAttribute(attribute, value);
+		}
+	}
+	
+	@Override
+	public <T> T removeMaterialAttribute(MaterialAttribute<T> attribute) {
+		return attributes.removeMaterialAttribute(attribute);
+	}
+	
+	@Override
+	public void clearMaterialAttributes() {
+		attributes.clearMaterialAttributes();
 	}
 	
 	@Override
