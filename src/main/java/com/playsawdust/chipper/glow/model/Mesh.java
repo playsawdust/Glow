@@ -2,7 +2,6 @@ package com.playsawdust.chipper.glow.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.joml.Vector2d;
@@ -10,18 +9,20 @@ import org.joml.Vector2dc;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
+import com.google.common.collect.ImmutableList;
+
 public class Mesh {
 	
 	private Material material;
-	private ArrayList<Vertex> vertices = new ArrayList<>();
-	private ArrayList<Edge> edges = new ArrayList<>();
+	//private ArrayList<Vertex> vertices = new ArrayList<>();
+	//private ArrayList<Edge> edges = new ArrayList<>();
 	private ArrayList<Face> faces = new ArrayList<>();
 	
 	private transient Object cacheData = null;
 	private transient Object cacheOwner = null;
 	
 	public Material getMaterial() { return material; }
-	
+	/*
 	public int getVertexCount() {
 		return vertices.size();
 	}
@@ -46,35 +47,7 @@ public class Mesh {
 	public void removeVertex(Vertex v) {
 		vertices.remove(v);
 		//TODO: Subset cleanup
-	}
-	
-	public int getEdgeCount() {
-		return edges.size();
-	}
-	
-	public Edge getEdge(int index) {
-		return edges.get(index);
-	}
-	
-	public void addEdge(Edge edge) {
-		edges.add(edge);
-		if (!vertices.contains(edge.a)) vertices.add(edge.a);
-		if (!vertices.contains(edge.b)) vertices.add(edge.b); 
-	}
-	
-	public void addEdge(Vertex a, Vertex b) {
-		edges.add(new Edge(a, b));
-	}
-	
-	public void removeEdge(int index) {
-		Edge edge = edges.remove(index);
-		if (edge!=null) cleanupEdgeRemoval(edge);
-	}
-	
-	public void removeEdge(Edge edge) {
-		boolean removed = edges.remove(edge);
-		if (removed) cleanupEdgeRemoval(edge);
-	}
+	}*/
 	
 	public int getFaceCount() {
 		return faces.size();
@@ -86,12 +59,9 @@ public class Mesh {
 	
 	public void addFace(Face face) {
 		faces.add(face);
-		for(Vertex v : face.vertices()) {
-			if (!vertices.contains(v)) vertices.add(v);
-		}
-		for(Edge e : face.edges()) {
-			if (!edges.contains(e)) edges.add(e);
-		}
+		//for(Vertex v : face.vertices()) {
+		//	if (!vertices.contains(v)) vertices.add(v);
+		//}
 	}
 	
 	public void removeFace(int index) {
@@ -149,18 +119,7 @@ public class Mesh {
 	//Deduplicates vertices, edges, and faces, and removes orphaned edges and vertices. Does any other consistency checks worth doing
 	public void cleanup() {
 		//TODO: Dedupe vertices first, so everything orphaned as a result just gets cleaned up here
-		
-		ArrayList<Edge> removedEdges = new ArrayList<>();
-		for(Edge e : edges) {
-			if (isOrphaned(e)) {
-				removedEdges.add(e);
-			}
-		}
-		
-		for(Edge e : removedEdges) {
-			edges.remove(e);
-		}
-		
+		/*
 		ArrayList<Vertex> removedVertices = new ArrayList<>();
 		for(Vertex v : vertices) {
 			if (isOrphaned(v)) {
@@ -170,68 +129,21 @@ public class Mesh {
 		
 		for(Vertex v : removedVertices) {
 			vertices.remove(v);
-		}
+		}*/
 	}
 	
 	/** Check all edges and vertices of a face which is no longer in the model, and if they're orphaned, remove them */
 	protected void cleanupFaceRemoval(Face removedFace) {
-		ArrayList<Edge> removedEdges = new ArrayList<>();
-		for(Edge e : removedFace.edges) {
-			if (isOrphaned(e)) {
-				removedEdges.add(e);
-				edges.remove(e);
-			}
-		}
-		
-		for(Edge e : removedEdges) {
-			cleanupEdgeRemoval(e);
-		}
-	}
-	
-	/**
-	 * Check for side-effects of removing an edge which is no longer in the model.
-	 * <ul>
-	 *   <li>Remove all faces which relied on the edge
-	 *   <li>Remove all vertices which no longer contribute to an edge or face
-	 * </ul>
-	 */
-	protected void cleanupEdgeRemoval(Edge removedEdge) {
-		ArrayList<Face> removedFaces = new ArrayList<>();
-		for(Face f : faces) {
-			if (f.edges.contains(removedEdge)) {
-				removedFaces.add(f);
-			}
-		}
-		for(Face f : removedFaces) {
-			if (faces.contains(f)) {
-				faces.remove(f);
-				cleanupFaceRemoval(f); //Additional edges and vertices may need killing at this point. Won't explode because additional edges from this call will be orphaned.
-			}
-		}
-		
-		
-		if (isOrphaned(removedEdge.a)) {
-			vertices.remove(removedEdge.a);
-		}
-		
-		if (isOrphaned(removedEdge.b)) {
-			vertices.remove(removedEdge.b);
-		}
-	}
-	
-	/** Returns true if and only if the provided Edge is contained by no Face in the mesh. */
-	public boolean isOrphaned(Edge e) {
-		for(Face f : faces) {
-			if (f.edges.contains(e)) return false;
-		}
-		
-		return true;
+		//ImmutableList<Vertex> toCheck = ImmutableList.copyOf(removedFace.vertices);
+		//for(Vertex v : toCheck) {
+		//	if (isOrphaned(v)) vertices.remove(v);
+		//}
 	}
 	
 	/** Returns true if and only if the provided Vertex is not an endpoint of any Edge (and therefore also not part of a Face) in this Mesh */
 	public boolean isOrphaned(Vertex v) {
-		for(Edge e : edges) {
-			if (e.a.equals(v) || e.b.equals(v)) return false;
+		for(Face f : faces) {
+			if (f.vertices.contains(v)) return false;
 		}
 		
 		return true;
@@ -241,23 +153,7 @@ public class Mesh {
 		this.material = m;
 	}
 	
-	/** Basically a tuple of two vertices, defines a polygon edge */
-	public static class Edge {
-		Vertex a;
-		Vertex b;
-		
-		public Edge() {}
-		public Edge(Vertex a, Vertex b) {
-			this.a = a;
-			this.b = b;
-		}
-		
-		public Vertex getA() { return a; }
-		public Vertex getB() { return b; }
-	}
-	
 	public static class Face {
-		ArrayList<Edge> edges = new ArrayList<>(); //size must be at least 3. This is mostly for bookkeeping.
 		ArrayList<Vertex> vertices = new ArrayList<>(); //size must be at least 3, size must match edges.size, all vertices must be present in edges, and must be listed in counter-clockwise order to express facing.
 		
 		public Face() {} //degenerate face though
@@ -266,57 +162,10 @@ public class Mesh {
 			this.vertices.add(a);
 			this.vertices.add(b);
 			this.vertices.add(c);
-			this.edges.add(new Edge(a, b));
-			this.edges.add(new Edge(b, c));
-			this.edges.add(new Edge(c, a));
-		}
-
-		/** Takes vertices and edges and makes sure that they match, pulling new edges from meshEdgeList if they exist,
-		 * or adding them to meshEdgeList if not present. Important note here, edges are a nice cached fiction, but
-		 * vertices are real ground truth, as the winding order also determines facing.
-		 */
-		public void cleanup(ArrayList<Edge> meshEdgeList) {
-			ArrayList<Edge> oldEdges = edges;
-			edges = new ArrayList<>();
-			Vertex lastVertex = null;
-			for(Vertex v : vertices) {
-				if (lastVertex!=null) {
-					
-					//Grab our existing edge if it exists
-					Edge e = getEdge(oldEdges, v, lastVertex);
-					
-					if (e==null) {
-						//Not present in our local edge cache, so grab it from the mesh if present
-						e = getEdge(meshEdgeList, v, lastVertex);
-						
-						if (e==null) {
-							//Not in local cache *or* mesh, so invent a new one and record it in the mesh
-							e = new Edge(v, lastVertex);
-							meshEdgeList.add(e);
-						}
-					}
-					edges.add(e);
-				}
-				
-				lastVertex = v;
-			}
-		}
-		
-		private Edge getEdge(ArrayList<Edge> edges, Vertex a, Vertex b) {
-			for(Edge e : edges) {
-				if (a.equals(e.a) && b.equals(e.b)) return e;
-				if (b.equals(e.a) && a.equals(e.b)) return e;
-			}
-			
-			return null;
 		}
 
 		public Iterable<Vertex> vertices() {
 			return Collections.unmodifiableList(vertices);
-		}
-		
-		public Iterable<Edge> edges() {
-			return Collections.unmodifiableList(edges);
 		}
 	}
 }

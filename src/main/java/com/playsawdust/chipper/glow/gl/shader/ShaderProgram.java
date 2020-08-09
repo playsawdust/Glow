@@ -106,6 +106,8 @@ public class ShaderProgram {
 	}
 	
 	public void destroy() {
+		if (handle==-1) return;
+		
 		//Should be covered by the DeleteProgram but just crossing the T's and dotting the I's
 		GL20.glDetachShader(handle, vertexHandle);
 		GL20.glDetachShader(handle, fragmentHandle);
@@ -141,7 +143,7 @@ public class ShaderProgram {
 	
 	private static class Entry {
 		public String name;
-		public int binding;
+		public int binding; //TODO: Redundant?
 		public int type;
 		
 		public Entry(String name, int binding, int type) {

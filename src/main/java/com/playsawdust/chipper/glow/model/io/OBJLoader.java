@@ -6,7 +6,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.joml.Vector2d;
 import org.joml.Vector3d;
@@ -14,14 +16,16 @@ import org.joml.Vector3d;
 import com.google.common.io.CharStreams;
 
 import com.playsawdust.chipper.glow.model.Mesh;
+import com.playsawdust.chipper.glow.ProgressReport;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.model.Model;
 import com.playsawdust.chipper.glow.model.Vertex;
 
 public class OBJLoader implements ModelLoader {
-
+	
 	@Override
-	public Model tryLoad(InputStream in) throws IOException {
+	public Model tryLoad(InputStream in, Consumer<Integer> progressConsumer) throws IOException {
+		ProgressReport progress = new ProgressReport(progressConsumer);
 		ArrayList<Vector3d> positions = new ArrayList<>();
 		ArrayList<Vector3d> normals = new ArrayList<>();
 		ArrayList<Vector2d> texcoords = new ArrayList<>();
@@ -29,79 +33,83 @@ public class OBJLoader implements ModelLoader {
 		ArrayList<IndexedFace> indexedFaces = new ArrayList<>();
 		
 		Mesh mesh = new Mesh();
-		//ArrayList<EditableMesh.Edge> edges = new ArrayList<>();
-		//ArrayList<EditableMesh.Face> faces = new ArrayList<>(); 
 		
 		List<String> file = CharStreams.readLines(new InputStreamReader(in, StandardCharsets.UTF_8));
-		
-		for(String line : file) {
-			if (line.startsWith("#")) continue;
-			if (line.trim().isEmpty()) continue;
-			
-			String[] parts = line.split(" ");
-			if (parts[0].equals("v")) {
-				if (parts.length>=4) {
-					Vector3d vertexPos = new Vector3d(Double.parseDouble(parts[1]), Double.parseDouble(parts[2]), Double.parseDouble(parts[3]));
-					positions.add(vertexPos);
+		int totalSize = file.size()*2;
+		boolean confirmObj = false;
+		//long lastProgress = System.nanoTime() / NANOS_PER_MILLI;
+		int lineNum = -1;
+		try {
+			for(String line : file) {
+				lineNum++;
+				if (line.startsWith("#")) continue;
+				if (line.isBlank()) continue;
+				
+				String[] parts = line.split(" ");
+				if (parts[0].equals("v")) {
+					if (parts.length>=4) {
+						Vector3d vertexPos = new Vector3d(Double.parseDouble(parts[1]), Double.parseDouble(parts[2]), Double.parseDouble(parts[3]));
+						positions.add(vertexPos);
+						confirmObj = true;
+					} else return null;
+				} else if (parts[0].equals("vn")) {
+					if (parts.length>=4) {
+						Vector3d vertexNormal = new Vector3d(Double.parseDouble(parts[1]), Double.parseDouble(parts[2]), Double.parseDouble(parts[3]));
+						normals.add(vertexNormal);
+						confirmObj = true;
+					} else return null;
+				} else if (parts[0].equals("vt")) {
+					if (parts.length==4) {
+						Vector3d vertexTexcoord = new Vector3d(Double.parseDouble(parts[1]), Double.parseDouble(parts[2]), Double.parseDouble(parts[3]));
+						normals.add(vertexTexcoord);
+						confirmObj = true;
+					} else if (parts.length==3) {
+						Vector2d vertexTexcoord = new Vector2d(Double.parseDouble(parts[1]), Double.parseDouble(parts[2]));
+						texcoords.add(vertexTexcoord);
+						confirmObj = true;
+					} else return null;
+				} else if (parts[0].equals("f")) {
+					IndexedFace.parse(line, indexedFaces);
+					confirmObj = true;
+				} else if (parts[0].equals("g")) {
+					confirmObj = true;
 				}
-			} else if (parts[0].equals("vn")) {
-				if (parts.length>=4) {
-					Vector3d vertexNormal = new Vector3d(Double.parseDouble(parts[1]), Double.parseDouble(parts[2]), Double.parseDouble(parts[3]));
-					normals.add(vertexNormal);
+				
+				if (confirmObj) {
+					progress.report(lineNum, totalSize);
 				}
-			} else if (parts[0].equals("vt")) {
-				if (parts.length==4) {
-					Vector3d vertexTexcoord = new Vector3d(Double.parseDouble(parts[1]), Double.parseDouble(parts[2]), Double.parseDouble(parts[3]));
-					normals.add(vertexTexcoord);
-				} else if (parts.length==3) {
-					Vector2d vertexTexcoord = new Vector2d(Double.parseDouble(parts[1]), Double.parseDouble(parts[2]));
-					texcoords.add(vertexTexcoord);
-				}
-			} else if (parts[0].equals("f")) {
-				IndexedFace.parse(line, indexedFaces);
 			}
-			
+		} catch (NumberFormatException ex) {
+			ex.printStackTrace();
+			return null;
 		}
 		
 		if (positions.size()==0 || indexedFaces.size()==0) return null; //This probably wasn't an obj file
 		
-		//System.out.println("Loaded "+positions+" vertex locations and "+indexedFaces.size()+" faces.");
 		
+		HashMap<Vector3d, ArrayList<Vertex>> generatedVertices = new HashMap<>();
+		
+		totalSize = indexedFaces.size()*2;
+		lineNum = indexedFaces.size();
 		for(IndexedFace face : indexedFaces) {
 			if (face.a==null || face.b==null || face.c==null) {
 				//System.out.println("INVALID FACE");
 				continue;
 			}
 			//System.out.println("Deindexing ("+face.a.v+"|"+face.a.vt+"|"+face.a.vn+"), ("+face.b.v+"|"+face.b.vt+"|"+face.b.vn+"), "+face.c.v+"|"+face.c.vt+"|"+face.c.vn+")");
-			Mesh.Face deIndexed = deref(face, positions, texcoords, normals);
+			Mesh.Face deIndexed = deref(face, positions, texcoords, normals, generatedVertices);
 			mesh.addFace(deIndexed);
-			//for(EditableMesh.Vertex vertex : deIndexed.vertices()) {
-			//	mesh.addVertex(vertex);
-			//}
-			//for(EditableMesh.Edge edge : deIndexed.edges()) {
-			//	mesh.addEdge(edge);
-			//}
+			
+			lineNum++;
+			progress.report(lineNum, totalSize);
 		}
-		
-		//Generate data for vertexes which don't have it
-		//for(EditableMesh.Face face : mesh.faces()) {
-			//TODO: Log and remove degenerate triangles?
-			//if (face.a().position().equals(face.b().position())) System.out.println("A-B Degenerate");
-			//if (face.b().position().equals(face.c().position())) System.out.println("B-C Degenerate");
-			//if (face.a().position().equals(face.c().position())) System.out.println("A-C Degenerate");
-			
-			
-			//TODO: Calculate missing normals from face windings?
-			//if (face.a().normal().length()==0 || face.b().normal().length()==0 || face.c().normal().length()==0) {
-			//	face.genFaceNormal();
-			//}
-			
-			//TODO: Project UVs if missing?
-		//}
 		
 		Model result = new Model();
 		result.addMesh(mesh);
-		System.out.println("Faces: "+mesh.getFaceCount()+" Vertices: "+mesh.getVertexCount());
+		
+		progressConsumer.accept(100);
+		System.out.println("Faces: "+mesh.getFaceCount()); //+" Vertices: "+mesh.getVertexCount());
+		
 		return result;
 	}
 	
@@ -116,7 +124,12 @@ public class OBJLoader implements ModelLoader {
 		return list.get(pos);
 	}
 	
-	private static Vertex deref(IndexedVertex v,  ArrayList<Vector3d> positions, ArrayList<Vector2d> textures, ArrayList<Vector3d> normals) {
+	private static Vertex deref(IndexedVertex v,  ArrayList<Vector3d> positions, ArrayList<Vector2d> textures, ArrayList<Vector3d> normals, HashMap<Vector3d, ArrayList<Vertex>> dedupe) {
+		//Negative indices count backwards from the end of the list, where -1 is the last element
+		if (v.v<0) v.v = positions.size()+v.v;
+		if (v.vt<0) v.vt = textures.size()+v.vt;
+		if (v.vn<0) v.vn = normals.size()+v.vn;
+		
 		Vector3d pos = deref(v.v-1, positions);
 		Vector2d tex = deref2(v.vt-1, textures);
 		Vector3d col = new Vector3d(1,1,1);
@@ -126,13 +139,25 @@ public class OBJLoader implements ModelLoader {
 		result.putMaterialAttribute(MaterialAttribute.DIFFUSE_COLOR, col);
 		result.putMaterialAttribute(MaterialAttribute.NORMAL, normal);
 		
+		ArrayList<Vertex> dupesList = dedupe.get(pos);
+		if (dupesList==null) {
+			dupesList = new ArrayList<>();
+			dedupe.put(pos, dupesList);
+		}
+		int index = dupesList.indexOf(result);
+		if (index!=-1) {
+			result = dupesList.get(index);
+		} else {
+			dupesList.add(result);
+		}
+		
 		return result;
 	}
 	
-	private static Mesh.Face deref(IndexedFace f, ArrayList<Vector3d> positions, ArrayList<Vector2d> textures, ArrayList<Vector3d> normals) {
-		Vertex a = deref(f.a, positions, textures, normals);
-		Vertex b = deref(f.b, positions, textures, normals);
-		Vertex c = deref(f.c, positions, textures, normals);
+	private static Mesh.Face deref(IndexedFace f, ArrayList<Vector3d> positions, ArrayList<Vector2d> textures, ArrayList<Vector3d> normals, HashMap<Vector3d, ArrayList<Vertex>> dedupe) {
+		Vertex a = deref(f.a, positions, textures, normals, dedupe);
+		Vertex b = deref(f.b, positions, textures, normals, dedupe);
+		Vertex c = deref(f.c, positions, textures, normals, dedupe);
 		
 		//Face result = new Face(a,b,c);
 		//result.genFaceNormal();
@@ -150,13 +175,13 @@ public class OBJLoader implements ModelLoader {
 			IndexedVertex result = new IndexedVertex();
 			String[] parts = def.split("/");
 			if (!parts[0].trim().isEmpty()) {
-				result.v = Integer.parseUnsignedInt(parts[0].trim());
+				result.v = Integer.parseInt(parts[0].trim());
 			}
 			if (parts.length>1 && !parts[1].trim().isEmpty()) {
-				result.vt = Integer.parseUnsignedInt(parts[1].trim());
+				result.vt = Integer.parseInt(parts[1].trim());
 			}
 			if (parts.length>2 && !parts[2].trim().isEmpty()) {
-				result.vn = Integer.parseUnsignedInt(parts[2].trim());
+				result.vn = Integer.parseInt(parts[2].trim());
 			}
 			return result;
 		}
