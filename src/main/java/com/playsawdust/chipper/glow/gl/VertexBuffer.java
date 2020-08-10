@@ -5,11 +5,11 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryStack;
 
 import com.google.common.collect.ImmutableList;
+import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
 
 public class VertexBuffer {
@@ -21,10 +21,10 @@ public class VertexBuffer {
 		this.layout = layout;
 		this.vertexCount = vertexCount;
 		
-		handle = GL15.glGenBuffers();
-		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, handle);
-		GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buf, GL15.GL_STATIC_DRAW);
-		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
+		handle = GL20.glGenBuffers();
+		GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, handle);
+		GL20.glBufferData(GL20.GL_ARRAY_BUFFER, buf, GL20.GL_STATIC_DRAW);
+		GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, 0);
 	}
 	
 	public int handle() {
@@ -35,8 +35,17 @@ public class VertexBuffer {
 	
 	public void destroy() {
 		if (handle==0) return;
-		GL15.glDeleteBuffers(handle);
+		GL20.glDeleteBuffers(handle);
 		handle = 0;
+	}
+	
+	public void bind(ShaderProgram prog) {
+		GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, handle);
+		layout.bind(prog);
+	}
+	
+	public void draw(int program) {
+		//GL20.glDrawArrays(GL20.GL_, first, count);
 	}
 	
 
@@ -100,23 +109,14 @@ public class VertexBuffer {
 		/**
 		 * Issues a series of glBufferPointer calls that describe attributes in this Layout to lwjgl.
 		 */
-		public void bind(int program) {
-			int curProgram = GL20.glGetInteger(GL20.GL_CURRENT_PROGRAM);
-			System.out.println("Current Program: "+curProgram);
-			program = curProgram; //TODO HAHA SUCKERS
-			
-			int attributes = GL20.glGetProgrami(program, GL20.GL_ACTIVE_ATTRIBUTES);
-			System.out.println("The program has "+attributes+" vertex attributes.");
-			try (MemoryStack stackFrame = MemoryStack.stackPush()) {
-				IntBuffer sizeBuf = stackFrame.mallocInt(1);
-				IntBuffer typeBuf = stackFrame.mallocInt(1);
-				for(int i=0; i<attributes; i++) {
-					String name = GL20.glGetActiveAttrib(program, i, sizeBuf, typeBuf);
-					int size = sizeBuf.get(0);
-					int type = typeBuf.get(0);
-					
-					System.out.println("Name: "+name+", Size: "+size+", Type: "+type);
-				}
+		public void bind(ShaderProgram program) {
+			int stride = getByteCount();
+			int ofs = 0;
+			for(Entry<?> entry : entries) {
+				int binding = program.getAttribBinding(entry.name);
+				GL20.glVertexAttribPointer(binding, entry.glDataCount, entry.glDataClass, entry.normalized, stride, ofs);
+				ofs += entry.destBytes;
+			}
 				/* //Once we know about the attribs we can fill in the pointers to buffers we upload in this Layout
 				//TODO: Cache this info so we're not re-querying it every single time we bind this Layout? That presupposes that Layout won't be shared between programs though... which it shouldn't be. But then we need to say so in the contract.
 				int ofs = 0;
@@ -124,7 +124,7 @@ public class VertexBuffer {
 					GL20.glGetActiveAttrib(program, 0);
 					GL20.glVertexAttribPointer(index, entry.destBytes, entry.glDataClass, false, stride, pointer);
 				}*/
-			}
+			
 		}
 		
 		
@@ -134,15 +134,19 @@ public class VertexBuffer {
 		
 		public static class Entry<T> {
 			private MaterialAttribute<T> sourceData;
+			/** The data type of each value presented to glVertexAttribPointer. For example, GL_FLOAT for an attribute of GLType.VEC3F */
 			private int glDataClass;
+			/** The number of values to list for glVertexAttribPointer. For Example, 3 for an attribute of GLType.VEC3F*/
+			private int glDataCount;
 			private boolean normalized;
 			private String name;
 			private BufferWriter<T> writer;
 			private int destBytes = 0;
 			
-			public Entry(MaterialAttribute<T> sourceData, int glDataClass, boolean normalized, String name, BufferWriter<T> writer, int destBytes) {
+			public Entry(MaterialAttribute<T> sourceData, int glDataClass, int glDataCount, boolean normalized, String name, BufferWriter<T> writer, int destBytes) {
 				this.sourceData = sourceData;
 				this.glDataClass = glDataClass;
+				this.glDataCount = glDataCount;
 				this.normalized = normalized;
 				
 				//Class<T> dataClass = sourceData.getDataClass();

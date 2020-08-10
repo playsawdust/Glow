@@ -5,6 +5,10 @@ import java.nio.ByteBuffer;
 import org.joml.Vector3dc;
 
 public interface BufferWriter<T> {
+	static final int UBYTE_MAX = 0xFF;
+	static final int USHORT_MAX = 0xFFFF;
+	
+	
 	public void write(ByteBuffer buf, T data);
 	
 	/**
@@ -86,15 +90,53 @@ public interface BufferWriter<T> {
 		buf.putShort(result);
 	};
 	
-	//TODO: This doesn't work. Needs a rewrite with the correct values
-	/*
-	public static BufferWriter<Double> WRITE_DOUBLE_TO_USHORT_NORMALIZED = (buf, it)->{
+	/* A note on writing doubles to normalized integers:
+	 * 
+	 * per https://www.khronos.org/opengl/wiki/Normalized_Integer#Signed
+	 * signed normalized integers are unpacked with effectively
+	 * 
+	 * <code>
+	 * 
+	 *   Math.max((double)it/MAX_VALUE, 1.0)
+	 * 
+	 * </code>
+	 * 
+	 * which crushes both MIN_VALUE and MIN_VALUE+1 against -1
+	 * The nice thing about this is that it keeps zero, *at zero*. And the error at the end is 1/MAX_VALUE th
+	 * 
+	 * So rather than stretching negative numbers to reach the single extra value, we do a straightforward
+	 * inverse transform which gives us values in the range [ MIN_VALUE+1 .. MAX_VALUE ]. And trust that
+	 * the MIN_VALUE+1 that -1 maps to will get properly unmapped back to -1:
+	 * 
+	 * <code>
+	 * 
+	 *   it*MAX_VALUE
+	 * 
+	 * </code>
+	 */
+	
+	public static BufferWriter<Double> WRITE_DOUBLE_TO_BYTE_NORMALIZED = (buf, it)->{
+		double d = it.doubleValue()*Byte.MAX_VALUE;
+		buf.put((byte)d);
+	};
+	
+	public static BufferWriter<Double> WRITE_DOUBLE_TO_UBYTE_NORMALIZED = (buf, it)->{
+		buf.putShort((short)(it*UBYTE_MAX));
+	};
+	public static BufferWriter<Double> WRITE_DOUBLE_TO_SHORT_NORMALIZED = (buf, it)->{
 		double d = it.doubleValue()*Short.MAX_VALUE;
 		buf.putShort((short)d);
-	};*/
+	};
+	public static BufferWriter<Double> WRITE_DOUBLE_TO_USHORT_NORMALIZED = (buf, it)->{
+		buf.putShort((short)(it*USHORT_MAX));
+	};
+	
+	public static BufferWriter<Double> WRITE_DOUBLE_TO_BYTE = (buf, it)->{ buf.putInt((byte)it.intValue()); };
+	public static BufferWriter<Double> WRITE_DOUBLE_TO_SHORT = (buf, it)->{ buf.putShort((short)it.intValue()); };
+	public static BufferWriter<Double> WRITE_DOUBLE_TO_INT = (buf, it)->{ buf.putInt(it.intValue()); };
 	public static BufferWriter<Double> WRITE_DOUBLE_TO_FLOAT = (buf, it)->{ buf.putFloat(it.floatValue()); };
 	public static BufferWriter<Double> WRITE_DOUBLE_TO_DOUBLE = (buf, it)->{ buf.putDouble(it); };
-	public static BufferWriter<Double> WRITE_DOUBLE_TO_INT = (buf, it)->{ buf.putInt(it.intValue()); };
+	
 	
 	public static BufferWriter<Vector3dc> WRITE_VEC3_TO_HALF_FLOATS = makeVec3Writer(WRITE_DOUBLE_TO_HALF_FLOAT);
 	public static BufferWriter<Vector3dc> WRITE_VEC3_TO_FLOATS = makeVec3Writer(WRITE_DOUBLE_TO_FLOAT);
