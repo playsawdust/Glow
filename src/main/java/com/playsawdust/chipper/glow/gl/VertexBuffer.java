@@ -5,6 +5,7 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryStack;
 
@@ -38,13 +39,17 @@ public class VertexBuffer {
 		GL20.glDeleteBuffers(handle);
 		handle = 0;
 	}
-	
-	public void bind(ShaderProgram prog) {
+	/*
+	private void bind(ShaderProgram prog) {
 		GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, handle);
 		layout.bind(prog);
-	}
+	}*/
 	
-	public void draw(int program) {
+	public void draw(ShaderProgram prog) {
+		GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, handle);
+		layout.bind(prog);
+		GL20.glDrawArrays(GL11.GL_TRIANGLES, 0, vertexCount);
+		
 		//GL20.glDrawArrays(GL20.GL_, first, count);
 	}
 	
@@ -114,7 +119,17 @@ public class VertexBuffer {
 			int ofs = 0;
 			for(Entry<?> entry : entries) {
 				int binding = program.getAttribBinding(entry.name);
+				GL20.glEnableVertexAttribArray(binding);
+				if (binding<0) {
+					System.out.println("Failed binding '"+entry.name+"'");
+					continue;
+				}
+				GL20.glEnableVertexAttribArray(binding);
 				GL20.glVertexAttribPointer(binding, entry.glDataCount, entry.glDataClass, entry.normalized, stride, ofs);
+				
+				//System.out.println("Bound '"+entry.name+"' to location "+binding+" with type "+GLType.of(entry.glDataClass)+" x"+entry.glDataCount);
+				//System.out.println("  Stride: "+stride+", Ofs: "+ofs);
+				
 				ofs += entry.destBytes;
 			}
 				/* //Once we know about the attribs we can fill in the pointers to buffers we upload in this Layout
@@ -143,6 +158,8 @@ public class VertexBuffer {
 			private BufferWriter<T> writer;
 			private int destBytes = 0;
 			
+			private Entry() {}
+			
 			public Entry(MaterialAttribute<T> sourceData, int glDataClass, int glDataCount, boolean normalized, String name, BufferWriter<T> writer, int destBytes) {
 				this.sourceData = sourceData;
 				this.glDataClass = glDataClass;
@@ -164,6 +181,49 @@ public class VertexBuffer {
 				this.name = name;
 				this.writer = writer;
 				this.destBytes = destBytes;
+			}
+			
+			public Entry<T> named(String name) {
+				this.name = name;
+				return this;
+			}
+			
+			public Entry<T> withLayout(int dataType, int dataCount) {
+				GLType type = GLType.of(dataType);
+				if (type!=GLType.UNKNOWN) {
+					int sz = type.getSize();
+					if (sz!=-1) this.destBytes = sz * dataCount;
+				}
+				this.glDataClass = dataType;
+				this.glDataCount = dataCount;
+				return this;
+			}
+			
+			public Entry<T> normalized() {
+				normalized = true;
+				return this;
+			}
+			
+			public Entry<T> nonNormalized() {
+				normalized = false;
+				return this;
+			}
+			
+			public Entry<T> withWriter(BufferWriter<T> writer) {
+				this.writer = writer;
+				return this;
+			}
+			
+			public Entry<T> withDestBytes(int size) {
+				this.destBytes = size;
+				return this;
+			}
+			
+			public static <T> Entry<T> forAttribute(MaterialAttribute<T> attribute) {
+				Entry<T> result = new Entry<>();
+				result.sourceData = attribute;
+				
+				return result;
 			}
 		}
 		
