@@ -60,6 +60,12 @@ public class MeshFlattener {
 		return result;
 	}
 	
+	public static BakedMesh bake(Mesh mesh, VertexBuffer.Layout layout) {
+		VertexBuffer buf = uploadMesh(mesh, layout);
+		BakedMesh result = new BakedMesh(mesh.getMaterial(), buf, null);
+		return result;
+	}
+	
 	//public VertexBuffer uploadMesh(Mesh mesh) {
 	//	MeshFlattener.uploadMesh(mesh, layout);
 	//}

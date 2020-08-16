@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.joml.Matrix3d;
+import org.joml.Matrix4dc;
+import org.joml.Vector3dc;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryStack;
 
@@ -18,6 +21,8 @@ public class ShaderProgram {
 	/* Note: An attribute's binding is its "location" in the list, which usually corresponds to its binding location */
 	private ArrayList<Entry> attributes = new ArrayList<>();
 	private HashMap<String, Integer> bindings = new HashMap<>();
+	
+	private ArrayList<Entry> uniforms = new ArrayList<>();
 	
 	public ShaderProgram(String vertex, String fragment) throws ShaderError {
 		vertexHandle = GL20.glCreateShader(GL20.GL_VERTEX_SHADER);
@@ -82,6 +87,22 @@ public class ShaderProgram {
 				attributes.add(entry);
 				bindings.put(name, location);
 			}
+			
+			int uniformCount = GL20.glGetProgrami(handle, GL20.GL_ACTIVE_UNIFORMS);
+			for(int i=0; i<uniformCount; i++) {
+				String name = GL20.glGetActiveUniform(handle, i, sizeBuf, typeBuf);
+				int type = typeBuf.get(0);
+				int location = GL20.glGetUniformLocation(handle, name);
+				
+				Entry entry = new Entry(name, location, type);
+				uniforms.add(entry);
+				GLType uniformType = GLType.of(type);
+				if (uniformType!=GLType.UNKNOWN) { 
+					System.out.println("    Name: "+name+", Type: "+GLType.of(type)+", Binding: "+location);
+				} else {
+					System.out.println("UnknownType "+type);
+				}
+			}
 		}
 	}
 	
@@ -141,6 +162,45 @@ public class ShaderProgram {
 		return null;
 	}
 	
+	private Entry getUniformEntry(String name) {
+		for(Entry entry : uniforms) {
+			if (entry.name.equals(name)) return entry; //CASE SENSITIVE
+		}
+		return null;
+	}
+	
+	public void setUniform(String uniform, Vector3dc value) {
+		Entry entry = getUniformEntry(uniform);
+		
+		if (entry==null) return;
+		if (entry.type==GL20.GL_FLOAT_VEC3) {
+			GL20.glUniform3fv(entry.binding, new float[]{ (float) value.x(), (float) value.y(), (float) value.z() });
+		} else if (entry.type==GL20.GL_FLOAT_VEC4) {
+			GL20.glUniform4fv(entry.binding, new float[]{ (float) value.x(), (float) value.y(), (float) value.z(), 1.0f });
+		}
+	}
+	
+	public void setUniform(String uniform, Matrix4dc value) {
+		Entry entry = getUniformEntry(uniform);
+		if (entry==null) return;
+		if (entry.type==GL20.GL_FLOAT_MAT4) {
+			float[] buf = new float[16];
+			GL20.glUniformMatrix4fv(entry.binding, false, value.get(buf));
+		} else if (entry.type==GL20.GL_FLOAT_MAT3) {
+			float[] buf = new float[9];
+			Matrix3d smallMatrix = new Matrix3d();
+			GL20.glUniformMatrix3fv(entry.binding, false, value.get3x3(smallMatrix).get(buf));
+		}
+	}
+	
+	public void setUniform(String uniform, int value) {
+		Entry entry = getUniformEntry(uniform);
+		if (entry==null) return;
+		if (entry.type==GL20.GL_INT || entry.type==GL20.GL_SAMPLER_2D) { //WARNING: SAMPLER2D VALUES ARE TEXTURE *UNITS*, NOT HANDLES
+			GL20.glUniform1i(entry.binding, value);
+		}
+	}
+	
 	private static class Entry {
 		public String name;
 		public int binding; //TODO: Redundant?
@@ -149,6 +209,7 @@ public class ShaderProgram {
 		public Entry(String name, int binding, int type) {
 			this.name = name;
 			this.type = type;
+			this.binding = binding;
 		}
 	}
 }

@@ -1,8 +1,13 @@
 package com.playsawdust.chipper.glow.pass;
 
+import org.joml.Matrix3dc;
 import org.joml.Vector3dc;
 
+import com.playsawdust.chipper.glow.gl.BakedMesh;
+import com.playsawdust.chipper.glow.model.Mesh;
+
 public interface RenderPass {
+	public String getId();
 	
 	/**
 	 * Returns whether the entire object can be enqueued to render on this pass
@@ -14,10 +19,16 @@ public interface RenderPass {
 	 * Enqueues the object for rendering. If canEnqueue returns false, or has not been called but would return false if called, then the behavior of this method is undefined.
 	 * @param o the object to render
 	 */
-	public void enqueue(Object o, Vector3dc position);
+	public void enqueue(Object o, Vector3dc position, Matrix3dc orientation);
 	
 	/**
 	 * Activates the PipelineState for this pass, renders all enqueued objects, and then clears the queue. The PipelineState will remain active until set again by some other method.
 	 */
 	public void apply();
+	
+	/**
+	 * If this RenderPass returns true for canEnqueue with Meshe objects, return a BakedMesh that can be scheduled on this pass. Otherwise the behavior of this method is undefined.
+	 * @param mesh The Mesh to flatten and upload
+	 */
+	public BakedMesh bake(Mesh mesh);
 }

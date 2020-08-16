@@ -1,19 +1,18 @@
 package com.playsawdust.chipper.glow.gl;
 
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
-import org.lwjgl.system.MemoryStack;
 
 import com.google.common.collect.ImmutableList;
+import com.playsawdust.chipper.glow.gl.shader.Destroyable;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
 
-public class VertexBuffer {
+public class VertexBuffer implements Destroyable {
 	private int handle = 0;
 	private Layout layout;
 	private int vertexCount = 0;
@@ -34,16 +33,12 @@ public class VertexBuffer {
 	
 	public Layout getLayout() { return layout; }
 	
+	@Override
 	public void destroy() {
 		if (handle==0) return;
 		GL20.glDeleteBuffers(handle);
 		handle = 0;
 	}
-	/*
-	private void bind(ShaderProgram prog) {
-		GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, handle);
-		layout.bind(prog);
-	}*/
 	
 	public void draw(ShaderProgram prog) {
 		GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, handle);
@@ -120,26 +115,14 @@ public class VertexBuffer {
 			for(Entry<?> entry : entries) {
 				int binding = program.getAttribBinding(entry.name);
 				GL20.glEnableVertexAttribArray(binding);
-				if (binding<0) {
-					System.out.println("Failed binding '"+entry.name+"'");
+				if (binding<0) { //Failed binding. This stretch of data will be ignored.
 					continue;
 				}
 				GL20.glEnableVertexAttribArray(binding);
 				GL20.glVertexAttribPointer(binding, entry.glDataCount, entry.glDataClass, entry.normalized, stride, ofs);
 				
-				//System.out.println("Bound '"+entry.name+"' to location "+binding+" with type "+GLType.of(entry.glDataClass)+" x"+entry.glDataCount);
-				//System.out.println("  Stride: "+stride+", Ofs: "+ofs);
-				
 				ofs += entry.destBytes;
 			}
-				/* //Once we know about the attribs we can fill in the pointers to buffers we upload in this Layout
-				//TODO: Cache this info so we're not re-querying it every single time we bind this Layout? That presupposes that Layout won't be shared between programs though... which it shouldn't be. But then we need to say so in the contract.
-				int ofs = 0;
-				for(Entry<?> entry : entries) {
-					GL20.glGetActiveAttrib(program, 0);
-					GL20.glVertexAttribPointer(index, entry.destBytes, entry.glDataClass, false, stride, pointer);
-				}*/
-			
 		}
 		
 		

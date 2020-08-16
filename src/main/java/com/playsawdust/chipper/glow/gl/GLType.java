@@ -5,6 +5,7 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL40;
 import org.lwjgl.opengl.GL46;
 import org.lwjgl.opengl.AMDGPUShaderInt64;
+import org.lwjgl.opengl.ARBTextureRectangle;
 
 /** Exhaustive enum of all types available to &lt;= GL20 */
 public enum GLType {
@@ -82,6 +83,13 @@ public enum GLType {
 	MAT3D(GL40.GL_DOUBLE_MAT3),
 	/** Not allowed for vertex attribute data. */
 	MAT4D(GL40.GL_DOUBLE_MAT4),
+	
+	/** Not allowed for vertex attribute data. */
+	SAMPLER2D(GL20.GL_SAMPLER_2D),
+	/** Not allowed for vertex attribute data. */
+	SAMPLER3D(GL20.GL_SAMPLER_3D),
+	
+	SAMPLER2D_RECT(ARBTextureRectangle.GL_SAMPLER_2D_RECT_ARB),
 	
 	//reserved by library
 	UNKNOWN(-1);
