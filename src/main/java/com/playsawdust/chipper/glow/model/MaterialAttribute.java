@@ -105,4 +105,12 @@ public class MaterialAttribute<T> {
 	public static MaterialAttribute<String> ALBEDO_TEXTURE_ID = new MaterialAttribute<>("albedoTextureId", String.class, "untitled");
 	public static MaterialAttribute<String> METALNESS_TEXTURE_ID = new MaterialAttribute<>("metalnessTextureId", String.class, "untitled");
 	public static MaterialAttribute<String> SMOOTHNESS_TEXTURE_ID = new MaterialAttribute<>("smoothnessTextureId", String.class, "untitled");
+	
+	
+	/*
+	 * Environment attributes
+	 * These attributes tend to get used to describe general scene-wide or BoundingVolume-wide lighting and fog conditions rather than specific materials or vertices.
+	 */
+	
+	public static MaterialAttribute<Vector3dc> AMBIENT_LIGHT = new MaterialAttribute<>("ambientLight", Vector3dc.class, new Vector3d(0, 0, 0));
 }

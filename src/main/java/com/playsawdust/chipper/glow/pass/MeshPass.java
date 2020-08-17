@@ -1,6 +1,7 @@
 package com.playsawdust.chipper.glow.pass;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -17,6 +18,9 @@ import com.playsawdust.chipper.glow.gl.BakedMesh;
 import com.playsawdust.chipper.glow.gl.MeshFlattener;
 import com.playsawdust.chipper.glow.gl.VertexBuffer;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
+import com.playsawdust.chipper.glow.model.Material;
+import com.playsawdust.chipper.glow.model.MaterialAttribute;
+import com.playsawdust.chipper.glow.model.MaterialAttributeContainer;
 import com.playsawdust.chipper.glow.model.Mesh;
 import com.playsawdust.chipper.glow.model.Model;
 
@@ -34,6 +38,7 @@ public class MeshPass implements RenderPass {
 			.build();
 	private ShaderProgram shader;
 	private VertexBuffer.Layout layout = new VertexBuffer.Layout();
+	private HashMap<MaterialAttribute<?>, String> uniformLayout = new HashMap<>();
 	private String id;
 	
 	public MeshPass(String id) {
@@ -42,6 +47,10 @@ public class MeshPass implements RenderPass {
 	
 	public void setLayout(VertexBuffer.Layout layout) {
 		this.layout = layout;
+	}
+	
+	public void layoutUniform(MaterialAttribute<?> attribute, String uniform) {
+		uniformLayout.put(attribute, uniform);
 	}
 	
 	public void setShader(ShaderProgram shader) {
@@ -58,7 +67,19 @@ public class MeshPass implements RenderPass {
 		
 		Matrix4d modelMatrix = new Matrix4d();
 		Matrix4d rotTransfer = new Matrix4d();
+		MaterialAttributeContainer lastEnvironment = null;
+		Material lastMaterial = null;
 		for(MeshEntry entry : scheduled) {
+			if (lastEnvironment==null || !entry.environment.equals(lastEnvironment)) {
+				applyContainer(entry.environment);
+				lastEnvironment = entry.environment;
+				lastMaterial = null; //We'll need to reapply the material even if it's the same to clobber duplicate attributes
+			}
+			if (lastMaterial==null || !lastMaterial.equals(entry.baked.getMaterial())) {
+				applyContainer(entry.baked.getMaterial());
+				lastMaterial = entry.baked.getMaterial();
+			}
+			
 			rotTransfer.identity();
 			rotTransfer.set(entry.orientation);
 			modelMatrix.identity();
@@ -84,12 +105,12 @@ public class MeshPass implements RenderPass {
 	}
 
 	@Override
-	public void enqueue(Object o, Vector3dc position, Matrix3dc orientation) {
+	public void enqueue(Object o, Vector3dc position, Matrix3dc orientation, MaterialAttributeContainer environment) {
 		if (o instanceof BakedMesh) {
-			scheduled.add(new MeshEntry((BakedMesh)o, position, orientation));
+			scheduled.add(new MeshEntry((BakedMesh)o, position, orientation, environment));
 		} else if (o instanceof Model) {
 			for(Mesh mesh : ((Model)o).meshes()) {
-				enqueue(mesh, position, orientation);
+				enqueue(mesh, position, orientation, environment);
 			}
 		} else if (o instanceof Mesh) {
 			BakedMesh baked;
@@ -100,7 +121,7 @@ public class MeshPass implements RenderPass {
 					return result;
 				});
 				
-				scheduled.add(new MeshEntry(baked, position, orientation));
+				scheduled.add(new MeshEntry(baked, position, orientation, environment));
 			} catch (ExecutionException e) {
 				e.printStackTrace();
 			}
@@ -112,11 +133,13 @@ public class MeshPass implements RenderPass {
 		BakedMesh baked;
 		Vector3d position = new Vector3d(0,0,0);
 		Matrix3d orientation = new Matrix3d();
+		MaterialAttributeContainer environment;
 		
-		public MeshEntry(BakedMesh baked, Vector3dc position, Matrix3dc orientation) {
+		public MeshEntry(BakedMesh baked, Vector3dc position, Matrix3dc orientation, MaterialAttributeContainer environment) {
 			this.baked = baked;
 			this.position.set(position);
 			this.orientation.set(orientation);
+			this.environment = environment;
 		}
 	}
 
@@ -133,5 +156,15 @@ public class MeshPass implements RenderPass {
 		return this.id;
 	}
 
-	
+	private void applyContainer(MaterialAttributeContainer container) {
+		for(MaterialAttribute<?> attrib : uniformLayout.keySet()) {
+			Object obj = container.getMaterialAttribute(attrib);
+			if (obj==null) continue;
+			if (obj instanceof Vector3dc) {
+				shader.setUniform(uniformLayout.get(attrib), (Vector3dc)obj);
+			} else if (obj instanceof Double) {
+				shader.setUniform(uniformLayout.get(attrib), (Double)obj);
+			}
+		}
+	}
 }

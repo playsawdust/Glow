@@ -8,6 +8,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.joml.Matrix3d;
 import org.joml.Matrix4dc;
 import org.joml.Vector3dc;
+import org.lwjgl.opengl.ARBTextureRectangle;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryStack;
 
@@ -196,8 +197,16 @@ public class ShaderProgram {
 	public void setUniform(String uniform, int value) {
 		Entry entry = getUniformEntry(uniform);
 		if (entry==null) return;
-		if (entry.type==GL20.GL_INT || entry.type==GL20.GL_SAMPLER_2D) { //WARNING: SAMPLER2D VALUES ARE TEXTURE *UNITS*, NOT HANDLES
+		if (entry.type==GL20.GL_INT || entry.type==GL20.GL_SAMPLER_2D || entry.type==ARBTextureRectangle.GL_SAMPLER_2D_RECT_ARB) { //WARNING: SAMPLER2D VALUES ARE TEXTURE *UNITS*, NOT HANDLES
 			GL20.glUniform1i(entry.binding, value);
+		}
+	}
+	
+	public void setUniform(String uniform, double value) {
+		Entry entry = getUniformEntry(uniform);
+		if (entry==null) return;
+		if (entry.type==GL20.GL_FLOAT || entry.type==GL20.GL_DOUBLE) {
+			GL20.glUniform1f(entry.binding, (float) value);
 		}
 	}
 	

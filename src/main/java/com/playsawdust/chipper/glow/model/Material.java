@@ -9,7 +9,7 @@ public interface Material extends MaterialAttributeContainer {
 	public static Generic GENERIC = new Generic()
 			.with(MaterialAttribute.DIFFUSE_COLOR, new Vector3d(1,1,1))
 			.with(MaterialAttribute.OPACITY, Double.valueOf(1.0))
-			.with(MaterialAttribute.SPECULARITY, Double.valueOf(0.2));
+			.with(MaterialAttribute.SPECULARITY, Double.valueOf(0.3));
 	
 	public static Generic RED_PLASTIC = new Generic()
 			.with(MaterialAttribute.DIFFUSE_COLOR, new Vector3d(1.0, 0.5, 0.5))

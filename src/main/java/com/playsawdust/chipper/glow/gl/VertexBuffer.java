@@ -48,7 +48,6 @@ public class VertexBuffer implements Destroyable {
 		//GL20.glDrawArrays(GL20.GL_, first, count);
 	}
 	
-
 	public static class Layout {
 		private ArrayList<Entry<?>> entries = new ArrayList<>();
 		

@@ -13,6 +13,7 @@ import com.playsawdust.chipper.glow.gl.BufferWriter;
 import com.playsawdust.chipper.glow.gl.VertexBuffer;
 import com.playsawdust.chipper.glow.model.ImmutableModel;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
+import com.playsawdust.chipper.glow.model.MaterialAttributeContainer;
 import com.playsawdust.chipper.glow.model.Mesh;
 import com.playsawdust.chipper.glow.model.Model;
 import com.playsawdust.chipper.glow.pass.MeshPass;
@@ -26,14 +27,14 @@ public class RenderScheduler {
 	 * @param o
 	 * @return true if the object was scheduled for render.
 	 */
-	public boolean schedule(Object o, Vector3dc position, Matrix3dc orientation) {
+	public boolean schedule(Object o, Vector3dc position, Matrix3dc orientation, MaterialAttributeContainer environment) {
 		if (o instanceof ImmutableModel) {
-			return schedule((ImmutableModel)o, position, orientation);
+			return schedule((ImmutableModel)o, position, orientation, environment);
 		}
 		
 		for(RenderPass pass : passes) {
 			if (pass.canEnqueue(o)) {
-				pass.enqueue(o, position, orientation);
+				pass.enqueue(o, position, orientation, environment);
 				return true;
 			}
 		}
@@ -41,17 +42,17 @@ public class RenderScheduler {
 		return false;
 	}
 	
-	public boolean schedule(BakedModel model, Vector3dc position, Matrix3dc orientation) {
+	public boolean schedule(BakedModel model, Vector3dc position, Matrix3dc orientation, MaterialAttributeContainer environment) {
 		boolean allScheduled = true;
 		for(BakedMesh mesh : model) {
 			RenderPass preferred = mesh.getRenderPass();
 			if (preferred!=null) {
-				preferred.enqueue(mesh, position, orientation);
+				preferred.enqueue(mesh, position, orientation, environment);
 			} else {
 				boolean scheduled = false;
 				for(RenderPass pass : passes) {
 					if (pass.canEnqueue(mesh)) {
-						pass.enqueue(mesh, position, orientation);
+						pass.enqueue(mesh, position, orientation, environment);
 						scheduled = true;
 						break;
 					}
@@ -63,10 +64,10 @@ public class RenderScheduler {
 		return allScheduled;
 	}
 	
-	public boolean schedule(Model m, Vector3dc position, Matrix3dc orientation) {
+	public boolean schedule(Model m, Vector3dc position, Matrix3dc orientation, MaterialAttributeContainer environment) {
 		for(RenderPass pass : passes) {
 			if (pass.canEnqueue(m)) {
-				pass.enqueue(m, position, orientation);
+				pass.enqueue(m, position, orientation, environment);
 				return true;
 			}
 		}
@@ -121,6 +122,8 @@ public class RenderScheduler {
 		
 		layout.addVertexAttribute(normalEntry);
 		solidPass.setLayout(layout);
+		
+		solidPass.layoutUniform(MaterialAttribute.AMBIENT_LIGHT, "ambientLight");
 		
 		result.passes.add(solidPass);
 		

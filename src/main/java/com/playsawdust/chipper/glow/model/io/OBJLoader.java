@@ -17,6 +17,7 @@ import com.google.common.io.CharStreams;
 
 import com.playsawdust.chipper.glow.model.Mesh;
 import com.playsawdust.chipper.glow.ProgressReport;
+import com.playsawdust.chipper.glow.model.Material;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.model.Model;
 import com.playsawdust.chipper.glow.model.Vertex;
@@ -33,6 +34,7 @@ public class OBJLoader implements ModelLoader {
 		ArrayList<IndexedFace> indexedFaces = new ArrayList<>();
 		
 		Mesh mesh = new Mesh();
+		mesh.setMaterial(Material.GENERIC);
 		
 		List<String> file = CharStreams.readLines(new InputStreamReader(in, StandardCharsets.UTF_8));
 		int totalSize = file.size()*2;
