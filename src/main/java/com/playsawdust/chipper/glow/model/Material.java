@@ -162,6 +162,19 @@ public interface Material extends MaterialAttributeContainer {
 			if (frozen) throw new IllegalStateException("Cannot edit a frozen Material");
 			delegate.putMaterialAttribute(attribute, value);
 		}
+		
+		public Generic copy() {
+			Generic result = new Generic();
+			for(MaterialAttribute<?> attribute : delegate.attributes()) {
+				copyAttribute(attribute, delegate, result);
+			}
+			return result;
+		}
+		
+		/** You can't get this level of hackery inline, but this is actually statically verified */
+		private static <T> void copyAttribute(MaterialAttribute<T> attribute, MaterialAttributeContainer source, MaterialAttributeContainer target) {
+			T t = source.getMaterialAttribute(attribute);
+			target.putMaterialAttribute(attribute, t);
+		}
 	}
-	
 }

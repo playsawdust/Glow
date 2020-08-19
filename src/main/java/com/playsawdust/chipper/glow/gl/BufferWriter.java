@@ -2,6 +2,7 @@ package com.playsawdust.chipper.glow.gl;
 
 import java.nio.ByteBuffer;
 
+import org.joml.Vector2dc;
 import org.joml.Vector3dc;
 
 public interface BufferWriter<T> {
@@ -27,6 +28,13 @@ public interface BufferWriter<T> {
 			writer.write(buf, vec.x());
 			writer.write(buf, vec.y());
 			writer.write(buf, vec.z());
+		};
+	}
+	
+	public static BufferWriter<Vector2dc> makeVec2Writer(BufferWriter<Double> writer) {
+		return (buf, vec) -> {
+			writer.write(buf, vec.x());
+			writer.write(buf, vec.y());
 		};
 	}
 	
@@ -137,6 +145,8 @@ public interface BufferWriter<T> {
 	public static BufferWriter<Double> WRITE_DOUBLE_TO_FLOAT = (buf, it)->{ buf.putFloat(it.floatValue()); };
 	public static BufferWriter<Double> WRITE_DOUBLE_TO_DOUBLE = (buf, it)->{ buf.putDouble(it); };
 	
+	public static BufferWriter<Vector2dc> WRITE_VEC2_TO_HALF_FLOATS = makeVec2Writer(WRITE_DOUBLE_TO_HALF_FLOAT);
+	public static BufferWriter<Vector2dc> WRITE_VEC2_TO_FLOATS = makeVec2Writer(WRITE_DOUBLE_TO_FLOAT);
 	
 	public static BufferWriter<Vector3dc> WRITE_VEC3_TO_HALF_FLOATS = makeVec3Writer(WRITE_DOUBLE_TO_HALF_FLOAT);
 	public static BufferWriter<Vector3dc> WRITE_VEC3_TO_FLOATS = makeVec3Writer(WRITE_DOUBLE_TO_FLOAT);

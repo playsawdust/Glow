@@ -1,8 +1,11 @@
 package com.playsawdust.chipper.glow;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.joml.Matrix3dc;
+import org.joml.Matrix4dc;
+import org.joml.Vector2dc;
 import org.joml.Vector3dc;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
@@ -10,7 +13,9 @@ import org.lwjgl.opengl.GL20;
 import com.playsawdust.chipper.glow.gl.BakedMesh;
 import com.playsawdust.chipper.glow.gl.BakedModel;
 import com.playsawdust.chipper.glow.gl.BufferWriter;
+import com.playsawdust.chipper.glow.gl.Texture;
 import com.playsawdust.chipper.glow.gl.VertexBuffer;
+import com.playsawdust.chipper.glow.gl.shader.Destroyable;
 import com.playsawdust.chipper.glow.model.ImmutableModel;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.model.MaterialAttributeContainer;
@@ -19,8 +24,9 @@ import com.playsawdust.chipper.glow.model.Model;
 import com.playsawdust.chipper.glow.pass.MeshPass;
 import com.playsawdust.chipper.glow.pass.RenderPass;
 
-public class RenderScheduler {
+public class RenderScheduler implements Destroyable {
 	private ArrayList<RenderPass> passes = new ArrayList<>();
+	private HashMap<String, Texture> textures = new HashMap<>();
 	
 	/**
 	 * Schedule some renderable object
@@ -88,11 +94,11 @@ public class RenderScheduler {
 		return new BakedModel(meshes);
 	}
 	
-	public void render() {
+	public void render(Matrix4dc viewMatrix) {
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		
 		for(RenderPass pass : passes) {
-			pass.apply();
+			pass.apply(viewMatrix);
 		}
 	}
 	
@@ -119,11 +125,22 @@ public class RenderScheduler {
 				.withLayout(GL20.GL_FLOAT, 3)
 				.nonNormalized()
 				.withWriter(BufferWriter.WRITE_VEC3_TO_FLOATS);
-		
 		layout.addVertexAttribute(normalEntry);
+		
+		VertexBuffer.Layout.Entry<Vector2dc> uvEntry =
+				VertexBuffer.Layout.Entry
+				.forAttribute(MaterialAttribute.UV)
+				.named("uv")
+				.withLayout(GL20.GL_FLOAT, 2)
+				.nonNormalized()
+				.withWriter(BufferWriter.WRITE_VEC2_TO_FLOATS);
+		layout.addVertexAttribute(uvEntry);
+		
 		solidPass.setLayout(layout);
 		
 		solidPass.layoutUniform(MaterialAttribute.AMBIENT_LIGHT, "ambientLight");
+		solidPass.layoutUniform(MaterialAttribute.DIFFUSE_COLOR, "materialColor");
+		solidPass.layoutUniform(MaterialAttribute.SPECULARITY, "materialSpecularity");
 		
 		result.passes.add(solidPass);
 		
@@ -135,5 +152,17 @@ public class RenderScheduler {
 			if (pass.getId().equals(string)) return pass;
 		}
 		return null;
+	}
+
+	@Override
+	public void destroy() {
+		for(Texture t : textures.values()) {
+			t.destroy();
+		}
+		textures.clear();
+		
+		for(RenderPass pass : passes) {
+			pass.destroy();
+		}
 	}
 }

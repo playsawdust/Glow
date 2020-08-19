@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import org.joml.Matrix3d;
 import org.joml.Matrix3dc;
 import org.joml.Matrix4d;
+import org.joml.Matrix4dc;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
@@ -31,9 +32,10 @@ public class MeshPass implements RenderPass {
 	private Cache<Mesh, BakedMesh> bakedMeshes = CacheBuilder.newBuilder()
 			.expireAfterAccess(5, TimeUnit.SECONDS)
 			.<Mesh, BakedMesh>removalListener((notification)-> {
-				if (notification.getCause()==RemovalCause.EXPIRED) {
+				//We no longer check the cause because the cache is ONLY ever used for automatically-generated BakedMeshes
+				//if (notification.getCause()==RemovalCause.EXPIRED || notification.getCause()==RemovalCause.EXPLICIT) {
 					scheduledForDeletion.add(notification.getValue());
-				}
+				//}
 			})
 			.build();
 	private ShaderProgram shader;
@@ -57,12 +59,12 @@ public class MeshPass implements RenderPass {
 		this.shader = shader;
 	}
 	
+	
+	
 	@Override
-	public void apply() {
+	public void apply(Matrix4dc viewMatrix) {
 		if (shader==null) return;
 		shader.bind();
-		Matrix4d viewMatrix = new Matrix4d();
-		viewMatrix.identity();
 		shader.setUniform("viewMatrix", viewMatrix);
 		
 		Matrix4d modelMatrix = new Matrix4d();
@@ -166,5 +168,15 @@ public class MeshPass implements RenderPass {
 				shader.setUniform(uniformLayout.get(attrib), (Double)obj);
 			}
 		}
+	}
+
+	@Override
+	public void destroy() {
+		bakedMeshes.invalidateAll();
+		bakedMeshes.cleanUp();
+		for(BakedMesh mesh : scheduledForDeletion) {
+			mesh.destroy();
+		}
+		scheduledForDeletion.clear();
 	}
 }

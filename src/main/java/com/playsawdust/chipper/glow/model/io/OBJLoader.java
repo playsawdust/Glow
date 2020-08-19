@@ -61,11 +61,12 @@ public class OBJLoader implements ModelLoader {
 						confirmObj = true;
 					} else return null;
 				} else if (parts[0].equals("vt")) {
-					if (parts.length==4) {
-						Vector3d vertexTexcoord = new Vector3d(Double.parseDouble(parts[1]), Double.parseDouble(parts[2]), Double.parseDouble(parts[3]));
-						normals.add(vertexTexcoord);
-						confirmObj = true;
-					} else if (parts.length==3) {
+					//if (parts.length==4) {
+					//	Vector3d vertexTexcoord = new Vector3d(Double.parseDouble(parts[1]), Double.parseDouble(parts[2]), Double.parseDouble(parts[3]));
+					//	texcoords.add(vertexTexcoord);
+					//	confirmObj = true;
+					//} else
+					if (parts.length==3) {
 						Vector2d vertexTexcoord = new Vector2d(Double.parseDouble(parts[1]), Double.parseDouble(parts[2]));
 						texcoords.add(vertexTexcoord);
 						confirmObj = true;
@@ -140,6 +141,7 @@ public class OBJLoader implements ModelLoader {
 		Vertex result = new Vertex(pos, tex);
 		result.putMaterialAttribute(MaterialAttribute.DIFFUSE_COLOR, col);
 		result.putMaterialAttribute(MaterialAttribute.NORMAL, normal);
+		
 		
 		ArrayList<Vertex> dupesList = dedupe.get(pos);
 		if (dupesList==null) {

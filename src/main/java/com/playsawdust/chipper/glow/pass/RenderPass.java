@@ -1,13 +1,15 @@
 package com.playsawdust.chipper.glow.pass;
 
 import org.joml.Matrix3dc;
+import org.joml.Matrix4dc;
 import org.joml.Vector3dc;
 
 import com.playsawdust.chipper.glow.gl.BakedMesh;
+import com.playsawdust.chipper.glow.gl.shader.Destroyable;
 import com.playsawdust.chipper.glow.model.MaterialAttributeContainer;
 import com.playsawdust.chipper.glow.model.Mesh;
 
-public interface RenderPass {
+public interface RenderPass extends Destroyable {
 	public String getId();
 	
 	/**
@@ -25,7 +27,7 @@ public interface RenderPass {
 	/**
 	 * Activates the PipelineState for this pass, renders all enqueued objects, and then clears the queue. The PipelineState will remain active until set again by some other method.
 	 */
-	public void apply();
+	public void apply(Matrix4dc viewMatrix);
 	
 	/**
 	 * If this RenderPass returns true for canEnqueue with Meshe objects, return a BakedMesh that can be scheduled on this pass. Otherwise the behavior of this method is undefined.

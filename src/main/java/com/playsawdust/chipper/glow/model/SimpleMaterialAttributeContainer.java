@@ -1,5 +1,6 @@
 package com.playsawdust.chipper.glow.model;
 
+import java.util.Collection;
 import java.util.HashMap;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -49,6 +50,10 @@ public class SimpleMaterialAttributeContainer implements MaterialAttributeContai
 	@Override
 	public void clearMaterialAttributes() {
 		attributes.clear();
+	}
+	
+	public Collection<MaterialAttribute<?>> attributes() {
+		return attributes.keySet();
 	}
 	
 	@Override

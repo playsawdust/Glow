@@ -175,6 +175,8 @@ public class VertexBuffer implements Destroyable {
 				if (type!=GLType.UNKNOWN) {
 					int sz = type.getSize();
 					if (sz!=-1) this.destBytes = sz * dataCount;
+				} else {
+					System.out.println("Warning! Unknown layout type! Please call withDestBytes on the Layout Entry");
 				}
 				this.glDataClass = dataType;
 				this.glDataCount = dataCount;

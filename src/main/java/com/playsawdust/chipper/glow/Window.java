@@ -1,9 +1,13 @@
 package com.playsawdust.chipper.glow;
 
+import java.nio.IntBuffer;
+
+import org.joml.Vector2d;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.system.MemoryStack;
 
 public class Window {
 	private static final long NULL = 0;
@@ -61,6 +65,7 @@ public class Window {
 		}
 	}
 	
+	/*
 	public static void startMainLoop(Window window, RenderScheduler scheduler) throws WindowException {
 		GLFW.glfwSetKeyCallback(window.handle, (win, key, scancode, action, mods) -> {
 			if ( key == GLFW.GLFW_KEY_ESCAPE && action == GLFW.GLFW_RELEASE )
@@ -82,7 +87,7 @@ public class Window {
 			
 			GLFW.glfwPollEvents();
 		}
-	}
+	}*/
 	
 	public static class WindowException extends Exception {
 		private static final long serialVersionUID = 1939033067467843576L;
@@ -90,6 +95,16 @@ public class Window {
 		public WindowException(String message) {
 			super(message);
 		}
+	}
+
+	public Vector2d getSize(Vector2d sz) {
+		try (MemoryStack stack = MemoryStack.stackGet().push()) {
+			IntBuffer widthBuffer = stack.ints(1);
+			IntBuffer heightBuffer = stack.ints(1);
+			GLFW.glfwGetFramebufferSize(handle, widthBuffer, heightBuffer);
+			sz.set(widthBuffer.get(), heightBuffer.get());
+		}
+		return sz;
 	}
 	
 }
