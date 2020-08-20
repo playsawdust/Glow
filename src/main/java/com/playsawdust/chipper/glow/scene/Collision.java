@@ -43,6 +43,46 @@ public class Collision {
 	}
 	
 	/**
+	 * For any two non-parallel, non-intersecting line segments A and B, returns the unique shortest-length line segment which connects a point which lies on A to a point which lies on B.
+	 * For intersecting line segments A and B, returns the unique zero-length segment defining their intersection. For parallel segments A and B, returns one of the minimum-length line
+	 * segments which connect them.
+	 * @param a1 First point on segment A
+	 * @param a2 Second point on segment A
+	 * @param b1 First point on segment B
+	 * @param b2 Second point on segment B
+	 * @param aResult Will be set to the point on segment A which is closest to segment B
+	 * @param bResult Will be set to the point on segment B which is closest to segment A
+	 */
+	public static void closestPointsOnTwoSegments(Vector3dc a1, Vector3dc a2, Vector3dc b1, Vector3dc b2, Vector3d aResult, Vector3d bResult) {
+		//TODO: Special-case certain parallel segment cases where there are several correct answers, to return the middle answer if possible.
+		//TODO: Benchmark this against repeated sampling and possibly binary search to try and find the discontinuous minimum, which will produce more reliable results
+		
+		//Find the squared distances to each pair of endpoints
+		double dA1B1 = b1.distanceSquared(a1);
+		double dA1B2 = b2.distanceSquared(a1);
+		double dA2B1 = b1.distanceSquared(a2);
+		double dA2B2 = b2.distanceSquared(a2);
+		
+		//Pick the closest two endpoints, and save the endpoint from segment A from those two.
+		double min = Math.min(Math.min(dA1B1, dA1B2), Math.min(dA2B1, dA2B2));
+		Vector3dc aP = a1;
+		if (min==dA1B1) {
+			aP = a1;
+		} else if (min==dA1B2) {
+			aP = a1;
+		} else if (min==dA2B1) {
+			aP = a2;
+		} else { //min==dA2B2
+			aP = a2;
+		}
+		
+		//Find the point on B which is closest to this "near" endpoint of A that we called aP. This new point on B we call bResult.
+		closestSegmentPointToPoint(b1, b2, aP, bResult);
+		//Find the point on A which is closest to the bResult point. This new point on A we call aResult.
+		closestSegmentPointToPoint(a1, a2, bResult, aResult);
+	}
+	
+	/**
 	 * Finds the point within the triangle `abc` which is closest to the sphere defined by `center` and `radius`. Points must be specified
 	 * in counter-clockwise order.
 	 * @param q The center of the sphere
