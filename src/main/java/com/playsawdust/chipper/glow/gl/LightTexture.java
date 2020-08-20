@@ -1,7 +1,6 @@
 package com.playsawdust.chipper.glow.gl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 
 import org.lwjgl.opengl.ARBTextureFloat;
@@ -45,9 +44,9 @@ public class LightTexture implements Iterable<Light>, Destroyable {
 		float[] data = new float[dataLength];
 		for(int i=0; i<lights.size(); i++) {
 			Light cur = lights.get(i);
-			data[LIGHT_LENGTH*i + 0] = (float) cur.getPosition().x();
-			data[LIGHT_LENGTH*i + 1] = (float) cur.getPosition().y();
-			data[LIGHT_LENGTH*i + 2] = (float) cur.getPosition().z();
+			data[LIGHT_LENGTH*i + 0] = (float) cur.getPosition(null).x();
+			data[LIGHT_LENGTH*i + 1] = (float) cur.getPosition(null).y();
+			data[LIGHT_LENGTH*i + 2] = (float) cur.getPosition(null).z();
 			data[LIGHT_LENGTH*i + 3] = (float) cur.getRadius();
 			
 			data[LIGHT_LENGTH*i + 4] = (float) cur.getDirection().x();
@@ -62,7 +61,6 @@ public class LightTexture implements Iterable<Light>, Destroyable {
 		}
 		
 		handle = GL20.glGenTextures();
-		//System.out.println("Uploading "+data.length+" floats to handle "+handle+": "+Arrays.toString(data));
 		GL20.glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, handle);
 		GL20.glTexImage2D(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, 0, ARBTextureFloat.GL_RGB32F_ARB, 3, lightCount, 0, GL20.GL_RGBA, GL20.GL_FLOAT, data);
 	}

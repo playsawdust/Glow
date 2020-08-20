@@ -20,14 +20,14 @@ public class VoxelPatch {
 	private int[] voxels = new int[16*16*16];
 	private ArrayList<MeshableVoxel> palette = new ArrayList<>();
 	
-	public VoxelShape getSHape(Vector3ic pos) {
-		MeshableVoxel voxel = getVoxel(pos.x(), pos.y(), pos.z());
+	public VoxelShape getShape(int x, int y, int z) {
+		MeshableVoxel voxel = getVoxel(x, y, z);
 		if (voxel==null) return VoxelShape.EMPTY;
 		return voxel.getShape();
 	}
 	
-	public Material getMaterial(Vector3ic pos) {
-		MeshableVoxel voxel = getVoxel(pos.x(), pos.y(), pos.z());
+	public Material getMaterial(int x, int y, int z) {
+		MeshableVoxel voxel = getVoxel(x, y, z);
 		if (voxel==null) return Material.GENERIC;
 		return voxel.getMaterial();
 	}

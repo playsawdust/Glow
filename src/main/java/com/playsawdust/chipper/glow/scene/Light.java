@@ -1,11 +1,14 @@
 package com.playsawdust.chipper.glow.scene;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.joml.Matrix3f;
+import org.joml.Matrix3d;
+import org.joml.Matrix3dc;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
 public class Light implements Actor {
+	private static final Vector3dc UP = new Vector3d(0, 1, 0);
+	
 	private Vector3d position = new Vector3d(0, 0, 0);
 	private Vector3d direction = new Vector3d(0, 0, 0);
 	private Vector3d color = new Vector3d(1, 1, 1);
@@ -14,8 +17,13 @@ public class Light implements Actor {
 	private double intensity = 1.0;
 
 	@Override
-	public Vector3dc getPosition() {
-		return position;
+	public Vector3d getPosition(Vector3d result) {
+		if (result!=null) {
+			result.set(position);
+			return result;
+		} else {
+			return new Vector3d(position);
+		}
 	}
 	
 	public Vector3dc getDirection() {
@@ -23,8 +31,24 @@ public class Light implements Actor {
 	}
 	
 	@Override
-	public void getOrientation(Matrix3f matrix) {
-		matrix.identity(); //TODO: Generate a matrix from the look-vec
+	public Matrix3d getOrientation(Matrix3d result) {
+		if (result!=null) {
+			result.setLookAlong(direction, UP);
+			return result;
+		} else {
+			return new Matrix3d().setLookAlong(direction, UP);
+		}
+	}
+	
+	@Override
+	public void setOrientation(Matrix3dc orientation) {
+		this.direction.set(orientation.transform(new Vector3d(0, 0, -1)));
+	}
+	
+	/** Always returns null. Lights do not participate in collisions. */
+	@Override
+	public @Nullable CollisionVolume getCollision() {
+		return null;
 	}
 	
 	public Vector3dc getColor() {
