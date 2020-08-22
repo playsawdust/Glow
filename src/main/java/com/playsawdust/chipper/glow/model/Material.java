@@ -9,12 +9,14 @@ public interface Material extends MaterialAttributeContainer {
 	public static Generic GENERIC = new Generic()
 			.with(MaterialAttribute.DIFFUSE_COLOR, new Vector3d(1,1,1))
 			.with(MaterialAttribute.OPACITY, Double.valueOf(1.0))
-			.with(MaterialAttribute.SPECULARITY, Double.valueOf(0.3));
+			.with(MaterialAttribute.SPECULARITY, Double.valueOf(0.3))
+			.with(MaterialAttribute.EMISSIVITY, 0.0);
 	
 	public static Generic RED_PLASTIC = new Generic()
 			.with(MaterialAttribute.DIFFUSE_COLOR, new Vector3d(1.0, 0.5, 0.5))
 			.with(MaterialAttribute.OPACITY, Double.valueOf(1.0))
-			.with(MaterialAttribute.SPECULARITY, Double.valueOf(0.6));
+			.with(MaterialAttribute.SPECULARITY, Double.valueOf(0.6))
+			.with(MaterialAttribute.EMISSIVITY, 0.0);
 	
 	
 	/** Immutable Material exposing Blinn-Phong attributes */
@@ -175,6 +177,23 @@ public interface Material extends MaterialAttributeContainer {
 		private static <T> void copyAttribute(MaterialAttribute<T> attribute, MaterialAttributeContainer source, MaterialAttributeContainer target) {
 			T t = source.getMaterialAttribute(attribute);
 			target.putMaterialAttribute(attribute, t);
+		}
+		
+		@Override
+		public String toString() {
+			StringBuilder result = new StringBuilder();
+			result.append("{\n");
+			
+			for(MaterialAttribute<?> attrib : delegate.attributes()) {
+				result.append("\"");
+				result.append(attrib.getName());
+				result.append("\": ");
+				result.append(delegate.getMaterialAttribute(attrib));
+				result.append(",\n");
+			}
+			
+			result.append("}");
+			return result.toString();
 		}
 	}
 }

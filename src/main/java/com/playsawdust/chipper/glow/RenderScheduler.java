@@ -3,6 +3,7 @@ package com.playsawdust.chipper.glow;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.joml.Matrix3dc;
 import org.joml.Matrix4dc;
 import org.joml.Vector2dc;
@@ -98,7 +99,7 @@ public class RenderScheduler implements Destroyable {
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		
 		for(RenderPass pass : passes) {
-			pass.apply(viewMatrix);
+			pass.apply(viewMatrix, this);
 		}
 	}
 	
@@ -141,6 +142,7 @@ public class RenderScheduler implements Destroyable {
 		solidPass.layoutUniform(MaterialAttribute.AMBIENT_LIGHT, "ambientLight");
 		solidPass.layoutUniform(MaterialAttribute.DIFFUSE_COLOR, "materialColor");
 		solidPass.layoutUniform(MaterialAttribute.SPECULARITY, "materialSpecularity");
+		solidPass.layoutUniform(MaterialAttribute.EMISSIVITY, "materialEmissivity");
 		
 		result.passes.add(solidPass);
 		
@@ -164,5 +166,13 @@ public class RenderScheduler implements Destroyable {
 		for(RenderPass pass : passes) {
 			pass.destroy();
 		}
+	}
+	
+	public void registerTexture(String id, Texture texture) {
+		textures.put(id, texture);
+	}
+	
+	public @Nullable Texture getTexture(String id) {
+		return textures.get(id);
 	}
 }

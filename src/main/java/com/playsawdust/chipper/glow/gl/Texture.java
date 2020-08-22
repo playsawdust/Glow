@@ -1,7 +1,10 @@
 package com.playsawdust.chipper.glow.gl;
 
+import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 
+import org.lwjgl.opengl.ARBFramebufferObject;
+import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL21;
@@ -38,15 +41,32 @@ public class Texture implements Destroyable {
 		GL20.glActiveTexture(GL20.GL_TEXTURE0);
 		GL20.glBindTexture(type, handle);
 		GL11.glTexImage2D(type, 0, GL21.GL_RGBA, width, height, 0, GL21.GL_BGRA, GL11.GL_UNSIGNED_BYTE, buf);
+		if (GL.getCapabilities().GL_ARB_framebuffer_object) {
+			ARBFramebufferObject.glGenerateMipmap(type);
+		}
+		
 		MemoryUtil.memFree(buf);
 		this.width = width;
 		this.height = height;
+	}
+	
+	public void uploadImage(BufferedImage image) {
+		int[] argbData = image.getRGB(0, 0, image.getWidth(), image.getHeight(), new int[image.getWidth() * image.getHeight()], 0, image.getWidth());
+		uploadImage(argbData, image.getWidth(), image.getHeight());
 	}
 	
 	public void bind(ShaderProgram program, String name, int texunit) {
 		GL20.glActiveTexture(GL20.GL_TEXTURE0 + texunit);
 		GL20.glBindTexture(type, handle);
 		program.setUniform(name, texunit);
+	}
+	
+	public int getWidth() {
+		return width;
+	}
+	
+	public int getHeight() {
+		return height;
 	}
 	
 	@Override
@@ -57,5 +77,9 @@ public class Texture implements Destroyable {
 		}
 	}
 	
-	
+	public static Texture of(BufferedImage image) {
+		Texture result = new Texture();
+		result.uploadImage(image);
+		return result;
+	}
 }

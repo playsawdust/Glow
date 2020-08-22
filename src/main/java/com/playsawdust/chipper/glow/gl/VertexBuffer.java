@@ -16,6 +16,7 @@ public class VertexBuffer implements Destroyable {
 	private int handle = 0;
 	private Layout layout;
 	private int vertexCount = 0;
+	private int primitive = GL11.GL_TRIANGLES;
 	
 	public VertexBuffer(ByteBuffer buf, Layout layout, int vertexCount) {
 		this.layout = layout;
@@ -43,9 +44,7 @@ public class VertexBuffer implements Destroyable {
 	public void draw(ShaderProgram prog) {
 		GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, handle);
 		layout.bind(prog);
-		GL20.glDrawArrays(GL11.GL_TRIANGLES, 0, vertexCount);
-		
-		//GL20.glDrawArrays(GL20.GL_, first, count);
+		GL20.glDrawArrays(primitive, 0, vertexCount);
 	}
 	
 	public static class Layout {
@@ -147,18 +146,6 @@ public class VertexBuffer implements Destroyable {
 				this.glDataClass = glDataClass;
 				this.glDataCount = glDataCount;
 				this.normalized = normalized;
-				
-				//Class<T> dataClass = sourceData.getDataClass();
-				/*
-				if (Vector4dc.class.isAssignableFrom(dataClass) || Vector4fc.class.isAssignableFrom(dataClass) || Vector4ic.class.isAssignableFrom(dataClass)) {
-					this.glDataCount = 4;
-				} else if (Vector3dc.class.isAssignableFrom(dataClass) || Vector3fc.class.isAssignableFrom(dataClass) || Vector3ic.class.isAssignableFrom(dataClass)) {
-					this.glDataCount = 3;
-				} else if (Vector2dc.class.isAssignableFrom(dataClass) || Vector2fc.class.isAssignableFrom(dataClass) || Vector2ic.class.isAssignableFrom(dataClass)) {
-					this.glDataCount = 2;
-				} else {
-					this.glDataCount = 1;
-				}*/
 				
 				this.name = name;
 				this.writer = writer;

@@ -4,50 +4,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.joml.Vector2d;
-import org.joml.Vector2dc;
-import org.joml.Vector3d;
-import org.joml.Vector3dc;
 
-import com.google.common.collect.ImmutableList;
 
 public class Mesh {
 	
-	private Material material;
-	//private ArrayList<Vertex> vertices = new ArrayList<>();
-	//private ArrayList<Edge> edges = new ArrayList<>();
+	private Material material = Material.GENERIC;
 	private ArrayList<Face> faces = new ArrayList<>();
 	
 	private transient Object cacheData = null;
 	private transient Object cacheOwner = null;
 	
 	public Material getMaterial() { return material; }
-	/*
-	public int getVertexCount() {
-		return vertices.size();
-	}
-	
-	public Vertex getVertex(int index) {
-		return vertices.get(index);
-	}
-	
-	public void addVertex(Vector3dc pos, Vector2dc uv) {
-		vertices.add(new Vertex(new Vector3d(pos), new Vector2d(uv)));
-	}
-	
-	public void addVertex(Vertex v) {
-		vertices.add(v);
-	}
-	
-	public void removeVertex(int index) {
-		vertices.remove(index);
-		//TODO: Subset cleanup
-	}
-	
-	public void removeVertex(Vertex v) {
-		vertices.remove(v);
-		//TODO: Subset cleanup
-	}*/
 	
 	public int getFaceCount() {
 		return faces.size();
@@ -59,19 +26,14 @@ public class Mesh {
 	
 	public void addFace(Face face) {
 		faces.add(face);
-		//for(Vertex v : face.vertices()) {
-		//	if (!vertices.contains(v)) vertices.add(v);
-		//}
 	}
 	
 	public void removeFace(int index) {
-		Face face = faces.remove(index);
-		if (face!=null) cleanupFaceRemoval(face);
+		faces.remove(index);
 	}
 	
 	public void removeFace(Face face) {
-		boolean removed = faces.remove(face);
-		if (removed) cleanupFaceRemoval(face);
+		faces.remove(face);
 	}
 	
 	public Iterable<Face> faces() {
@@ -114,30 +76,6 @@ public class Mesh {
 	public void clearCache() {
 		cacheOwner = null;
 		cacheData = null;
-	}
-	
-	//Deduplicates vertices, edges, and faces, and removes orphaned edges and vertices. Does any other consistency checks worth doing
-	public void cleanup() {
-		//TODO: Dedupe vertices first, so everything orphaned as a result just gets cleaned up here
-		/*
-		ArrayList<Vertex> removedVertices = new ArrayList<>();
-		for(Vertex v : vertices) {
-			if (isOrphaned(v)) {
-				removedVertices.add(v);
-			}
-		}
-		
-		for(Vertex v : removedVertices) {
-			vertices.remove(v);
-		}*/
-	}
-	
-	/** Check all edges and vertices of a face which is no longer in the model, and if they're orphaned, remove them */
-	protected void cleanupFaceRemoval(Face removedFace) {
-		//ImmutableList<Vertex> toCheck = ImmutableList.copyOf(removedFace.vertices);
-		//for(Vertex v : toCheck) {
-		//	if (isOrphaned(v)) vertices.remove(v);
-		//}
 	}
 	
 	/** Returns true if and only if the provided Vertex is not an endpoint of any Edge (and therefore also not part of a Face) in this Mesh */

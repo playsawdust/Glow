@@ -49,4 +49,12 @@ public class MouseLook {
 		new Matrix3d(matrix).invert().transform(result);
 		return result;
 	}
+	
+	public Vector3d getRightVector(Vector3d result) {
+		if (result==null) result = new Vector3d();
+		
+		result.set(1, 0, 0);
+		new Matrix3d(matrix).invert().transform(result);
+		return result;
+	}
 }

@@ -15,8 +15,10 @@ import org.joml.Vector3dc;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalCause;
+import com.playsawdust.chipper.glow.RenderScheduler;
 import com.playsawdust.chipper.glow.gl.BakedMesh;
 import com.playsawdust.chipper.glow.gl.MeshFlattener;
+import com.playsawdust.chipper.glow.gl.Texture;
 import com.playsawdust.chipper.glow.gl.VertexBuffer;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
 import com.playsawdust.chipper.glow.model.Material;
@@ -62,7 +64,7 @@ public class MeshPass implements RenderPass {
 	
 	
 	@Override
-	public void apply(Matrix4dc viewMatrix) {
+	public void apply(Matrix4dc viewMatrix, RenderScheduler scheduler) {
 		if (shader==null) return;
 		shader.bind();
 		shader.setUniform("viewMatrix", viewMatrix);
@@ -73,12 +75,14 @@ public class MeshPass implements RenderPass {
 		Material lastMaterial = null;
 		for(MeshEntry entry : scheduled) {
 			if (lastEnvironment==null || !entry.environment.equals(lastEnvironment)) {
-				applyContainer(entry.environment);
+				applyContainer(entry.environment, scheduler);
 				lastEnvironment = entry.environment;
 				lastMaterial = null; //We'll need to reapply the material even if it's the same to clobber duplicate attributes
 			}
-			if (lastMaterial==null || !lastMaterial.equals(entry.baked.getMaterial())) {
-				applyContainer(entry.baked.getMaterial());
+			if (lastMaterial==null || lastMaterial!=(entry.baked.getMaterial())) {
+				//System.out.println("Applying material: ");
+				//System.out.println(entry.baked.getMaterial().toString());
+				applyContainer(entry.baked.getMaterial(), scheduler);
 				lastMaterial = entry.baked.getMaterial();
 			}
 			
@@ -158,14 +162,23 @@ public class MeshPass implements RenderPass {
 		return this.id;
 	}
 
-	private void applyContainer(MaterialAttributeContainer container) {
+	private void applyContainer(MaterialAttributeContainer container, RenderScheduler renderScheduler) {
 		for(MaterialAttribute<?> attrib : uniformLayout.keySet()) {
+			//System.out.println(attrib);
 			Object obj = container.getMaterialAttribute(attrib);
 			if (obj==null) continue;
 			if (obj instanceof Vector3dc) {
 				shader.setUniform(uniformLayout.get(attrib), (Vector3dc)obj);
 			} else if (obj instanceof Double) {
 				shader.setUniform(uniformLayout.get(attrib), (Double)obj);
+			}
+		}
+		
+		String tex = container.getMaterialAttribute(MaterialAttribute.DIFFUSE_TEXTURE_ID);
+		if (tex!=null) {
+			Texture diffuse = renderScheduler.getTexture(tex);
+			if (diffuse!=null) {
+				diffuse.bind(shader, "materialDiffuseTexture", 0); //TODO: Consider not hardcoding 0
 			}
 		}
 	}

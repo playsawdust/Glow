@@ -3,15 +3,23 @@ package com.playsawdust.chipper.glow.model.io;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.Consumer;
 
 import org.joml.Vector2d;
+import org.joml.Vector2dc;
 import org.joml.Vector3d;
+import org.joml.Vector3dc;
+import org.joml.Vector3i;
 
 import com.google.common.io.CharStreams;
 
@@ -23,6 +31,16 @@ import com.playsawdust.chipper.glow.model.Model;
 import com.playsawdust.chipper.glow.model.Vertex;
 
 public class OBJLoader implements ModelLoader {
+	private static NumberFormat floatFormat = NumberFormat.getInstance();
+	static {
+		floatFormat.setMinimumFractionDigits(6);
+		floatFormat.setMaximumFractionDigits(6);
+	}
+	private static NumberFormat normalFormat = NumberFormat.getInstance();
+	static {
+		normalFormat.setMinimumFractionDigits(4);
+		normalFormat.setMaximumFractionDigits(4);
+	}
 	
 	@Override
 	public Model tryLoad(InputStream in, Consumer<Integer> progressConsumer) throws IOException {
@@ -189,6 +207,14 @@ public class OBJLoader implements ModelLoader {
 			}
 			return result;
 		}
+		
+		public String asString() {
+			if (vt==-1) {
+				return (v+1)+"//"+(vn+1);
+			} else {
+				return (v+1)+"/"+(vt+1)+"/"+(vn+1);
+			}
+		}
 	}
 	
 	private static class IndexedFace {
@@ -227,5 +253,82 @@ public class OBJLoader implements ModelLoader {
 				faces.add(face2);
 			}
 		}
+	}
+	
+	/** Write a model out to a stream in Wavefront OBJ format. The stream will not be closed. No .MTL will be written and no "usemtl" declaration will be made. */
+	public static void save(Model model, OutputStream outputStream) {
+		PrintWriter out = new PrintWriter(outputStream, true, StandardCharsets.UTF_8);
+		
+		ArrayList<Vector3dc> positions = new ArrayList<>();
+		ArrayList<Vector3dc> normals = new ArrayList<>();
+		ArrayList<Vector2dc> texcoords = new ArrayList<>();
+		
+		ArrayList<IndexedVertex> indexedVertices = new ArrayList<>();
+		ArrayList<IndexedFace> indexedFaces = new ArrayList<>();
+		
+		for(Mesh m : model.meshes()) {
+			for(Mesh.Face face : m.faces()) {
+				for(Vertex v : face.vertices()) {
+					IndexedVertex indexedVertex = new IndexedVertex();
+					Vector3dc position = v.getMaterialAttribute(MaterialAttribute.POSITION);
+					int posIndex = positions.indexOf(position);
+					if (posIndex!=-1) {
+						indexedVertex.v = posIndex;
+					} else {
+						indexedVertex.v = positions.size();
+						positions.add(position);
+					}
+					
+					Vector2dc uv = v.getMaterialAttribute(MaterialAttribute.UV);
+					if (uv==null) uv = new Vector2d(0,0);
+					int uvIndex = texcoords.indexOf(uv);
+					if (uvIndex!=-1) {
+						indexedVertex.vt = uvIndex;
+					} else {
+						indexedVertex.v = texcoords.size();
+						texcoords.add(uv);
+					}
+					
+					Vector3dc normal = v.getMaterialAttribute(MaterialAttribute.NORMAL);
+					if (normal==null) normal = new Vector3d(0,0,0);
+					int normalIndex = normals.indexOf(normal);
+					if (normalIndex!=-1) {
+						indexedVertex.vn = normalIndex;
+					} else {
+						indexedVertex.vn = normals.size();
+						normals.add(normal);
+					}
+					
+					indexedVertices.add(indexedVertex);
+				}
+				if (indexedVertices.size()>=3) { //TODO: Triangulate quads?
+					IndexedFace indexedFace = new IndexedFace();
+					indexedFace.a = indexedVertices.get(0);
+					indexedFace.b = indexedVertices.get(1);
+					indexedFace.c = indexedVertices.get(2);
+					indexedFaces.add(indexedFace);
+				}
+				indexedVertices.clear();
+			}
+		}
+		
+		out.println("o GlowModel");
+		out.println();
+		for(Vector3dc pos : positions) {
+			out.println("v "+floatFormat.format(pos.x())+" "+floatFormat.format(pos.y())+" "+floatFormat.format(pos.z()));
+		}
+		for(Vector2dc tex : texcoords) {
+			out.println("vt "+floatFormat.format(tex.x())+" "+floatFormat.format(tex.y()));
+		}
+		for(Vector3dc norm : normals) {
+			out.println("vn "+normalFormat.format(norm.x())+" "+normalFormat.format(norm.y())+" "+normalFormat.format(norm.z()));
+		}
+		out.println(); //TODO: Account for materials using usemtl
+		for(IndexedFace face : indexedFaces) {
+			out.println("f "+face.a.asString()+" "+face.b.asString()+" "+face.c.asString());
+		}
+		
+		
+		out.flush();
 	}
 }

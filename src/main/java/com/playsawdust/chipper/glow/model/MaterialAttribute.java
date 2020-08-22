@@ -52,6 +52,7 @@ public class MaterialAttribute<T> {
 	
 	public static MaterialAttribute<Vector3dc> DIFFUSE_COLOR = new MaterialAttribute<>("diffuseColor", Vector3dc.class, new Vector3d(0,0,0));
 	public static MaterialAttribute<Double> SPECULARITY = new MaterialAttribute<>("specularity", Double.class, 0.0);
+	public static MaterialAttribute<Double> EMISSIVITY = new MaterialAttribute<>("emissivity", Double.class, 0.0);
 	
 	/** The surface normal in model-space.*/
 	public static MaterialAttribute<Vector3dc> NORMAL = new MaterialAttribute<>("normal", Vector3dc.class, new Vector3d(0,0,0));

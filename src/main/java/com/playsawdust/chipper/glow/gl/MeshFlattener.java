@@ -11,8 +11,6 @@ import com.playsawdust.chipper.glow.model.Vertex;
 
 public class MeshFlattener {
 	private VertexBuffer.Layout layout = new VertexBuffer.Layout();
-	//private ByteBuffer clientBuffer;
-	//int vertexCount = 0;
 	
 	public VertexBuffer.Layout getLayout() { return layout; }
 	
