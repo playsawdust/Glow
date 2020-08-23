@@ -25,6 +25,10 @@ public abstract class AbstractActor implements Actor {
 		this.position.set(position);
 	}
 	
+	public void setPosition(double x, double y, double z) {
+		this.position.set(x, y, z);
+	}
+	
 	@Override
 	public Matrix3d getOrientation(Matrix3d result) {
 		if (result==null) {
@@ -39,9 +43,21 @@ public abstract class AbstractActor implements Actor {
 		this.orientation.set(orientation);
 	}
 	
+	public void setOrientation(Vector3dc lookVec) {
+		setOrientation(lookVec.x(), lookVec.y(), lookVec.z());
+	}
+	
+	public void setOrientation(double x, double y, double z) {
+		this.orientation.setLookAlong(x, y, z, 0, 1, 0);
+	}
+	
 	@Override
 	public @Nullable CollisionVolume getCollision() {
 		return collisionVolume;
 	}
 	
+	public void lookAt(double x, double y, double z) {
+		Vector3d lookVec = new Vector3d(x, y, z).sub(position).normalize();
+		setOrientation(lookVec);
+	}
 }

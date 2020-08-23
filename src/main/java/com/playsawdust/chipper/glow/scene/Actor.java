@@ -6,7 +6,7 @@ import org.joml.Matrix3dc;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
-public interface Actor {
+public interface Actor { //TODO: Lerp position and rotation stuff
 	/**
 	 * Gets the position of this Actor in the Scene
 	 * @param result a Vector to place the result into, or null to create a new Vector

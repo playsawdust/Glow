@@ -10,13 +10,15 @@ public interface Material extends MaterialAttributeContainer {
 			.with(MaterialAttribute.DIFFUSE_COLOR, new Vector3d(1,1,1))
 			.with(MaterialAttribute.OPACITY, Double.valueOf(1.0))
 			.with(MaterialAttribute.SPECULARITY, Double.valueOf(0.3))
-			.with(MaterialAttribute.EMISSIVITY, 0.0);
+			.with(MaterialAttribute.EMISSIVITY, 0.0)
+			.freeze();
 	
 	public static Generic RED_PLASTIC = new Generic()
 			.with(MaterialAttribute.DIFFUSE_COLOR, new Vector3d(1.0, 0.5, 0.5))
 			.with(MaterialAttribute.OPACITY, Double.valueOf(1.0))
 			.with(MaterialAttribute.SPECULARITY, Double.valueOf(0.6))
-			.with(MaterialAttribute.EMISSIVITY, 0.0);
+			.with(MaterialAttribute.EMISSIVITY, 0.0)
+			.freeze();
 	
 	
 	/** Immutable Material exposing Blinn-Phong attributes */
@@ -159,12 +161,17 @@ public interface Material extends MaterialAttributeContainer {
 			return this;
 		}
 		
+		boolean isFrozen() {
+			return frozen;
+		}
+		
 		@Override
 		public <T> void putMaterialAttribute(@NonNull MaterialAttribute<T> attribute, @NonNull T value) {
 			if (frozen) throw new IllegalStateException("Cannot edit a frozen Material");
 			delegate.putMaterialAttribute(attribute, value);
 		}
 		
+		/** Returns an *unfrozen* copy of this Material, with idential attributes. */
 		public Generic copy() {
 			Generic result = new Generic();
 			for(MaterialAttribute<?> attribute : delegate.attributes()) {

@@ -17,7 +17,6 @@ import com.playsawdust.chipper.glow.gl.BufferWriter;
 import com.playsawdust.chipper.glow.gl.Texture;
 import com.playsawdust.chipper.glow.gl.VertexBuffer;
 import com.playsawdust.chipper.glow.gl.shader.Destroyable;
-import com.playsawdust.chipper.glow.model.ImmutableModel;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.model.MaterialAttributeContainer;
 import com.playsawdust.chipper.glow.model.Mesh;
@@ -35,8 +34,8 @@ public class RenderScheduler implements Destroyable {
 	 * @return true if the object was scheduled for render.
 	 */
 	public boolean schedule(Object o, Vector3dc position, Matrix3dc orientation, MaterialAttributeContainer environment) {
-		if (o instanceof ImmutableModel) {
-			return schedule((ImmutableModel)o, position, orientation, environment);
+		if (o instanceof BakedModel) {
+			return schedule((BakedModel)o, position, orientation, environment);
 		}
 		
 		for(RenderPass pass : passes) {

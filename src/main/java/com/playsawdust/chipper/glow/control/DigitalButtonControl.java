@@ -9,10 +9,16 @@ import org.lwjgl.glfw.GLFW;
 import com.google.common.collect.ImmutableSet;
 
 public class DigitalButtonControl {
+	private String name = "unknown";
 	private HashMap<Integer, Boolean> keys = new HashMap<>();
 	private HashMap<Integer, Boolean> codes = new HashMap<>();
 	private boolean pressed = false;
 	private boolean locked = false;
+	
+	public DigitalButtonControl() {}
+	public DigitalButtonControl(String name) {
+		this.name = name;
+	}
 	
 	public void handle(int key, int code, int action, int mods) {
 		if (action!=GLFW.GLFW_PRESS && action!=GLFW.GLFW_RELEASE) return; //We won't properly handle non-press non-release actions here
@@ -67,12 +73,14 @@ public class DigitalButtonControl {
 		return ImmutableSet.copyOf(codes.keySet());
 	}
 	
-	public void addKey(int key) {
+	public DigitalButtonControl addKey(int key) {
 		keys.put(key, false);
+		return this;
 	}
 	
-	public void addCode(int code) {
+	public DigitalButtonControl addCode(int code) {
 		codes.put(code, false);
+		return this;
 	}
 	
 	public void clearBindings() {

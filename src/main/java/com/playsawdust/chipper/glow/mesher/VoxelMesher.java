@@ -1,4 +1,4 @@
-package com.playsawdust.chipper.glow.voxel;
+package com.playsawdust.chipper.glow.mesher;
 
 import java.util.HashMap;
 
@@ -11,6 +11,8 @@ import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.model.Mesh;
 import com.playsawdust.chipper.glow.model.Model;
 import com.playsawdust.chipper.glow.model.Vertex;
+import com.playsawdust.chipper.glow.voxel.VecFunction;
+import com.playsawdust.chipper.glow.voxel.VoxelShape;
 
 public class VoxelMesher {
 	public static final Vector3dc VEC_ZMINUS = new Vector3d( 0,  0, -1);

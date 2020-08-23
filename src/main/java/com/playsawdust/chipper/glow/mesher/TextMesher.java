@@ -1,4 +1,4 @@
-package com.playsawdust.chipper.glow.gl;
+package com.playsawdust.chipper.glow.mesher;
 
 import java.nio.ByteBuffer;
 

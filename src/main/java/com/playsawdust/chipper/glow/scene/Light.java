@@ -131,6 +131,10 @@ public class Light implements Actor {
 			this.color.set(r/255.0, g/255.0, b/255.0);
 		} else throw new IllegalArgumentException("Don't know how to process a color with "+(hex.length()-start)+" characters.");
 	}
+	
+	public void setRadius(double radius) {
+		this.radius = radius;
+	}
 
 	public void setIntensity(double intensity) {
 		this.intensity = intensity;

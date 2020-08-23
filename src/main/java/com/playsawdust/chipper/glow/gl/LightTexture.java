@@ -62,7 +62,7 @@ public class LightTexture implements Iterable<Light>, Destroyable {
 		
 		handle = GL20.glGenTextures();
 		GL20.glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, handle);
-		GL20.glTexImage2D(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, 0, ARBTextureFloat.GL_RGB32F_ARB, 3, lightCount, 0, GL20.GL_RGBA, GL20.GL_FLOAT, data);
+		GL20.glTexImage2D(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, 0, ARBTextureFloat.GL_RGBA32F_ARB, 3, lightCount, 0, GL20.GL_RGBA, GL20.GL_FLOAT, data);
 	}
 	
 	public void bind(ShaderProgram program, int texunit) {

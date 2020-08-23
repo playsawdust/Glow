@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 
 import org.lwjgl.opengl.ARBFramebufferObject;
+import org.lwjgl.opengl.ARBTextureFilterAnisotropic;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
@@ -44,6 +45,16 @@ public class Texture implements Destroyable {
 		if (GL.getCapabilities().GL_ARB_framebuffer_object) {
 			ARBFramebufferObject.glGenerateMipmap(type);
 		}
+		
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST_MIPMAP_LINEAR);
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+		if (GL.getCapabilities().GL_ARB_texture_filter_anisotropic) {
+			int maxAnisotropy = GL11.glGetInteger(ARBTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY);
+			int anisotropy = Math.min(8, maxAnisotropy);
+			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, ARBTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY, anisotropy);
+		}
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
 		
 		MemoryUtil.memFree(buf);
 		this.width = width;
