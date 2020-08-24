@@ -10,8 +10,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -19,12 +17,12 @@ import org.joml.Vector2d;
 import org.joml.Vector2dc;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
-import org.joml.Vector3i;
 
 import com.google.common.io.CharStreams;
 
 import com.playsawdust.chipper.glow.model.Mesh;
 import com.playsawdust.chipper.glow.ProgressReport;
+import com.playsawdust.chipper.glow.model.Face;
 import com.playsawdust.chipper.glow.model.Material;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.model.Model;
@@ -118,7 +116,7 @@ public class OBJLoader implements ModelLoader {
 				continue;
 			}
 			//System.out.println("Deindexing ("+face.a.v+"|"+face.a.vt+"|"+face.a.vn+"), ("+face.b.v+"|"+face.b.vt+"|"+face.b.vn+"), "+face.c.v+"|"+face.c.vt+"|"+face.c.vn+")");
-			Mesh.Face deIndexed = deref(face, positions, texcoords, normals, generatedVertices);
+			Face deIndexed = deref(face, positions, texcoords, normals, generatedVertices);
 			mesh.addFace(deIndexed);
 			
 			lineNum++;
@@ -176,7 +174,7 @@ public class OBJLoader implements ModelLoader {
 		return result;
 	}
 	
-	private static Mesh.Face deref(IndexedFace f, ArrayList<Vector3d> positions, ArrayList<Vector2d> textures, ArrayList<Vector3d> normals, HashMap<Vector3d, ArrayList<Vertex>> dedupe) {
+	private static Face deref(IndexedFace f, ArrayList<Vector3d> positions, ArrayList<Vector2d> textures, ArrayList<Vector3d> normals, HashMap<Vector3d, ArrayList<Vertex>> dedupe) {
 		Vertex a = deref(f.a, positions, textures, normals, dedupe);
 		Vertex b = deref(f.b, positions, textures, normals, dedupe);
 		Vertex c = deref(f.c, positions, textures, normals, dedupe);
@@ -184,7 +182,7 @@ public class OBJLoader implements ModelLoader {
 		//Face result = new Face(a,b,c);
 		//result.genFaceNormal();
 		//return result;
-		return new Mesh.Face(a,b,c);
+		return new Face(a,b,c);
 	}
 	
 	
@@ -267,8 +265,8 @@ public class OBJLoader implements ModelLoader {
 		ArrayList<IndexedFace> indexedFaces = new ArrayList<>();
 		
 		for(Mesh m : model.meshes()) {
-			for(Mesh.Face face : m.faces()) {
-				for(Vertex v : face.vertices()) {
+			for(Face face : m.faces()) {
+				for(Vertex v : face) {
 					IndexedVertex indexedVertex = new IndexedVertex();
 					Vector3dc position = v.getMaterialAttribute(MaterialAttribute.POSITION);
 					int posIndex = positions.indexOf(position);

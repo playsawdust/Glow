@@ -3,7 +3,6 @@ package com.playsawdust.chipper.glow.gl;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL40;
-import org.lwjgl.opengl.GL46;
 import org.lwjgl.opengl.AMDGPUShaderInt64;
 import org.lwjgl.opengl.ARBTextureRectangle;
 

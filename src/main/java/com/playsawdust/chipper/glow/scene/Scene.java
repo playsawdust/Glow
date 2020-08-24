@@ -55,7 +55,6 @@ public class Scene extends BoundingVolume {
 	
 	public void render(RenderScheduler scheduler, ShaderProgram solidShader) { //TODO: Find a better way to bind the lights texture, possibly by scheduling it(!)
 		if (globalStart==-1) globalStart = System.nanoTime() / 1_000_000L;
-		long globalElapsed = (System.nanoTime() / 1_000_000L) - globalStart;
 		//sunLight.setPosition(32, 16, 32+Math.sin(globalElapsed/1_000.0)*16);
 		
 		for(Actor actor : this) {
@@ -64,8 +63,6 @@ public class Scene extends BoundingVolume {
 			Vector3d pos = actor.getPosition(null);
 			Matrix3d orientation = actor.getOrientation(null);
 			scheduler.schedule(renderObject, pos, orientation, environment);
-			
-			//System.out.println("Scheduled "+renderObject+" at "+pos+" with orientation "+orientation);
 		}
 		
 		solidShader.bind();

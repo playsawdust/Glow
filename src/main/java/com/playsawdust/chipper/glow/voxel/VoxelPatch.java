@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.joml.Vector3ic;
 
 import com.playsawdust.chipper.glow.model.Material;
 

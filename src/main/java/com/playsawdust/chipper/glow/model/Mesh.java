@@ -90,20 +90,4 @@ public class Mesh {
 	public void setMaterial(Material m) {
 		this.material = m;
 	}
-	
-	public static class Face {
-		ArrayList<Vertex> vertices = new ArrayList<>(); //size must be at least 3, size must match edges.size, all vertices must be present in edges, and must be listed in counter-clockwise order to express facing.
-		
-		public Face() {} //degenerate face though
-		
-		public Face(Vertex a, Vertex b, Vertex c) {
-			this.vertices.add(a);
-			this.vertices.add(b);
-			this.vertices.add(c);
-		}
-
-		public Iterable<Vertex> vertices() {
-			return Collections.unmodifiableList(vertices);
-		}
-	}
 }

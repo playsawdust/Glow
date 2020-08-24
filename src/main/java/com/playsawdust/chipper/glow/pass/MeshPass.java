@@ -14,7 +14,6 @@ import org.joml.Vector3dc;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalCause;
 import com.playsawdust.chipper.glow.RenderScheduler;
 import com.playsawdust.chipper.glow.gl.BakedMesh;
 import com.playsawdust.chipper.glow.gl.MeshFlattener;

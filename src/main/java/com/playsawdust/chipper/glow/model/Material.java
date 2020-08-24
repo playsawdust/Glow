@@ -11,6 +11,7 @@ public interface Material extends MaterialAttributeContainer {
 			.with(MaterialAttribute.OPACITY, Double.valueOf(1.0))
 			.with(MaterialAttribute.SPECULARITY, Double.valueOf(0.3))
 			.with(MaterialAttribute.EMISSIVITY, 0.0)
+			.with(MaterialAttribute.DIFFUSE_TEXTURE_ID, "none")
 			.freeze();
 	
 	public static Generic RED_PLASTIC = new Generic()
@@ -18,6 +19,7 @@ public interface Material extends MaterialAttributeContainer {
 			.with(MaterialAttribute.OPACITY, Double.valueOf(1.0))
 			.with(MaterialAttribute.SPECULARITY, Double.valueOf(0.6))
 			.with(MaterialAttribute.EMISSIVITY, 0.0)
+			.with(MaterialAttribute.DIFFUSE_TEXTURE_ID, "none")
 			.freeze();
 	
 	

@@ -2,7 +2,6 @@ package com.playsawdust.chipper.glow.scene;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import com.playsawdust.chipper.glow.gl.BakedMesh;
 import com.playsawdust.chipper.glow.gl.BakedModel;
 import com.playsawdust.chipper.glow.model.Mesh;
 

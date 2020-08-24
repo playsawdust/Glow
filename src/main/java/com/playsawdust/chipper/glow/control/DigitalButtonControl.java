@@ -88,6 +88,10 @@ public class DigitalButtonControl {
 		codes.clear();
 	}
 	
+	public String getName() {
+		return name;
+	}
+	
 	/** Clears any existing mappings for this Control and bind to the named GLFW key-constant */
 	public void rebindToKey(int key) {
 		clearBindings();

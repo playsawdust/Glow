@@ -6,6 +6,7 @@ import org.joml.Vector2d;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
+import com.playsawdust.chipper.glow.model.Face;
 import com.playsawdust.chipper.glow.model.Material;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.model.Mesh;
@@ -56,54 +57,49 @@ public class VoxelMesher {
 						Vertex c = new Vertex(new Vector3d(x+1, y+1, z), new Vector2d(0, 1));
 						c.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_ZMINUS);
 						
-						Mesh.Face face = new Mesh.Face(a, b, c);
-						mesh.addFace(face);
+						Vertex d = new Vertex(new Vector3d(x+1, y, z), new Vector2d(0, 0));
+						d.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_ZMINUS);
 						
-						b = new Vertex(new Vector3d(x+1, y, z), new Vector2d(0, 0));
-						b.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_ZMINUS);
-						face = new Mesh.Face(a, c, b);
+						Face face = new Face(a, b, c, d);
 						mesh.addFace(face);
 					}
 					
 					//Z+
 					VoxelShape zPlus = getShape.apply(x,y,z+1);
 					if (shape==VoxelShape.CUBE && zPlus!=VoxelShape.CUBE) {
-						Vertex a = new Vertex(new Vector3d(x, y, z+1), new Vector2d(0, 0));
+						Vertex a = new Vertex(new Vector3d(x+1, y+1, z+1), new Vector2d(1, 1));
 						a.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_ZPLUS);
 						
 						Vertex b = new Vertex(new Vector3d(x, y+1, z+1), new Vector2d(0, 1));
 						b.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_ZPLUS);
 						
-						Vertex c = new Vertex(new Vector3d(x+1, y+1, z+1), new Vector2d(1, 1));
+						Vertex c = new Vertex(new Vector3d(x, y, z+1), new Vector2d(0, 0));
 						c.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_ZPLUS);
 						
-						Mesh.Face face = new Mesh.Face(a, c, b);
-						mesh.addFace(face);
+						Vertex d = new Vertex(new Vector3d(x+1, y, z+1), new Vector2d(1, 0));
+						d.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_ZPLUS);
 						
-						b = new Vertex(new Vector3d(x+1, y, z+1), new Vector2d(1, 0));
-						b.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_ZPLUS);
-						face = new Mesh.Face(a, b, c);
+						Face face = new Face(a, b, c, d);
 						mesh.addFace(face);
 					}
 					
 					//Y-
 					VoxelShape yMinus = getShape.apply(x,y-1,z);
 					if (shape==VoxelShape.CUBE && yMinus!=VoxelShape.CUBE) {
-						Vertex a = new Vertex(new Vector3d(x, y, z), new Vector2d(1, 1));
+						Vertex a = new Vertex(new Vector3d(x+1, y, z+1), new Vector2d(0, 0));
 						a.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_YMINUS);
 						
 						Vertex b = new Vertex(new Vector3d(x, y, z+1), new Vector2d(1, 0));
 						b.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_YMINUS);
 						
-						Vertex c = new Vertex(new Vector3d(x+1, y, z+1), new Vector2d(0, 0));
+						Vertex c = new Vertex(new Vector3d(x, y, z), new Vector2d(1, 1));
 						c.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_YMINUS);
 						
-						Mesh.Face face = new Mesh.Face(a, c, b);
-						mesh.addFace(face);
+						Vertex d = new Vertex(new Vector3d(x+1, y, z), new Vector2d(0, 1));
+						d.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_YMINUS);
 						
-						b = new Vertex(new Vector3d(x+1, y, z), new Vector2d(0, 1));
-						b.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_YMINUS);
-						face = new Mesh.Face(a, b, c);
+						
+						Face face = new Face(a, b, c, d);
 						mesh.addFace(face);
 					}
 					
@@ -119,33 +115,31 @@ public class VoxelMesher {
 						Vertex c = new Vertex(new Vector3d(x+1, y+1, z+1), new Vector2d(0, 1));
 						c.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_YPLUS);
 						
-						Mesh.Face face = new Mesh.Face(a, b, c);
-						mesh.addFace(face);
+						Vertex d = new Vertex(new Vector3d(x+1, y+1, z), new Vector2d(0, 0));
+						d.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_YPLUS);
 						
-						b = new Vertex(new Vector3d(x+1, y+1, z), new Vector2d(0, 0));
-						b.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_YPLUS);
-						face = new Mesh.Face(a, c, b);
+						Face face = new Face(a, b, c, d);
 						mesh.addFace(face);
 					}
 					
 					//X-
 					VoxelShape xMinus = getShape.apply(x-1,y,z);
 					if (shape==VoxelShape.CUBE && xMinus!=VoxelShape.CUBE) {
-						Vertex a = new Vertex(new Vector3d(x, y, z), new Vector2d(0, 0));
+						Vertex a = new Vertex(new Vector3d(x, y+1, z+1), new Vector2d(1, 1));
 						a.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_XMINUS);
 						
 						Vertex b = new Vertex(new Vector3d(x, y+1, z), new Vector2d(0, 1));
 						b.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_XMINUS);
 						
-						Vertex c = new Vertex(new Vector3d(x, y+1, z+1), new Vector2d(1, 1));
+						Vertex c = new Vertex(new Vector3d(x, y, z), new Vector2d(0, 0));
 						c.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_XMINUS);
 						
-						Mesh.Face face = new Mesh.Face(a, c, b);
-						mesh.addFace(face);
+						Vertex d = new Vertex(new Vector3d(x, y, z+1), new Vector2d(1, 0));
+						d.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_XMINUS);
 						
-						b = new Vertex(new Vector3d(x, y, z+1), new Vector2d(1, 0));
-						b.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_XMINUS);
-						face = new Mesh.Face(a, b, c);
+						
+						
+						Face face = new Face(a, b, c, d);
 						mesh.addFace(face);
 					}
 					
@@ -161,12 +155,10 @@ public class VoxelMesher {
 						Vertex c = new Vertex(new Vector3d(x+1, y+1, z+1), new Vector2d(0, 1));
 						c.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_XPLUS);
 						
-						Mesh.Face face = new Mesh.Face(a, b, c);
-						mesh.addFace(face);
+						Vertex d = new Vertex(new Vector3d(x+1, y, z+1), new Vector2d(0, 0));
+						d.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_XPLUS);
 						
-						b = new Vertex(new Vector3d(x+1, y, z+1), new Vector2d(0, 0));
-						b.putMaterialAttribute(MaterialAttribute.NORMAL, VEC_XPLUS);
-						face = new Mesh.Face(a, c, b);
+						Face face = new Face(a, b, c, d);
 						mesh.addFace(face);
 					}
 				}

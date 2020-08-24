@@ -5,7 +5,6 @@ import org.joml.Matrix3dc;
 import org.joml.Vector3d;
 
 public class MouseLook {
-	private static final double TAU = Math.PI*2;
 	private static final double QUARTER_TAU = Math.PI/2;
 	
 	private double lastX = Double.NaN;

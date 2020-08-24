@@ -4,7 +4,14 @@ import java.util.ArrayList;
 
 public class Model {
 	private ArrayList<Mesh> meshes = new ArrayList<>();
-
+	
+	/** Create an empty Model with no Meshes */
+	public Model() {}
+	
+	public Model(Mesh mesh) {
+		meshes.add(mesh);
+	}
+	
 	public void addMesh(Mesh mesh) {
 		meshes.add(mesh);
 	}

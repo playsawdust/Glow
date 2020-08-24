@@ -6,6 +6,7 @@ import org.joml.Vector3d;
 import org.lwjgl.stb.STBEasyFont;
 import org.lwjgl.system.MemoryUtil;
 
+import com.playsawdust.chipper.glow.model.Face;
 import com.playsawdust.chipper.glow.model.Material;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.model.Mesh;
@@ -33,36 +34,34 @@ public class TextMesher {
 		for(int i=0; i<vertices; i++) {
 			float x = tempBuf.getFloat();
 			float y = tempBuf.getFloat();
-			float z = tempBuf.getFloat();
-			int garbage = tempBuf.getInt();
+			tempBuf.getFloat();
+			tempBuf.getInt();
 			Vertex a = new Vertex(new Vector3d(x, -y, 0));
 			a.putMaterialAttribute(MaterialAttribute.NORMAL, TEXT_NORMAL);
 			
 			x = tempBuf.getFloat();
 			y = tempBuf.getFloat();
-			z = tempBuf.getFloat();
-			garbage = tempBuf.getInt();
+			tempBuf.getFloat();
+			tempBuf.getInt();
 			Vertex b = new Vertex(new Vector3d(x, -y, 0));
 			b.putMaterialAttribute(MaterialAttribute.NORMAL, TEXT_NORMAL);
 			
 			x = tempBuf.getFloat();
 			y = tempBuf.getFloat();
-			z = tempBuf.getFloat();
-			garbage = tempBuf.getInt();
+			tempBuf.getFloat();
+			tempBuf.getInt();
 			Vertex c = new Vertex(new Vector3d(x, -y, 0));
 			c.putMaterialAttribute(MaterialAttribute.NORMAL, TEXT_NORMAL);
 			
 			x = tempBuf.getFloat();
 			y = tempBuf.getFloat();
-			z = tempBuf.getFloat();
-			garbage = tempBuf.getInt();
+			tempBuf.getFloat();
+			tempBuf.getInt();
 			Vertex d = new Vertex(new Vector3d(x, -y, 0));
 			d.putMaterialAttribute(MaterialAttribute.NORMAL, TEXT_NORMAL);
 			
-			Mesh.Face face1 = new Mesh.Face(a, c, b);
-			Mesh.Face face2 = new Mesh.Face(a, d, c);
-			mesh.addFace(face1);
-			mesh.addFace(face2);
+			Face face = new Face(c, b, a, d);
+			mesh.addFace(face);
 		}
 		
 		
