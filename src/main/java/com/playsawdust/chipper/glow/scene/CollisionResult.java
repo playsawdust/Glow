@@ -1,5 +1,9 @@
 package com.playsawdust.chipper.glow.scene;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
@@ -9,6 +13,8 @@ public class CollisionResult {
 	private int voxelZ;
 	
 	private Vector3dc hitLocation;
+	
+	private ArrayList<Vector3dc> steps = new ArrayList<>();
 	
 	public Vector3d getVoxelCenter(Vector3d result) {
 		if (result==null) result = new Vector3d();
@@ -27,5 +33,24 @@ public class CollisionResult {
 		voxelX = x;
 		voxelY = y;
 		voxelZ = z;
+	}
+	
+	public List<Vector3dc> getSteps() {
+		return steps;
+	}
+	
+	public void setSteps(Collection<Vector3dc> steps) {
+		this.steps.clear();
+		for(Vector3dc step : steps) {
+			this.steps.add(step);
+		}
+	}
+	
+	public void clearSteps() {
+		this.steps.clear();
+	}
+	
+	public void addStep(Vector3dc step) {
+		steps.add(step);
 	}
 }

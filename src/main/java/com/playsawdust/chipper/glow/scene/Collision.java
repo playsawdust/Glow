@@ -173,12 +173,11 @@ public class Collision {
 		return null;
 	}
 	
-	public static @Nullable Vector3d raycastVoxel(Vector3dc start, Vector3dc ray, double limit, VecFunction<VoxelShape> getVoxelShape, CollisionResult result) {
-		System.out.println("Beginning raycast!");
+	/** Verbose collisions include stepping information across the ray */
+	public static @Nullable Vector3d raycastVoxel(Vector3dc start, Vector3dc ray, double limit, VecFunction<VoxelShape> getVoxelShape, @Nullable CollisionResult result, boolean verbose) {
+		if (result!=null) result.clearSteps();
 		double len = 0;
-		//double stepMagnitude = 0.25;
 		Vector3d cur = new Vector3d(start);
-		//Vector3d step = new Vector3d(ray).mul(stepMagnitude);
 		
 		ArrayList<Vector3dc> planes = new ArrayList<>();
 		double dx = ray.x();
@@ -203,8 +202,6 @@ public class Collision {
 			planes.add(dz<0 ? VoxelMesher.VEC_ZMINUS : VoxelMesher.VEC_ZPLUS);
 		}
 		
-		System.out.println("Planes are "+planes);
-		
 		int cubeX = (int)cur.x;
 		int cubeY = (int)cur.y;
 		int cubeZ = (int)cur.z;
@@ -215,18 +212,17 @@ public class Collision {
 		
 		Vector3d proj = new Vector3d();
 		while(len<limit) {
-			System.out.println("Entering "+cubeX+","+cubeY+","+cubeZ+" at "+cur);
 			boolean failure = true;
 			for(Vector3dc vec : planes) {
 				if (vec==VoxelMesher.VEC_YPLUS) {
-					Vector3d projB = rayPlaneY(cur, ray, cubeY+1, proj);
+					Vector3d projB = rayPlane(cur, ray, new Vector3d(0, cubeY+1, 0), new Vector3d(vec).mul(-1), proj);
+					//Vector3d projB = rayPlaneY(cur, ray, cubeY+1, proj);
 					if (projB!=null) {
-						System.out.println("Struck plane YPLUS at "+projB);
 						
 						if ((projB.x>=cubeX && projB.x<=cubeX+1) && (projB.z>=cubeZ && projB.z<=cubeZ+1)) {
-							System.out.println("Hit inner face");
 							double crossing = new Vector3d(projB).sub(cur).length(); //How far did we go during this projection?
 							len += crossing;
+							if (result!=null && verbose) result.addStep(new Vector3d(projB));
 							//grab the target cube to see if we collided
 							VoxelShape shape = getVoxelShape.apply(cubeX, cubeY+1, cubeZ);
 							if (shape!=VoxelShape.EMPTY) {
@@ -244,14 +240,14 @@ public class Collision {
 						}
 					}
 				} else if (vec==VoxelMesher.VEC_YMINUS) {
-					Vector3d projB = rayPlaneY(cur, ray, cubeY, proj);
+					Vector3d projB = rayPlane(cur, ray, new Vector3d(0, cubeY, 0), new Vector3d(vec).mul(-1), proj);
+					//Vector3d projB = rayPlaneY(cur, ray, cubeY, proj);
 					if (projB!=null) {
-						System.out.println("Struck plane YMINUS at "+projB);
 						
 						if ((projB.x>=cubeX && projB.x<=cubeX+1) && (projB.z>=cubeZ && projB.z<=cubeZ+1)) {
-							System.out.println("Hit inner face");
 							double crossing = new Vector3d(projB).sub(cur).length(); //How far did we go during this projection?
 							len += crossing;
+							if (result!=null && verbose) result.addStep(new Vector3d(projB));
 							//grab the target cube to see if we collided
 							VoxelShape shape = getVoxelShape.apply(cubeX, cubeY-1, cubeZ);
 							if (shape!=VoxelShape.EMPTY) {
@@ -269,14 +265,14 @@ public class Collision {
 						}
 					}
 				} else if (vec==VoxelMesher.VEC_XPLUS) {
-					Vector3d projB = rayPlaneX(cur, ray, cubeX+1, proj);
+					Vector3d projB = rayPlane(cur, ray, new Vector3d(cubeX+1, 0, 0), new Vector3d(vec).mul(-1), proj);
+					//Vector3d projB = rayPlaneX(cur, ray, cubeX+1, proj);
 					if (projB!=null) {
-						System.out.println("Struck plane XPLUS at "+projB);
 						
 						if ((projB.y>=cubeY && projB.y<=cubeY+1) && (projB.z>=cubeZ && projB.z<=cubeZ+1)) {
-							System.out.println("Hit inner face");
 							double crossing = new Vector3d(projB).sub(cur).length(); //How far did we go during this projection?
 							len += crossing;
+							if (result!=null && verbose) result.addStep(new Vector3d(projB));
 							//grab the target cube to see if we collided
 							VoxelShape shape = getVoxelShape.apply(cubeX+1, cubeY, cubeZ);
 							if (shape!=VoxelShape.EMPTY) {
@@ -294,14 +290,14 @@ public class Collision {
 						}
 					}
 				} else if (vec==VoxelMesher.VEC_XMINUS) {
-					Vector3d projB = rayPlaneX(cur, ray, cubeX, proj);
+					Vector3d projB = rayPlane(cur, ray, new Vector3d(cubeX, 0, 0), new Vector3d(vec).mul(-1), proj);
+					//Vector3d projB = rayPlaneX(cur, ray, cubeX, proj);
 					if (projB!=null) {
-						System.out.println("Struck plane XMINUS at "+projB);
 						
 						if ((projB.y>=cubeY && projB.y<=cubeY+1) && (projB.z>=cubeZ && projB.z<=cubeZ+1)) {
-							System.out.println("Hit inner face");
 							double crossing = new Vector3d(projB).sub(cur).length(); //How far did we go during this projection?
 							len += crossing;
+							if (result!=null && verbose) result.addStep(new Vector3d(projB));
 							//grab the target cube to see if we collided
 							VoxelShape shape = getVoxelShape.apply(cubeX-1, cubeY, cubeZ);
 							if (shape!=VoxelShape.EMPTY) {
@@ -319,14 +315,14 @@ public class Collision {
 						}
 					}
 				} else if (vec==VoxelMesher.VEC_ZPLUS) {
-					Vector3d projB = rayPlaneZ(cur, ray, cubeZ+1, proj);
+					Vector3d projB = rayPlane(cur, ray, new Vector3d(0, 0, cubeZ+1), new Vector3d(vec).mul(-1), proj);
+					//Vector3d projB = rayPlaneZ(cur, ray, cubeZ+1, proj);
 					if (projB!=null) {
-						System.out.println("Struck plane ZPLUS at "+projB);
 						
 						if ((projB.x>=cubeX && projB.x<=cubeX+1) && (projB.y>=cubeY && projB.y<=cubeY+1)) {
-							System.out.println("Hit inner face");
 							double crossing = new Vector3d(projB).sub(cur).length(); //How far did we go during this projection?
 							len += crossing;
+							if (result!=null && verbose) result.addStep(new Vector3d(projB));
 							//grab the target cube to see if we collided
 							VoxelShape shape = getVoxelShape.apply(cubeX, cubeY, cubeZ+1);
 							if (shape!=VoxelShape.EMPTY) {
@@ -344,12 +340,12 @@ public class Collision {
 						}
 					}
 				} else if (vec==VoxelMesher.VEC_ZMINUS) {
-					Vector3d projB = rayPlaneZ(cur, ray, cubeZ, proj);
+					Vector3d projB = rayPlane(cur, ray, new Vector3d(0, 0, cubeZ), new Vector3d(vec).mul(-1), proj);
+					//Vector3d projB = rayPlaneZ(cur, ray, cubeZ, proj);
 					if (projB!=null) {
-						System.out.println("Struck plane ZMINUS at "+projB);
 						
 						if ((projB.x>=cubeX && projB.x<=cubeX+1) && (projB.y>=cubeY && projB.y<=cubeY+1)) {
-							System.out.println("Hit inner face");
+							if (result!=null && verbose) result.addStep(new Vector3d(projB));
 							double crossing = new Vector3d(projB).sub(cur).length(); //How far did we go during this projection?
 							len += crossing;
 							//grab the target cube to see if we collided
@@ -372,7 +368,6 @@ public class Collision {
 			}
 			
 			if (failure) {
-				System.out.println("Did not strike any inner faces.");
 				return null; //Rebellion 2.0 You Can Not Advance
 			}
 			
@@ -380,10 +375,24 @@ public class Collision {
 		return null;
 	}
 	
-	/** Figures out where the ray intersects the specified Y coordinate */
-	public static Vector3d rayPlaneY(Vector3dc start, Vector3dc ray, double y, Vector3d result) {
-		Vector3d longRay = new Vector3d(ray).mul(Math.abs(y-start.y()));
+	
+	public static Vector3d rayPlane(Vector3dc start, Vector3dc ray, Vector3dc planePoint, Vector3dc planeNormal, Vector3d result) {
+		double denominator = planeNormal.dot(ray);
+		if (denominator==0) return null; //Ray is parallel to plane
+		double numerator = new Vector3d(planePoint).sub(start).dot(planeNormal);
 		
+		double distance = numerator/denominator;
+		if (distance<=0) return null; //Ray diverges
+		
+		result.set(ray).mul(distance).add(start);
+		return result;
+	}
+	
+	
+	/*
+	
+	
+	public static Vector3d rayPlaneY(Vector3dc start, Vector3dc ray, double y, Vector3d result) {
 		//Does start lie on the plane? If so we immediately strike the plane.
 		if (y==start.y()) {
 			result.set(start);
@@ -397,18 +406,25 @@ public class Collision {
 		if (ray.y()>0 && y<start.y()) return null;
 		if (ray.y()<0 && y>start.y()) return null;
 		
-		//We will, at some point, strike the plane. Where on the X axis?
-		Vector3d projection = new Vector3d(1, 0, 0);
-		double xResult = projection.dot(longRay);
+		
+		Vector3d planeNormal = new Vector3d(1, 0, 0);
+		double denominator = planeNormal.dot(ray);
+		if (denominator==0) return null; //Probably superfluous because we already check for parallel ray above
+		double numerator = new Vector3d(0, y, 0).sub(start).dot(planeNormal);
+		
+		double distance = numerator/denominator;
+		if (distance<=0) return null;
+		
 		//And the Z axis?
-		projection.set(0, 0, 1);
-		double zResult = projection.dot(longRay);
+		//planeNormal.set(0, 0, 1);
+		//double zResult = planeNormal.dot(ray);
 	
-		result.set(start.x()+xResult, y, start.z()+zResult);
+		//result.set(start.x()+xResult, y, start.z()+zResult);
+		result.set(ray).mul(distance).add(start);
 		return result;
 	}
 	
-	/** Figures out where the ray intersects the specified X coordinate */
+
 	public static Vector3d rayPlaneX(Vector3dc start, Vector3dc ray, double x, Vector3d result) {
 		Vector3d longRay = new Vector3d(ray).mul(Math.abs(x-start.x()));
 		
@@ -436,7 +452,7 @@ public class Collision {
 		return result;
 	}
 	
-	/** Figures out where the ray intersects the specified X coordinate */
+
 	public static Vector3d rayPlaneZ(Vector3dc start, Vector3dc ray, double z, Vector3d result) {
 		Vector3d longRay = new Vector3d(ray).mul(Math.abs(z-start.z()));
 		
@@ -462,5 +478,5 @@ public class Collision {
 	
 		result.set(start.x()+xResult, start.y()+yResult, z);
 		return result;
-	}
+	}*/
 }
