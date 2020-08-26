@@ -74,4 +74,8 @@ public class Scene extends BoundingVolume {
 		viewMatrix.translate(camera.getPosition(null).mul(-1));
 		scheduler.render(viewMatrix);
 	}
+	
+	public Light getSun() {
+		return sunLight;
+	}
 }

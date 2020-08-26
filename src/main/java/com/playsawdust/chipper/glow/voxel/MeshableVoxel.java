@@ -9,7 +9,7 @@ public interface MeshableVoxel {
 	
 	
 	
-	public static class Block implements MeshableVoxel {
+	public static class SimpleMeshableVoxel implements MeshableVoxel {
 		private Material material;
 		private VoxelShape shape;
 		
@@ -23,12 +23,12 @@ public interface MeshableVoxel {
 			return this.shape;
 		}
 		
-		public Block setMaterial(Material material) {
+		public SimpleMeshableVoxel setMaterial(Material material) {
 			this.material = material;
 			return this;
 		}
 		
-		public Block setShape(VoxelShape shape) {
+		public SimpleMeshableVoxel setShape(VoxelShape shape) {
 			this.shape = shape;
 			return this;
 		}

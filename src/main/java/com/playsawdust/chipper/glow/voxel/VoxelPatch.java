@@ -27,7 +27,7 @@ public class VoxelPatch {
 	
 	public Material getMaterial(int x, int y, int z) {
 		MeshableVoxel voxel = getVoxel(x, y, z);
-		if (voxel==null) return Material.GENERIC;
+		if (voxel==null) return Material.BLANK;
 		return voxel.getMaterial();
 	}
 	

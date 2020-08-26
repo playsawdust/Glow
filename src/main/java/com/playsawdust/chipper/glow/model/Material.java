@@ -6,7 +6,7 @@ import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
 public interface Material extends MaterialAttributeContainer {
-	public static Generic GENERIC = new Generic()
+	public static Generic BLANK = new Generic()
 			.with(MaterialAttribute.DIFFUSE_COLOR, new Vector3d(1,1,1))
 			.with(MaterialAttribute.OPACITY, Double.valueOf(1.0))
 			.with(MaterialAttribute.SPECULARITY, Double.valueOf(0.3))

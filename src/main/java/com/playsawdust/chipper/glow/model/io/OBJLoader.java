@@ -50,7 +50,7 @@ public class OBJLoader implements ModelLoader {
 		ArrayList<IndexedFace> indexedFaces = new ArrayList<>();
 		
 		Mesh mesh = new Mesh();
-		mesh.setMaterial(Material.GENERIC);
+		mesh.setMaterial(Material.BLANK);
 		
 		List<String> file = CharStreams.readLines(new InputStreamReader(in, StandardCharsets.UTF_8));
 		int totalSize = file.size()*2;

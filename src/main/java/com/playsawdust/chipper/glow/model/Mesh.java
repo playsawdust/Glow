@@ -8,7 +8,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class Mesh {
 	
-	private Material material = Material.GENERIC;
+	private Material material = Material.BLANK;
 	private ArrayList<Face> faces = new ArrayList<>();
 	
 	private transient Object cacheData = null;
