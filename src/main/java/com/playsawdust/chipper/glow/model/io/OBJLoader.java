@@ -264,7 +264,7 @@ public class OBJLoader implements ModelLoader {
 		ArrayList<IndexedVertex> indexedVertices = new ArrayList<>();
 		ArrayList<IndexedFace> indexedFaces = new ArrayList<>();
 		
-		for(Mesh m : model.meshes()) {
+		for(Mesh m : model) {
 			for(Face face : m.faces()) {
 				for(Vertex v : face) {
 					IndexedVertex indexedVertex = new IndexedVertex();

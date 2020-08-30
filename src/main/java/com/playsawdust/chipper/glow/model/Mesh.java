@@ -38,7 +38,7 @@ public class Mesh {
 	/** Copies all face data from the {@code other} Mesh into this one. You can safely treat this as a deep copy since all Faces and Vertices are remade.
 	 * 
 	 * <p>The Material for the {@code other} Mesh is unused; all faces copied in will use this Mesh's Material. */
-	public void combineWith(Mesh other) {
+	public void combineFrom(Mesh other) {
 		for(Face face : other.faces) {
 			this.faces.add(face.copy());
 		}
@@ -59,5 +59,12 @@ public class Mesh {
 	
 	public void setMaterial(Material m) {
 		this.material = m;
+	}
+	
+	public Mesh copy() {
+		Mesh result = new Mesh();
+		result.setMaterial(this.getMaterial());
+		result.combineFrom(this);
+		return result;
 	}
 }

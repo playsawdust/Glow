@@ -114,7 +114,7 @@ public class MeshPass implements RenderPass {
 		if (o instanceof BakedMesh) {
 			scheduled.add(new MeshEntry((BakedMesh)o, position, orientation, environment));
 		} else if (o instanceof Model) {
-			for(Mesh mesh : ((Model)o).meshes()) {
+			for(Mesh mesh : ((Model)o)) {
 				enqueue(mesh, position, orientation, environment);
 			}
 		} else if (o instanceof Mesh) {
