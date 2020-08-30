@@ -229,6 +229,7 @@ public class Collision {
 								if (result!=null) {
 									result.setVoxelPos(cubeX, cubeY+1, cubeZ);
 									result.setHitLocation(projB);
+									result.setHitNormal(new Vector3d(0, -1, 0));
 								}
 								
 								return projB;
@@ -254,6 +255,7 @@ public class Collision {
 								if (result!=null) {
 									result.setVoxelPos(cubeX, cubeY-1, cubeZ);
 									result.setHitLocation(projB);
+									result.setHitNormal(new Vector3d(0, 1, 0));
 								}
 								
 								return projB;
@@ -279,6 +281,7 @@ public class Collision {
 								if (result!=null) {
 									result.setVoxelPos(cubeX+1, cubeY, cubeZ);
 									result.setHitLocation(projB);
+									result.setHitNormal(new Vector3d(-1, 0, 0));
 								}
 								
 								return projB;
@@ -304,6 +307,7 @@ public class Collision {
 								if (result!=null) {
 									result.setVoxelPos(cubeX-1, cubeY, cubeZ);
 									result.setHitLocation(projB);
+									result.setHitNormal(new Vector3d(1, 0, 0));
 								}
 								
 								return projB;
@@ -329,6 +333,7 @@ public class Collision {
 								if (result!=null) {
 									result.setVoxelPos(cubeX, cubeY, cubeZ+1);
 									result.setHitLocation(projB);
+									result.setHitNormal(new Vector3d(0, 0, -1));
 								}
 								
 								return projB;
@@ -354,6 +359,7 @@ public class Collision {
 								if (result!=null) {
 									result.setVoxelPos(cubeX, cubeY, cubeZ-1);
 									result.setHitLocation(projB);
+									result.setHitNormal(new Vector3d(0, 0, 1));
 								}
 								
 								return projB;

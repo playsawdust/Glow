@@ -30,7 +30,7 @@ public interface Actor { //TODO: Lerp position and rotation stuff
 	 * to represent this Actor in the Scene.
 	 * @return An object for use with {@link com.playsawdust.chipper.glow.RenderScheduler#schedule(Object, Vector3dc, Matrix3dc, com.playsawdust.chipper.glow.model.MaterialAttributeContainer) RenderScheduler.schedule()}
 	 */
-	public @Nullable Object getRenderObject();
+	public @Nullable Object getRenderObject(Camera camera);
 	
 	/**
 	 * Gets a CollisionVolume which represents a physics shape for this Actor, or null if this Actor cannot take part in collisions or physical interactions.

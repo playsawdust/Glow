@@ -12,6 +12,8 @@ public class CollisionResult {
 	private int voxelY;
 	private int voxelZ;
 	
+	private Vector3dc normal;
+	
 	private Vector3dc hitLocation;
 	
 	private ArrayList<Vector3dc> steps = new ArrayList<>();
@@ -52,5 +54,19 @@ public class CollisionResult {
 	
 	public void addStep(Vector3dc step) {
 		steps.add(step);
+	}
+
+	public void setHitNormal(Vector3dc normal) {
+		this.normal = normal;
+	}
+	
+	public Vector3d getHitNormal(Vector3d result) {
+		if (result==null) result = new Vector3d();
+		result.set(normal);
+		return result;
+	}
+	
+	public Vector3d getHitNormal() {
+		return new Vector3d().set(normal);
 	}
 }

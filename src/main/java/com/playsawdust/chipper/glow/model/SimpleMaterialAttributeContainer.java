@@ -2,6 +2,7 @@ package com.playsawdust.chipper.glow.model;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -54,6 +55,15 @@ public class SimpleMaterialAttributeContainer implements MaterialAttributeContai
 	
 	public Collection<MaterialAttribute<?>> attributes() {
 		return attributes.keySet();
+	}
+	
+	public SimpleMaterialAttributeContainer copy() {
+		SimpleMaterialAttributeContainer result = new SimpleMaterialAttributeContainer();
+		for(Map.Entry<MaterialAttribute<?>, Object> entry : this.attributes.entrySet()) {
+			result.attributes.put(entry.getKey(), entry.getValue());
+		}
+		
+		return result;
 	}
 	
 	@Override

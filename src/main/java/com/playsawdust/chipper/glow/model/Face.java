@@ -36,4 +36,12 @@ public class Face implements Iterable<Vertex> {
 	public Iterator<Vertex> iterator() {
 		return vertices.iterator();
 	}
+	
+	public Face copy() {
+		Face result = new Face();
+		for(Vertex v : this.vertices) {
+			result.vertices.add(v.copy());
+		}
+		return result;
+	}
 }

@@ -56,7 +56,28 @@ public abstract class AbstractActor implements Actor {
 		return collisionVolume;
 	}
 	
+	public void lookAlong(double x, double y, double z) {
+		//TODO: Can I turn this into axisAngles? I can!
+		//double yRot = 0;
+		double yRot = - Math.atan2(z, x) - Math.PI/2;
+		double xRot = Math.atan2(y, Math.sqrt(x*x + z*z));
+		//double xRot = 0;
+		orientation
+			.identity()
+			
+			.rotate(yRot, 0, 1, 0)
+			.rotate(xRot, 1, 0, 0);
+	}
+	
 	public void lookAt(double x, double y, double z) {
+		//TODO: Can I turn this into axisAngles? I can!
+		/*double yRot = Math.atan2(z, x);
+		double xRot = Math.atan2(y, z);
+		
+		new Matrix3d()
+			.identity();
+			.rotate(xRot, 1, 0, 0);
+			.rotate(yRot, 0, 1, 0);*/
 		Vector3d lookVec = new Vector3d(x, y, z).sub(position).normalize();
 		setOrientation(lookVec);
 	}

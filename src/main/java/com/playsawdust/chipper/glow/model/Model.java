@@ -27,4 +27,11 @@ public class Model {
 	public Iterable<Mesh> meshes() {
 		return this.meshes;
 	}
+	
+	public boolean isEmpty() {
+		for(Mesh mesh : meshes) {
+			if (!mesh.isEmpty()) return false;
+		}
+		return true;
+	}
 }

@@ -84,6 +84,7 @@ public class RenderScheduler implements Destroyable {
 	public BakedModel bake(Model m) {
 		ArrayList<BakedMesh> meshes = new ArrayList<>();
 		for(Mesh mesh : m.meshes()) {
+			if (mesh.isEmpty()) continue;
 			for(RenderPass pass : passes) {
 				if (pass.canEnqueue(mesh)) {
 					meshes.add(pass.bake(mesh));

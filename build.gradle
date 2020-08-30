@@ -55,6 +55,7 @@ dependencies {
 	
 	compile lwjgl('glfw', 'openal', 'opengl', 'stb')
 	compile 'org.joml:joml:1.9.12'
+	compile 'blue.endless:jankson:1.2.0'
 }
 
 license {

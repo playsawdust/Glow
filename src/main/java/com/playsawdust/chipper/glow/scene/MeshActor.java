@@ -10,7 +10,7 @@ public class MeshActor extends AbstractActor {
 	protected BakedModel renderObject;
 	
 	@Override
-	public @Nullable Object getRenderObject() {
+	public @Nullable Object getRenderObject(Camera camera) {
 		return renderObject;
 	}
 	

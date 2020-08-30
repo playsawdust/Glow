@@ -12,16 +12,18 @@ public class DigitalButtonControl {
 	private String name = "unknown";
 	private HashMap<Integer, Boolean> keys = new HashMap<>();
 	private HashMap<Integer, Boolean> codes = new HashMap<>();
+	private HashMap<Integer, Boolean> mouseButtons = new HashMap<>();
 	private boolean pressed = false;
 	private boolean locked = false;
 	
-	public DigitalButtonControl() {}
+	private DigitalButtonControl() {}
+	
 	public DigitalButtonControl(String name) {
 		this.name = name;
 	}
 	
 	public void handle(int key, int code, int action, int mods) {
-		if (action!=GLFW.GLFW_PRESS && action!=GLFW.GLFW_RELEASE) return; //We won't properly handle non-press non-release actions here
+		if (action!=GLFW.GLFW_PRESS && action!=GLFW.GLFW_RELEASE) return; //We won't properly handle non-press non-release actions (specifically, GLFW_REPEAT) here
 		
 		boolean press = (action==GLFW.GLFW_PRESS);
 		
@@ -33,6 +35,20 @@ public class DigitalButtonControl {
 			codes.put(code, press);
 		}
 		
+		checkPressed();
+	}
+	
+	public void handleMouse(int button, int action, int mods) {
+		if (action!=GLFW.GLFW_PRESS && action!=GLFW.GLFW_RELEASE) return;
+		
+		if (mouseButtons.containsKey(button)) {
+			mouseButtons.put(button, action==GLFW.GLFW_PRESS);
+		}
+		
+		checkPressed();
+	}
+	
+	private void checkPressed() {
 		//Go through what looks like a complicated process to resolve the combined state of this Control. Because of the low iteration count, it's very fast.
 		for(Map.Entry<Integer, Boolean> entry : keys.entrySet()) {
 			if (entry.getValue()) {
@@ -42,6 +58,13 @@ public class DigitalButtonControl {
 		}
 		
 		for(Map.Entry<Integer, Boolean> entry : codes.entrySet()) {
+			if (entry.getValue()) {
+				pressed = true;
+				return;
+			}
+		}
+		
+		for(Map.Entry<Integer, Boolean> entry : mouseButtons.entrySet()) {
 			if (entry.getValue()) {
 				pressed = true;
 				return;
@@ -83,6 +106,11 @@ public class DigitalButtonControl {
 		return this;
 	}
 	
+	public DigitalButtonControl addMouse(int button) {
+		mouseButtons.put(button, false);
+		return this;
+	}
+	
 	public void clearBindings() {
 		keys.clear();
 		codes.clear();
@@ -99,15 +127,15 @@ public class DigitalButtonControl {
 	}
 	
 	/** Gets a Control that responds by default to the named GLFW key-constant. */
-	public static DigitalButtonControl forKey(int key) {
-		DigitalButtonControl control = new DigitalButtonControl();
+	public static DigitalButtonControl forKey(String name, int key) {
+		DigitalButtonControl control = new DigitalButtonControl(name);
 		control.keys.put(key, false);
 		return control;
 	}
 	
 	/** Gets a Control that responds to a system-dependent scancode. Use {@link org.lwjgl.glfw.GLFW#glfwGetKeyScancode(int)} to find the scanCode for a named key-constant */
-	public static DigitalButtonControl forScanCode(int code) {
-		DigitalButtonControl control = new DigitalButtonControl();
+	public static DigitalButtonControl forScanCode(String name, int code) {
+		DigitalButtonControl control = new DigitalButtonControl(name);
 		control.codes.put(code, false);
 		return control;
 	}

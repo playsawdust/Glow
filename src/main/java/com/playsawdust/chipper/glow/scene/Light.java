@@ -141,7 +141,7 @@ public class Light implements Actor {
 	}
 
 	@Override
-	public @Nullable Object getRenderObject() {
+	public @Nullable Object getRenderObject(Camera camera) {
 		return null;
 	}
 }

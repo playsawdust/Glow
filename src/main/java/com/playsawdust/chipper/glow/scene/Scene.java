@@ -58,7 +58,7 @@ public class Scene extends BoundingVolume {
 		//sunLight.setPosition(32, 16, 32+Math.sin(globalElapsed/1_000.0)*16);
 		
 		for(Actor actor : this) {
-			Object renderObject = actor.getRenderObject();
+			Object renderObject = actor.getRenderObject(camera);
 			if (renderObject==null) continue;
 			Vector3d pos = actor.getPosition(null);
 			Matrix3d orientation = actor.getOrientation(null);

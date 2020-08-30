@@ -21,6 +21,12 @@ public class ControlSet {
 		controls.put(name, control);
 	}
 	
+	/** Adds a DigitalButtonControl with name {@code name} and maps it by default to the specified GLFW mouse button constant */
+	public void mapMouse(String name, int button) {
+		DigitalButtonControl control = new DigitalButtonControl(name).addMouse(button);
+		controls.put(name, control);
+	}
+	
 	public @Nullable DigitalButtonControl getButton(String name) {
 		return controls.get(name);
 	}
@@ -28,6 +34,10 @@ public class ControlSet {
 	/** Feed me GLFW keyCallback input! */
 	public void handleKey(int key, int scanCode, int action, int mods) {
 		for(DigitalButtonControl control : controls.values()) control.handle(key, scanCode, action, mods);
+	}
+	
+	public void handleMouse(int button, int action, int mods) {
+		for(DigitalButtonControl control : controls.values()) control.handleMouse(button, action, mods);
 	}
 	
 	public boolean isPressed(String button) {

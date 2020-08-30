@@ -49,6 +49,12 @@ public class Vertex implements MaterialAttributeContainer {
 		attributes.clearMaterialAttributes();
 	}
 	
+	public Vertex copy() {
+		Vertex result = new Vertex(this.pos, this.uv);
+		result.attributes = this.attributes.copy();
+		return result;
+	}
+	
 	@Override
 	public boolean equals(Object o) {
 		if (o == null) return false;
