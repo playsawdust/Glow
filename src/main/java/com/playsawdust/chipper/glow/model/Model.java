@@ -61,6 +61,7 @@ public class Model implements Iterable<Mesh> {
 		for(Mesh mesh : meshes) {
 			if (mesh.getMaterial().equals(other.getMaterial())) {
 				mesh.combineFrom(other);
+				return;
 			}
 		}
 		

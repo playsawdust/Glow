@@ -21,7 +21,10 @@ group = 'com.playsawdust.chipper'
 archivesBaseName = 'Glow'
 version = '0.0.1'
 
-
+java {
+	sourceCompatibility = JavaVersion.VERSION_11
+	targetCompatibility = JavaVersion.VERSION_11
+}
 
 def lwjgl(String... modules) {
 	def ver = '3.2.4-SNAPSHOT'
