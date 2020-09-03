@@ -15,7 +15,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 public class ControlSet {
-	private HashMap<String, DigitalButtonControl> controls = new HashMap<>();
+	protected HashMap<String, DigitalButtonControl> controls = new HashMap<>();
 	
 	public void mapWASD() {
 		map("up", GLFW.GLFW_KEY_W);

@@ -16,16 +16,17 @@ import java.util.Set;
 import org.lwjgl.glfw.GLFW;
 
 import com.google.common.collect.ImmutableSet;
+import com.playsawdust.chipper.glow.event.RunnableEvent;
 
 public class DigitalButtonControl {
 	private String name = "unknown";
 	private HashMap<Integer, Boolean> keys = new HashMap<>();
 	private HashMap<Integer, Boolean> codes = new HashMap<>();
 	private HashMap<Integer, Boolean> mouseButtons = new HashMap<>();
+	private RunnableEvent onPress = new RunnableEvent();
+	private RunnableEvent onRelease = new RunnableEvent();
 	private boolean pressed = false;
 	private boolean locked = false;
-	
-	private DigitalButtonControl() {}
 	
 	public DigitalButtonControl(String name) {
 		this.name = name;
@@ -51,7 +52,17 @@ public class DigitalButtonControl {
 		if (action!=GLFW.GLFW_PRESS && action!=GLFW.GLFW_RELEASE) return;
 		
 		if (mouseButtons.containsKey(button)) {
-			mouseButtons.put(button, action==GLFW.GLFW_PRESS);
+			boolean press = action==GLFW.GLFW_PRESS;
+			if (mouseButtons.get(button)!=press) {
+				mouseButtons.put(button, press);
+				if (press) {
+					onPress.fire();
+				} else {
+					onRelease.fire();
+				}
+			}
+			
+			
 		}
 		
 		checkPressed();
@@ -128,6 +139,9 @@ public class DigitalButtonControl {
 	public String getName() {
 		return name;
 	}
+	
+	public RunnableEvent onPress() { return onPress; }
+	public RunnableEvent onRelease() { return onRelease; }
 	
 	/** Clears any existing mappings for this Control and bind to the named GLFW key-constant */
 	public void rebindToKey(int key) {
