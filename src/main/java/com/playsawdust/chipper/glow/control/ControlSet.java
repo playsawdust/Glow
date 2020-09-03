@@ -25,15 +25,17 @@ public class ControlSet {
 	}
 	
 	/** Adds a DigitalButtonControl with name {@code name} and maps it by default to the specified GLFW key constant */
-	public void map(String name, int keyCode) {
+	public DigitalButtonControl map(String name, int keyCode) {
 		DigitalButtonControl control = new DigitalButtonControl(name).addKey(keyCode);
 		controls.put(name, control);
+		return control;
 	}
 	
 	/** Adds a DigitalButtonControl with name {@code name} and maps it by default to the specified GLFW mouse button constant */
-	public void mapMouse(String name, int button) {
+	public DigitalButtonControl mapMouse(String name, int button) {
 		DigitalButtonControl control = new DigitalButtonControl(name).addMouse(button);
 		controls.put(name, control);
+		return control;
 	}
 	
 	public @Nullable DigitalButtonControl getButton(String name) {
