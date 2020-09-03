@@ -40,6 +40,10 @@ public class ControlSet {
 		return controls.get(name);
 	}
 	
+	public void addButton(DigitalButtonControl control) {
+		controls.put(control.getName(), control);
+	}
+	
 	/** Feed me GLFW keyCallback input! */
 	public void handleKey(int key, int scanCode, int action, int mods) {
 		for(DigitalButtonControl control : controls.values()) control.handle(key, scanCode, action, mods);
