@@ -1,5 +1,6 @@
 package com.playsawdust.chipper.glow.image.io;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -24,6 +25,17 @@ public class ImageLoader {
 		byte[] array;
 		array = ByteStreams.toByteArray(in);
 		in.close();
+		
+		//Do feature detection
+		int shortMagic = (array[0]&0xFF) << 8 | (array[1]&0xFF);
+		
+		if (shortMagic==PNGImageLoader.PNG_SHORTMAGIC) {
+			try {
+				return PNGImageLoader.load(new ByteArrayInputStream(array)); //Bail and use the java loader if we can
+			} catch (IOException ex) {
+				//Fallback to STBi, which (improperly) loads a wider range of PNG variants
+			}
+		}
 		
 		try(MemoryStack stack = MemoryStack.stackPush()) {
 			ByteBuffer buf = stack.malloc(array.length);
