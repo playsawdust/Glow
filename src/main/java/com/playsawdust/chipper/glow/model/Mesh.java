@@ -13,11 +13,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 
-public class Mesh {
+public class Mesh implements MeshSupplier {
 	
 	private Material material = Material.BLANK;
 	private ArrayList<Face> faces = new ArrayList<>();
 	
+	@Override
 	public Material getMaterial() { return material; }
 	
 	public int getFaceCount() {
@@ -75,5 +76,10 @@ public class Mesh {
 		result.setMaterial(this.getMaterial());
 		result.combineFrom(this);
 		return result;
+	}
+
+	@Override
+	public Mesh supplyMesh() {
+		return this;
 	}
 }

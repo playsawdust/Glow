@@ -37,7 +37,28 @@ public class MeshFlattener {
 	 * @return
 	 */
 	public static VertexBuffer uploadMesh(Mesh mesh, VertexBuffer.Layout layout) {
-		ByteBuffer buf = MemoryUtil.memAlloc(bufferSize(mesh, layout));
+		ClientVertexBuffer buf = new ClientVertexBuffer();
+		buf.layout = layout;
+		buf.ensureCapacity(bufferSize(mesh, layout));
+		
+		buf.beginWriting();
+		{
+			writeMesh(buf, mesh, layout);
+		}
+		buf.endWriting();
+		
+		VertexBuffer result = new VertexBuffer(buf.buffer(), layout, buf.numVertices);
+		buf.destroy();
+		return result;
+	}
+	
+	/**
+	 * Writes a flattened mesh into a clientside vertex buffer
+	 * @param buf The buffer to write mesh data into
+	 * @param mesh The mesh to write
+	 * @param layout The layout of vertex attributes
+	 */
+	public static void writeMesh(ClientVertexBuffer buf, Mesh mesh, VertexBuffer.Layout layout) {
 		int vertexCount = 0;
 		int bytesPerVertex = layout.getByteCount();
 		
@@ -45,13 +66,13 @@ public class MeshFlattener {
 		Material material = mesh.getMaterial();
 		for(Face face : mesh.faces()) {
 			if (face.vertexCount()==3) {
-				buf = ensureCapacity(buf, bytesPerVertex*3);
+				buf.ensureCapacity(bytesPerVertex*3);
 				for(Vertex v : face) {
-					writeVertex(v, material, layout, attributes, buf);
+					writeVertex(v, material, layout, attributes, buf.buffer());
 					vertexCount++;
 				}
 			} else if (face.vertexCount()==4) {
-				buf = ensureCapacity(buf, bytesPerVertex*6);
+				buf.ensureCapacity(bytesPerVertex*6);
 				
 				//There's an easy tesselation for this
 				Iterator<Vertex> iterator = face.iterator();
@@ -60,46 +81,33 @@ public class MeshFlattener {
 				Vertex c = iterator.next();
 				Vertex d = iterator.next();
 				
-				writeVertex(a, material, layout, attributes, buf);
-				writeVertex(b, material, layout, attributes, buf);
-				writeVertex(c, material, layout, attributes, buf);
+				writeVertex(a, material, layout, attributes, buf.buffer());
+				writeVertex(b, material, layout, attributes, buf.buffer());
+				writeVertex(c, material, layout, attributes, buf.buffer());
 				
-				writeVertex(a, material, layout, attributes, buf);
-				writeVertex(c, material, layout, attributes, buf);
-				writeVertex(d, material, layout, attributes, buf);
+				writeVertex(a, material, layout, attributes, buf.buffer());
+				writeVertex(c, material, layout, attributes, buf.buffer());
+				writeVertex(d, material, layout, attributes, buf.buffer());
 				
 				vertexCount += 6;
 			} else {
-				buf = ensureCapacity(buf, bytesPerVertex*(face.vertexCount()-2)*3);
+				buf.ensureCapacity(bytesPerVertex*(face.vertexCount()-2)*3);
 				//Triangle fan, triangle fan, does whatever triangles can
 				Iterator<Vertex> iterator = face.iterator();
 				Vertex a = iterator.next();
 				Vertex prev = iterator.next();
 				while(iterator.hasNext()) {
 					Vertex cur = iterator.next();
-					writeVertex(a, material, layout, attributes, buf);
-					writeVertex(prev, material, layout, attributes, buf);
-					writeVertex(cur, material, layout, attributes, buf);
+					writeVertex(a, material, layout, attributes, buf.buffer());
+					writeVertex(prev, material, layout, attributes, buf.buffer());
+					writeVertex(cur, material, layout, attributes, buf.buffer());
 					
 					prev = cur;
 					vertexCount+=3;
 				}
 			}
 		}
-		
-		buf.flip();
-		VertexBuffer result = new VertexBuffer(buf, layout, vertexCount);
-		MemoryUtil.memFree(buf);
-		return result;
-	}
-	
-	private static ByteBuffer ensureCapacity(ByteBuffer buf, int extra) {
-		int remaining = buf.capacity()-buf.position();
-		if (extra>remaining) {
-			return MemoryUtil.memRealloc(buf, buf.capacity()*3/2);
-		} else {
-			return buf;
-		}
+		buf.numVertices += vertexCount;
 	}
 	
 	private static void writeVertex(Vertex v, Material material, VertexBuffer.Layout layout, List<MaterialAttribute<?>> attributes, ByteBuffer buffer) {
@@ -119,6 +127,12 @@ public class MeshFlattener {
 		}
 	}
 	
+	/**
+	 * Uploads a Mesh and packages it with material data so that a RenderScheduler or a MeshPass can render it straight from the GPU.
+	 * @param mesh The Mesh to upload
+	 * @param layout The layout of vertex attributes needed for the shader to understand the uploaded flattened Mesh
+	 * @return A BakedMesh which can then be scheduled to render the Mesh straight from the GPU without uploading it again.
+	 */
 	public static BakedMesh bake(Mesh mesh, VertexBuffer.Layout layout) {
 		VertexBuffer buf = uploadMesh(mesh, layout);
 		BakedMesh result = new BakedMesh(mesh.getMaterial(), buf, null);

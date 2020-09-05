@@ -29,6 +29,7 @@ import com.playsawdust.chipper.glow.gl.shader.Destroyable;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.model.MaterialAttributeContainer;
 import com.playsawdust.chipper.glow.model.Mesh;
+import com.playsawdust.chipper.glow.model.MeshSupplier;
 import com.playsawdust.chipper.glow.model.Model;
 import com.playsawdust.chipper.glow.pass.MeshPass;
 import com.playsawdust.chipper.glow.pass.RenderPass;
@@ -92,7 +93,8 @@ public class RenderScheduler implements Destroyable {
 	
 	public BakedModel bake(Model m) {
 		ArrayList<BakedMesh> meshes = new ArrayList<>();
-		for(Mesh mesh : m) {
+		for(MeshSupplier supplier : m) {
+			Mesh mesh = supplier.supplyMesh();
 			if (mesh.isEmpty()) continue;
 			for(RenderPass pass : passes) {
 				if (pass.canEnqueue(mesh)) {

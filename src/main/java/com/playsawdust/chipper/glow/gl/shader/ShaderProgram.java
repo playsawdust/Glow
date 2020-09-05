@@ -91,7 +91,7 @@ public class ShaderProgram {
 				int type = typeBuf.get(0);
 				int location = GL20.glGetAttribLocation(handle, name);
 				
-				System.out.println("    Name: "+name+", Type: "+GLType.of(type)+", I: "+i+", Binding: "+location);
+				//System.out.println("    Name: "+name+", Type: "+GLType.of(type)+", I: "+i+", Binding: "+location);
 				
 				Entry entry = new Entry(name, location, type);
 				attributes.add(entry);
@@ -106,12 +106,12 @@ public class ShaderProgram {
 				
 				Entry entry = new Entry(name, location, type);
 				uniforms.add(entry);
-				GLType uniformType = GLType.of(type);
-				if (uniformType!=GLType.UNKNOWN) { 
-					System.out.println("    Name: "+name+", Type: "+GLType.of(type)+", Binding: "+location);
-				} else {
-					System.out.println("UnknownType "+type);
-				}
+				//GLType uniformType = GLType.of(type);
+				//if (uniformType!=GLType.UNKNOWN) { 
+				//	System.out.println("    Name: "+name+", Type: "+GLType.of(type)+", Binding: "+location);
+				//} else {
+				//	System.out.println("UnknownType "+type);
+				//}
 			}
 		}
 	}

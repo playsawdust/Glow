@@ -11,8 +11,8 @@ package com.playsawdust.chipper.glow.pass;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.joml.Matrix3d;
 import org.joml.Matrix3dc;
@@ -21,10 +21,10 @@ import org.joml.Matrix4dc;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.playsawdust.chipper.glow.RenderScheduler;
 import com.playsawdust.chipper.glow.gl.BakedMesh;
+import com.playsawdust.chipper.glow.gl.BakedModel;
+import com.playsawdust.chipper.glow.gl.ClientVertexBuffer;
 import com.playsawdust.chipper.glow.gl.MeshFlattener;
 import com.playsawdust.chipper.glow.gl.Texture;
 import com.playsawdust.chipper.glow.gl.VertexBuffer;
@@ -33,12 +33,19 @@ import com.playsawdust.chipper.glow.model.Material;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.model.MaterialAttributeContainer;
 import com.playsawdust.chipper.glow.model.Mesh;
-import com.playsawdust.chipper.glow.model.Model;
+import com.playsawdust.chipper.glow.model.MeshSupplier;
+import com.playsawdust.chipper.glow.model.ModelSupplier;
+import com.playsawdust.chipper.glow.model.SimpleMaterialAttributeContainer;
 
 public class MeshPass implements RenderPass {
 	
-	private ArrayList<MeshEntry> scheduled = new ArrayList<>();
-	private ArrayList<BakedMesh> scheduledForDeletion = new ArrayList<>();
+	private ArrayList<BakedModelEntry> scheduled = new ArrayList<>();
+	private HashMap<Material, ArrayList<DynamicModelEntry>> dynamicSorted = new HashMap<>();
+	private VertexBuffer dynamicBuffer;
+	private ClientVertexBuffer dynamicClientBuffer = new ClientVertexBuffer();
+	private MaterialAttributeContainer dynamicEnvironment = new SimpleMaterialAttributeContainer();
+	//private ArrayList<BakedMesh> scheduledForDeletion = new ArrayList<>();
+	/*
 	private Cache<Mesh, BakedMesh> bakedMeshes = CacheBuilder.newBuilder()
 			.expireAfterAccess(5, TimeUnit.SECONDS)
 			.<Mesh, BakedMesh>removalListener((notification)-> {
@@ -47,7 +54,7 @@ public class MeshPass implements RenderPass {
 					scheduledForDeletion.add(notification.getValue());
 				//}
 			})
-			.build();
+			.build();*/
 	private ShaderProgram shader;
 	private VertexBuffer.Layout layout = new VertexBuffer.Layout();
 	private HashMap<MaterialAttribute<?>, String> uniformLayout = new HashMap<>();
@@ -59,6 +66,11 @@ public class MeshPass implements RenderPass {
 	
 	public void setLayout(VertexBuffer.Layout layout) {
 		this.layout = layout;
+		if (dynamicBuffer!=null) {
+			dynamicBuffer.destroy();
+		}
+		
+		dynamicBuffer = VertexBuffer.createStreaming(layout);
 	}
 	
 	public void layoutUniform(MaterialAttribute<?> attribute, String uniform) {
@@ -81,7 +93,7 @@ public class MeshPass implements RenderPass {
 		Matrix4d rotTransfer = new Matrix4d();
 		MaterialAttributeContainer lastEnvironment = null;
 		Material lastMaterial = null;
-		for(MeshEntry entry : scheduled) {
+		for(BakedModelEntry entry : scheduled) {
 			if (lastEnvironment==null || !entry.environment.equals(lastEnvironment)) {
 				applyContainer(entry.environment, scheduler);
 				lastEnvironment = entry.environment;
@@ -106,54 +118,95 @@ public class MeshPass implements RenderPass {
 		
 		scheduled.clear();
 		
-		//Clear out VBOs hit with cache eviction
-		for(BakedMesh mesh : scheduledForDeletion) {
-			mesh.destroy();
+		if (!dynamicSorted.isEmpty()) {
+			applyContainer(dynamicEnvironment, scheduler);
+		
+			for(Map.Entry<Material, ArrayList<DynamicModelEntry>> mapEntry : dynamicSorted.entrySet()) {
+				
+				applyContainer(mapEntry.getKey(), scheduler);
+				
+				dynamicClientBuffer.beginWriting();
+				
+				for(DynamicModelEntry entry : mapEntry.getValue()) {
+					MeshFlattener.writeMesh(dynamicClientBuffer, entry.supplier.supplyMesh(), layout);
+				}
+				
+				dynamicClientBuffer.endWriting();
+				dynamicBuffer.uploadStreaming(dynamicClientBuffer.buffer(), dynamicClientBuffer.vertexCount());
+				dynamicBuffer.draw(shader);
+			}
 		}
-		scheduledForDeletion.clear();
 	}
 
 	@Override
 	public boolean canEnqueue(Object o) {
-		return (o instanceof Model) || (o instanceof Mesh) || (o instanceof BakedMesh); //&& matchesOtherOptions, e.g. shader, opacity
+		return (o instanceof ModelSupplier) || (o instanceof MeshSupplier) || (o instanceof BakedMesh) || (o instanceof BakedModel); //&& matchesOtherOptions, e.g. shader, opacity
 	}
 
 	@Override
 	public void enqueue(Object o, Vector3dc position, Matrix3dc orientation, MaterialAttributeContainer environment) {
 		if (o instanceof BakedMesh) {
-			scheduled.add(new MeshEntry((BakedMesh)o, position, orientation, environment));
-		} else if (o instanceof Model) {
-			for(Mesh mesh : ((Model)o)) {
-				enqueue(mesh, position, orientation, environment);
-			}
-		} else if (o instanceof Mesh) {
-			BakedMesh baked;
-			try {
-				baked = bakedMeshes.get((Mesh)o, ()->{
-					BakedMesh result = MeshFlattener.bake((Mesh)o, layout);
-					result.setRenderPass(this);
-					return result;
-				});
-				
-				scheduled.add(new MeshEntry(baked, position, orientation, environment));
-			} catch (ExecutionException e) {
-				e.printStackTrace();
-			}
+			enqueue((BakedMesh)o, position, orientation, environment);
+		} else if (o instanceof BakedModel) {
+			enqueue((BakedModel)o, position, orientation, environment);
+		} else if (o instanceof ModelSupplier) {
+			enqueue((ModelSupplier)o, position, orientation);
+		} else if (o instanceof MeshSupplier) {
+			enqueue((MeshSupplier)o, position, orientation);
 		}
 	}
-
 	
-	private static class MeshEntry {
+	public void enqueue(BakedModel model, Vector3dc position, Matrix3dc orientation, MaterialAttributeContainer environment) {
+		for(BakedMesh mesh : model) {
+			enqueue(mesh, position, orientation, environment);
+		}
+	}
+	
+	public void enqueue(BakedMesh mesh, Vector3dc position, Matrix3dc orientation, MaterialAttributeContainer environment) {
+		scheduled.add(new BakedModelEntry(mesh, position, orientation, environment));
+	}
+	
+	public void enqueue(ModelSupplier model, Vector3dc position, Matrix3dc orientation) {
+		Iterator<MeshSupplier> supplier = model.supplyMeshes();
+		while(supplier.hasNext()) {
+			enqueue(supplier.next(), position, orientation);
+		}
+	}
+	
+	public void enqueue(MeshSupplier mesh, Vector3dc position, Matrix3dc orientation) {
+		ArrayList<DynamicModelEntry> list = dynamicSorted.get(mesh.getMaterial());
+		if (list==null) {
+			list = new ArrayList<>();
+			dynamicSorted.put(mesh.getMaterial(), list);
+		}
+		
+		list.add(new DynamicModelEntry(mesh, position, orientation));
+	}
+	
+	
+	private static class BakedModelEntry {
 		BakedMesh baked;
 		Vector3d position = new Vector3d(0,0,0);
 		Matrix3d orientation = new Matrix3d();
 		MaterialAttributeContainer environment;
 		
-		public MeshEntry(BakedMesh baked, Vector3dc position, Matrix3dc orientation, MaterialAttributeContainer environment) {
+		public BakedModelEntry(BakedMesh baked, Vector3dc position, Matrix3dc orientation, MaterialAttributeContainer environment) {
 			this.baked = baked;
 			this.position.set(position);
 			this.orientation.set(orientation);
 			this.environment = environment;
+		}
+	}
+	
+	private static class DynamicModelEntry {
+		MeshSupplier supplier;
+		Vector3d position = new Vector3d(0,0,0);
+		Matrix3d orientation = new Matrix3d();
+		
+		public DynamicModelEntry(MeshSupplier meshSupplier, Vector3dc position, Matrix3dc orientation) {
+			this.supplier = meshSupplier;
+			this.position.set(position);
+			this.orientation.set(orientation);
 		}
 	}
 
@@ -193,11 +246,11 @@ public class MeshPass implements RenderPass {
 
 	@Override
 	public void destroy() {
-		bakedMeshes.invalidateAll();
-		bakedMeshes.cleanUp();
-		for(BakedMesh mesh : scheduledForDeletion) {
-			mesh.destroy();
-		}
-		scheduledForDeletion.clear();
+		//bakedMeshes.invalidateAll();
+		//bakedMeshes.cleanUp();
+		//for(BakedMesh mesh : scheduledForDeletion) {
+		//	mesh.destroy();
+		//}
+		//scheduledForDeletion.clear();
 	}
 }

@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-public class Model implements Iterable<Mesh> {
+import com.google.common.collect.AbstractIterator;
+
+public class Model implements ModelSupplier, Iterable<Mesh> {
 	private ArrayList<Mesh> meshes = new ArrayList<>();
 	
 	/** Create an empty Model with no Meshes */
@@ -31,7 +33,7 @@ public class Model implements Iterable<Mesh> {
 		return meshes.size();
 	}
 	
-	public Mesh getMesh(int index) {
+	public MeshSupplier getMesh(int index) {
 		return meshes.get(index);
 	}
 	
@@ -40,8 +42,8 @@ public class Model implements Iterable<Mesh> {
 	}
 	
 	public boolean isEmpty() {
-		for(Mesh mesh : meshes) {
-			if (!mesh.isEmpty()) return false;
+		for(MeshSupplier mesh : meshes) {
+			if (!mesh.supplyMesh().isEmpty()) return false;
 		}
 		return true;
 	}
@@ -49,16 +51,16 @@ public class Model implements Iterable<Mesh> {
 	/** Add all the Meshes from other into this Model, merging them with existing Meshes if the Materials match */
 	public void combineFrom(Model other) {
 		HashMap<Material, Mesh> mergeTargets = new HashMap<>();
-		for(Mesh mesh : meshes) {
-			mergeTargets.put(mesh.getMaterial(), mesh); //we don't care if an entry gets overwritten, and it's more expensive to check.
+		for(MeshSupplier mesh : meshes) {
+			mergeTargets.put(mesh.getMaterial(), mesh.supplyMesh()); //we don't care if an entry gets overwritten, and it's more expensive to check.
 		}
 		
-		for(Mesh otherMesh : other) {
+		for(MeshSupplier otherMesh : other) {
 			Mesh existing = mergeTargets.get(otherMesh.getMaterial());
 			if (existing!=null) {
-				existing.combineFrom(otherMesh);
+				existing.combineFrom(otherMesh.supplyMesh());
 			} else {
-				Mesh copy = otherMesh.copy();
+				Mesh copy = otherMesh.supplyMesh().copy();
 				mergeTargets.put(copy.getMaterial(), copy);
 				meshes.add(copy);
 			}
@@ -69,11 +71,26 @@ public class Model implements Iterable<Mesh> {
 	public void combineFrom(Mesh other) {
 		for(Mesh mesh : meshes) {
 			if (mesh.getMaterial().equals(other.getMaterial())) {
-				mesh.combineFrom(other);
+					mesh.combineFrom(other);
 				return;
 			}
 		}
 		
 		meshes.add(other.copy());
+	}
+
+	@Override
+	public Iterator<MeshSupplier> supplyMeshes() {
+		return new AbstractIterator<MeshSupplier>() {
+			private int cur = 0;
+			@Override
+			protected MeshSupplier computeNext() {
+				if (cur>=meshes.size()) return endOfData();
+				Mesh mesh = meshes.get(cur);
+				cur++;
+				return mesh;
+			}
+			
+		};
 	}
 }

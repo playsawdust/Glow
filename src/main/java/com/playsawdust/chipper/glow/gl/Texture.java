@@ -22,6 +22,7 @@ import org.lwjgl.system.MemoryUtil;
 
 import com.playsawdust.chipper.glow.gl.shader.Destroyable;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
+import com.playsawdust.chipper.glow.image.ClientImage;
 
 public class Texture implements Destroyable {
 	private int handle = -1;
@@ -100,6 +101,12 @@ public class Texture implements Destroyable {
 	public static Texture of(BufferedImage image) {
 		Texture result = new Texture();
 		result.uploadImage(image);
+		return result;
+	}
+	
+	public static Texture of(ClientImage image) {
+		Texture result = new Texture();
+		result.uploadImage(image.getData(), image.getWidth(), image.getHeight());
 		return result;
 	}
 }

@@ -27,6 +27,8 @@ public class VertexBuffer implements Destroyable {
 	private int vertexCount = 0;
 	private int primitive = GL11.GL_TRIANGLES;
 	
+	private VertexBuffer() {}
+	
 	public VertexBuffer(ByteBuffer buf, Layout layout, int vertexCount) {
 		this.layout = layout;
 		this.vertexCount = vertexCount;
@@ -50,10 +52,40 @@ public class VertexBuffer implements Destroyable {
 		handle = 0;
 	}
 	
+	public VertexBuffer uploadStreaming(ByteBuffer buf, int vertexCount) {
+		this.vertexCount = vertexCount;
+		GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, handle);
+		GL20.glBufferData(GL20.GL_ARRAY_BUFFER, buf, GL20.GL_STREAM_DRAW);
+		GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, 0);
+		
+		return this;
+	}
+	
 	public void draw(ShaderProgram prog) {
 		GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, handle);
 		layout.bind(prog);
 		GL20.glDrawArrays(primitive, 0, vertexCount);
+	}
+	
+	public void draw(ShaderProgram prog, int first, int count) {
+		if (first<0 || count<=0) throw new IllegalArgumentException();
+		if (first>=vertexCount) return; //*do not* draw ranges of vertices which do not exist
+		
+		if (first+count>vertexCount) {
+			count = vertexCount-first; //*do* draw any covered vertices which physically exist
+		}
+		GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, handle);
+		layout.bind(prog);
+		GL20.glDrawArrays(primitive, first, count);
+	}
+	
+	public static VertexBuffer createStreaming(Layout layout) {
+		VertexBuffer result = new VertexBuffer();
+		
+		result.layout = layout;
+		result.handle = GL20.glGenBuffers();
+		
+		return result;
 	}
 	
 	public static class Layout {
