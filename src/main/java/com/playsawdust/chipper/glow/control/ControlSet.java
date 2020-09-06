@@ -16,6 +16,7 @@ import org.lwjgl.glfw.GLFW;
 
 public class ControlSet {
 	protected HashMap<String, DigitalButtonControl> controls = new HashMap<>();
+	protected boolean enabled = true;
 	
 	public void mapWASD() {
 		map("up", GLFW.GLFW_KEY_W);
@@ -46,13 +47,29 @@ public class ControlSet {
 		controls.put(control.getName(), control);
 	}
 	
+	/** Calling setEnabled(false) will emit a single onRelease for any currently pressed controls. Calling setEnabled(true) will *not* emit an onPress for any controls held while this ControlSet is enabled. If the held key is released and pressed again, onRelease and onPress events will fire in that order.  */
+	public void setEnabled(boolean enabled) {
+		if (enabled) {
+			this.enabled = true;
+		} else {
+			for(DigitalButtonControl control : controls.values()) {
+				control.deactivate();
+			}
+			this.enabled = false;
+		}
+	}
+	
 	/** Feed me GLFW keyCallback input! */
 	public void handleKey(int key, int scanCode, int action, int mods) {
-		for(DigitalButtonControl control : controls.values()) control.handle(key, scanCode, action, mods);
+		if (enabled) {
+			for(DigitalButtonControl control : controls.values()) control.handle(key, scanCode, action, mods);
+		}
 	}
 	
 	public void handleMouse(int button, int action, int mods) {
-		for(DigitalButtonControl control : controls.values()) control.handleMouse(button, action, mods);
+		if (enabled) {
+			for(DigitalButtonControl control : controls.values()) control.handleMouse(button, action, mods);
+		}
 	}
 	
 	public boolean isPressed(String button) {

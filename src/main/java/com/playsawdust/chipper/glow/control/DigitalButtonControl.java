@@ -37,62 +37,71 @@ public class DigitalButtonControl {
 		
 		boolean press = (action==GLFW.GLFW_PRESS);
 		
+		boolean check = false;
+		
 		if (keys.containsKey(key)) {
 			keys.put(key, press);
+			check = true;
 		}
 		
 		if (codes.containsKey(code)) {
 			codes.put(code, press);
+			check = true;
 		}
 		
-		checkPressed();
+		if (check) checkPressed();
 	}
 	
 	public void handleMouse(int button, int action, int mods) {
 		if (action!=GLFW.GLFW_PRESS && action!=GLFW.GLFW_RELEASE) return;
-		
+		boolean check = false;
 		if (mouseButtons.containsKey(button)) {
 			boolean press = action==GLFW.GLFW_PRESS;
 			if (mouseButtons.get(button)!=press) {
 				mouseButtons.put(button, press);
-				if (press) {
-					onPress.fire();
-				} else {
-					onRelease.fire();
-				}
+				check = true;
 			}
-			
-			
 		}
 		
-		checkPressed();
+		if (check) checkPressed();
 	}
 	
 	private void checkPressed() {
-		//Go through what looks like a complicated process to resolve the combined state of this Control. Because of the low iteration count, it's very fast.
+		boolean oldPressed = pressed;
+		pressed = false;
+		
 		for(Map.Entry<Integer, Boolean> entry : keys.entrySet()) {
 			if (entry.getValue()) {
 				pressed = true;
-				return;
 			}
 		}
 		
-		for(Map.Entry<Integer, Boolean> entry : codes.entrySet()) {
-			if (entry.getValue()) {
-				pressed = true;
-				return;
+		if (!pressed) {
+			for(Map.Entry<Integer, Boolean> entry : codes.entrySet()) {
+				if (entry.getValue()) {
+					pressed = true;
+				}
+			}
+			
+			if (!pressed) {
+				for(Map.Entry<Integer, Boolean> entry : mouseButtons.entrySet()) {
+					if (entry.getValue()) {
+						pressed = true;
+						return;
+					}
+				}
+				
+				if (!pressed) {
+					locked = false;
+				}
 			}
 		}
 		
-		for(Map.Entry<Integer, Boolean> entry : mouseButtons.entrySet()) {
-			if (entry.getValue()) {
-				pressed = true;
-				return;
-			}
+		if (oldPressed & !pressed) {
+			onRelease.fire();
+		} else if (!oldPressed & pressed) {
+			onPress.fire();
 		}
-		
-		pressed = false;
-		locked = false;
 	}
 	
 	public boolean isPressed() {
@@ -142,6 +151,34 @@ public class DigitalButtonControl {
 	
 	public RunnableEvent onPress() { return onPress; }
 	public RunnableEvent onRelease() { return onRelease; }
+	
+	/** For internal use. Forces this control to release any pressed keys, and fires a single onRelease callback if doing so causes any keys to be released. */
+	public void deactivate() {
+		boolean fireEvent = false;
+		for(Integer i : keys.keySet()) {
+			if (keys.get(i)) {
+				fireEvent = true;
+				keys.put(i, Boolean.FALSE);
+			}
+		}
+		
+		for(Integer i : codes.keySet()) {
+			if (codes.get(i)) {
+				fireEvent = true;
+				codes.put(i, Boolean.FALSE);
+			}
+		}
+		
+		for(Integer i : mouseButtons.keySet()) {
+			if (mouseButtons.get(i)) {
+				fireEvent = true;
+				mouseButtons.put(i, Boolean.FALSE);
+			}
+		}
+		this.locked = false;
+		
+		if (fireEvent) onRelease.fire();
+	}
 	
 	/** Clears any existing mappings for this Control and bind to the named GLFW key-constant */
 	public void rebindToKey(int key) {

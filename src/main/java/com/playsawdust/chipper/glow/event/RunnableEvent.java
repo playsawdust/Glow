@@ -6,6 +6,7 @@ public class RunnableEvent extends Event {
 	private ArrayList<Runnable> handlers = new ArrayList<>();
 	
 	public void register(Runnable r) {
+		if (r==null) return;
 		handlers.add(r);
 	}
 	
