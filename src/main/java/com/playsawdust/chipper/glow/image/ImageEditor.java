@@ -19,10 +19,37 @@ public interface ImageEditor {
 		}
 	}
 	
+	public default void drawImage(ClientImage im, int x, int y, BlendMode mode, double opacity) {
+		for(int yi=0; yi<im.getHeight(); yi++) {
+			for(int xi=0; xi<im.getWidth(); xi++) {
+				paintPixel(xi+x, yi+y, im.getPixel(xi, yi), mode, opacity);
+			}
+		}
+	}
+	
+	public default void drawTintImage(ClientImage im, int x, int y, int tintColor, double tintStrength, BlendMode mode, double opacity) {
+		tintColor |= 0xFF_000000;
+		
+		for(int yi=0; yi<im.getHeight(); yi++) {
+			for(int xi=0; xi<im.getWidth(); xi++) {
+				int srcRGB = im.getPixel(xi, yi);
+				int tintRGB = BlendMode.MULTIPLY.blend(tintColor, srcRGB, tintStrength);
+				//int tintRGB = BlendMode.blend(srcRGB, tintColor, BlendMode.MULTIPLY, tintStrength);
+				tintRGB = tintRGB & 0xFFFFFF; //strip alpha
+				tintRGB = tintRGB | (srcRGB & 0xFF_000000); //replace with srcRGB alpha
+				paintPixel(xi+x, yi+y, tintRGB, mode);
+			}
+		}
+	}
+	
 	public default void paintPixel(int x, int y, int argb, BlendMode mode) {
+		paintPixel(x, y, argb, mode, 1.0);
+	}
+	
+	public default void paintPixel(int x, int y, int argb, BlendMode mode, double opacity) {
 		ClientImage dest = getImage();
 		int oldPixel = dest.getPixel(x, y);
-		int newPixel = BlendMode.blend(argb, oldPixel, mode);
+		int newPixel = mode.blend(argb, oldPixel, opacity);
 		dest.setPixel(x, y, newPixel);
 	}
 	

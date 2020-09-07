@@ -8,40 +8,72 @@ package com.playsawdust.chipper.glow.image;
 public interface BlendMode {
 	public static final double SRGB_GAMMA = 2.4;
 	
-	public double blend(double src, double dest, double srcAlpha, double destAlpha, double outAlpha);
+	public int blend(int src, int dest, double alpha);
 	
 	
-	public static BlendMode NORMAL   = (src, dest, srcAlpha, destAlpha, outAlpha) -> src*srcAlpha + dest*destAlpha*(1-srcAlpha);
+	public static BlendMode NORMAL      = Simple.create((src, dest) -> src); //src*srcAlpha + dest*destAlpha*(1-srcAlpha);
+	public static BlendMode MULTIPLY    = Simple.create((src, dest) -> src * dest);
+	public static BlendMode DIVIDE      = Simple.create((src, dest) -> src / dest);
+	public static BlendMode ADD         = Simple.create((src, dest) -> src + dest);
+	public static BlendMode SUBTRACT    = Simple.create((src, dest) -> src - dest);
 	
-	public static BlendMode MULTIPLY = (src, dest, srcAlpha, destAlpha, outAlpha) -> src * dest;
+	public static BlendMode DODGE       = Simple.create((src, dest) -> dest / (1-src));
+	public static BlendMode LINEAR_DODGE= ADD;
+	public static BlendMode BURN        = Simple.create((src, dest) -> 1 - ((1 - dest) / src));
+	public static BlendMode LINEAR_BURN = Simple.create((src, dest) -> src + dest - 1);
 	
-	public static BlendMode DIVIDE   = (src, dest, srcAlpha, destAlpha, outAlpha) -> src / dest;
+	public static BlendMode DARKEN      = Simple.create((src, dest) -> Math.min(src, dest));
+	public static BlendMode LIGHTEN     = Simple.create((src, dest) -> Math.max(src, dest));
+	public static BlendMode SCREEN      = Simple.create((src, dest) -> 1 - ((1-src) * (1-dest)));
+	public static BlendMode OVERLAY     = Simple.create((src, dest) -> (src < 0.5) ? 2 * src * dest : 1 - ((1-src) * (1-dest)));
 	
-	public static BlendMode SUBTRACT = (src, dest, srcAlpha, destAlpha, outAlpha) -> src - dest;
-	
-	public static BlendMode DODGE    = (src, dest, srcAlpha, destAlpha, outAlpha) -> dest / (1-src);
-	
-	public static BlendMode LINEAR_DODGE = (src, dest, srcAlpha, destAlpha, outAlpha) -> src + dest;
-	
-	public static BlendMode BURN     = (src, dest, srcAlpha, destAlpha, outAlpha) -> 1 - ((1 - dest) / src);
-	
-	public static BlendMode LINEAR_BURN = (src, dest, srcAlpha, destAlpha, outAlpha) -> src + dest - 1;
-	
-	public static BlendMode DARKEN   = (src, dest, srcAlpha, destAlpha, outAlpha) -> Math.min(src, dest);
-	
-	public static BlendMode LIGHTEN  = (src, dest, srcAlpha, destAlpha, outAlpha) -> Math.max(src, dest);
-	
-	public static BlendMode SCREEN   = (src, dest, srcAlpha, destAlpha, outAlpha) -> 1 - ((1-src) * (1-dest));
-	
-	public static BlendMode OVERLAY  = (src, dest, srcAlpha, destAlpha, outAlpha) -> (src < 0.5) ? 2 * src * dest : 1 - ((1-src) * (1-dest));
-	
-	public static BlendMode SOFT_LIGHT = (src, dest, srcAlpha, destAlpha, outAlpha) -> {
+	public static BlendMode SOFT_LIGHT = Simple.create((src, dest) -> {
 		if (dest < 0.5) {
 			return src - (1 - 2*dest) * src * (1 - src);
 		} else {
 			return src + (2*dest - 1) * (gw3c(src) - src);
 		}
-	};
+	});
+	
+	public static interface Simple {
+		public double blend(double src, double dest);
+		
+		public static BlendMode create(Simple s) {
+			return (src, dest, alpha) -> {
+				double sa = ((src >> 24) & 0xFF) / 255.0;
+				double sr = gammaToLinear((src >> 16) & 0xFF);
+				double sg = gammaToLinear((src >>  8) & 0xFF);
+				double sb = gammaToLinear((src      ) & 0xFF);
+				
+				double da = ((dest >> 24) & 0xFF) / 255.0;
+				double dr = gammaToLinear((dest >> 16) & 0xFF);
+				double dg = gammaToLinear((dest >>  8) & 0xFF);
+				double db = gammaToLinear((dest      ) & 0xFF);
+				
+				sa *= alpha;
+				
+				sr = clamp(s.blend(sr, dr));
+				sg = clamp(s.blend(sg, dg));
+				sb = clamp(s.blend(sb, db));
+				
+				double outAlpha = clamp(sa + da*(1-sa));
+				double r = lerp(dr, sr, sa);
+				double g = lerp(dg, sg, sa);
+				double b = lerp(db, sb, sa);
+				
+				int ir = linearToGamma(r);
+				int ig = linearToGamma(g);
+				int ib = linearToGamma(b);
+				int ia = (int) (outAlpha * 255.0);
+				
+				return ia << 24 | ir << 16 | ig << 8 | ib;
+			};
+		}
+	}
+	
+	//public static int blend(int src, int dest, Simple mode) {
+	//	return blend(src, dest, mode, 1.0);
+	//}
 	
 	/**
 	 * Blends two sRGB colors with alpha channels using the specified BlendMode
@@ -50,7 +82,8 @@ public interface BlendMode {
 	 * @param mode The BlendMode to use for the color channels
 	 * @return The composited pixel
 	 */
-	public static int blend(int src, int dest, BlendMode mode) {
+	/*
+	public static int blend(int src, int dest, Simple mode, double alpha) {
 		int sa = (src >> 24) & 0xFF;
 		int sr = (src >> 16) & 0xFF;
 		int sg = (src >>  8) & 0xFF;
@@ -61,7 +94,7 @@ public interface BlendMode {
 		int dg = (dest >>  8) & 0xFF;
 		int db = (dest      ) & 0xFF;
 		
-		double srcAlpha = clamp( sa / 255.0);
+		double srcAlpha = clamp( (sa / 255.0) * alpha);
 		double destAlpha = clamp(da / 255.0);
 		double outAlpha = clamp(srcAlpha + destAlpha*(1-srcAlpha));
 		if (outAlpha<=0) return 0x00_000000;
@@ -76,7 +109,7 @@ public interface BlendMode {
 		int ia = (int) (outAlpha * 255.0);
 		
 		return ia << 24 | ir << 16 | ig << 8 | ib;
-	}
+	}*/
 	
 	/** Converts one color sample from the srgb colorspace in the range [0 .. 255], into linear colorspace in the range [0.0 .. 1.0] */
 	public static double gammaToLinear(int srgbElement) {
@@ -127,6 +160,10 @@ public interface BlendMode {
 		if (value<min) return min;
 		if (value>max) return max;
 		return value;
+	}
+	
+	public static double lerp(double a, double b, double t) {
+		return a*(1-t) + b*t;
 	}
 	
 	/**
