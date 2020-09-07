@@ -36,6 +36,7 @@ public class FixedTimestep implements Timestep {
 	public static FixedTimestep ofTPS(int tps) {
 		double secondsPerTick = 1.0 / (double) tps;
 		double millisPerTick = secondsPerTick * 1_000.0;
+		if (millisPerTick<0) millisPerTick = 1;
 		return new FixedTimestep((long)millisPerTick);
 	}
 }
