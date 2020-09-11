@@ -6,11 +6,13 @@ import org.joml.Matrix3d;
 import org.joml.Matrix4d;
 import org.joml.Vector2d;
 import org.joml.Vector3d;
+import org.lwjgl.opengl.GL20;
 
 import com.playsawdust.chipper.glow.Window;
 import com.playsawdust.chipper.glow.gl.VertexBuffer.Layout;
 import com.playsawdust.chipper.glow.gl.shader.Destroyable;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
+import com.playsawdust.chipper.glow.image.AtlasImage;
 import com.playsawdust.chipper.glow.model.Face;
 import com.playsawdust.chipper.glow.model.Material;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
@@ -41,6 +43,8 @@ public class Painter implements Destroyable {
 		if (program!=null) program.bind();
 		Vector2d windowSize = window.getSize(new Vector2d());
 		ortho.setOrtho2D(0, windowSize.x, windowSize.y, 0);
+		GL20.glBlendFuncSeparate(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+		
 		//ortho.identity();
 		//ortho.translate(-1, 1, 0);
 		//ortho.scale(1.0/windowSize.x, -1.0/windowSize.y, 1);
@@ -49,6 +53,14 @@ public class Painter implements Destroyable {
 	
 	public void endPainting() {
 		
+	}
+	
+	public void paintTexture(Texture tex, AtlasImage.Tile tile, int x, int y, int color) {
+		paintTexture(tex, x, y, tile.getWidth(), tile.getHeight(), tile.getX(), tile.getY(), tile.getWidth(), tile.getHeight(), color);
+	}
+	
+	public void paintTexture(Texture tex, int x, int y) {
+		paintTexture(tex, x, y, tex.getWidth(), tex.getHeight(), 0, 0, tex.getWidth(), tex.getHeight(), 0xFF_FFFFFF);
 	}
 	
 	/** Paints the texture on the screen immediately. All coordinates are in pixels or texels. */
