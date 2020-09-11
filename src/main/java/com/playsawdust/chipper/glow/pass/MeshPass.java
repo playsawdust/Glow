@@ -253,4 +253,8 @@ public class MeshPass implements RenderPass {
 		//}
 		//scheduledForDeletion.clear();
 	}
+
+	public ShaderProgram getProgram() {
+		return shader;
+	}
 }

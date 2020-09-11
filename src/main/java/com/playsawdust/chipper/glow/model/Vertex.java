@@ -28,6 +28,11 @@ public class Vertex implements MaterialAttributeContainer {
 		this.pos = new Vector3d(pos);
 		this.uv = new Vector2d(uv);
 	}
+	
+	public Vertex(Vector2d pos, Vector2d uv) {
+		attributes.putMaterialAttribute(MaterialAttribute.POSITION_2D, new Vector2d(pos));
+		this.uv = new Vector2d(uv);
+	}
 
 	@SuppressWarnings("unchecked")
 	@Override

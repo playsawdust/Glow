@@ -110,7 +110,7 @@ public class MeshFlattener {
 		buf.numVertices += vertexCount;
 	}
 	
-	private static void writeVertex(Vertex v, Material material, VertexBuffer.Layout layout, List<MaterialAttribute<?>> attributes, ByteBuffer buffer) {
+	public static void writeVertex(Vertex v, Material material, VertexBuffer.Layout layout, List<MaterialAttribute<?>> attributes, ByteBuffer buffer) {
 		for(MaterialAttribute<?> attribute : attributes) {
 			if (buffer.remaining()<layout.getStride(attribute)) {
 				buffer = MemoryUtil.memRealloc(buffer, (buffer.capacity()*3)/2);

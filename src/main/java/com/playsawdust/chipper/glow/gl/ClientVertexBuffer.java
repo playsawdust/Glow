@@ -26,7 +26,8 @@ public class ClientVertexBuffer implements Destroyable {
 		
 		int remaining = buf.capacity()-buf.position();
 		if (extra>remaining) {
-			buf = MemoryUtil.memRealloc(buf, buf.capacity()*3/2);
+			int toRealloc = Math.max(remaining+extra, buf.capacity()*3/2);
+			buf = MemoryUtil.memRealloc(buf, toRealloc);
 		}
 	}
 	
@@ -44,6 +45,7 @@ public class ClientVertexBuffer implements Destroyable {
 	 * remains the same.
 	 */
 	public void beginWriting() {
+		if (buf==null) buf = MemoryUtil.memAlloc(1024);
 		buf.clear();
 		numVertices = 0;
 	}

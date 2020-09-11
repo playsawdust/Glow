@@ -48,7 +48,14 @@ public interface BufferWriter<T> {
 	}
 	
 	
-	public static BufferWriter<Integer> WRITE_INT_TO_INT = (buf, it) -> { buf.putInt(it); };
+	public static BufferWriter<Integer> WRITE_INT_TO_INT = (buf, it) -> {
+		buf.put((byte) ((it >> 24) & 0xFF));
+		buf.put((byte) ((it >> 16) & 0xFF));
+		buf.put((byte) ((it >>  8) & 0xFF));
+		buf.put((byte) ((it >>  0) & 0xFF));
+		
+		//buf.putInt(it);
+	};
 	
 	
 	

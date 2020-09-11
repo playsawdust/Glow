@@ -26,6 +26,8 @@ public class MaterialAttribute<T> {
 	
 	public MaterialAttribute(String name, Class<T> clazz, T defaultValue) {
 		this.name = name;
+		this.clazz = clazz;
+		this.defaultValue = defaultValue;
 	}
 	
 	public String getName() { return name; }
@@ -44,6 +46,7 @@ public class MaterialAttribute<T> {
 	 * These attributes are important for pretty much any lighting model, but usually won't make sense in a material.
 	 */
 	public static MaterialAttribute<Vector3dc> POSITION = new MaterialAttribute<>("position", Vector3dc.class, new Vector3d(0,0,0));
+	public static MaterialAttribute<Vector2dc> POSITION_2D = new MaterialAttribute<>("position", Vector2dc.class, new Vector2d(0,0));
 	public static MaterialAttribute<Vector2dc> UV = new MaterialAttribute<>("uv", Vector2dc.class, new Vector2d(0,0));
 	
 	/* Texture map IDs for Blinn-Phong
@@ -60,6 +63,8 @@ public class MaterialAttribute<T> {
 	 */
 	
 	public static MaterialAttribute<Vector3dc> DIFFUSE_COLOR = new MaterialAttribute<>("diffuseColor", Vector3dc.class, new Vector3d(0,0,0));
+	/** color-with-alpha in the sRGB colorspace */
+	public static MaterialAttribute<Integer> ARGB_COLOR = new MaterialAttribute<>("color", Integer.class, 0xFF_FFFFFF);
 	public static MaterialAttribute<Double> SPECULARITY = new MaterialAttribute<>("specularity", Double.class, 0.0);
 	public static MaterialAttribute<Double> EMISSIVITY = new MaterialAttribute<>("emissivity", Double.class, 0.0);
 	
