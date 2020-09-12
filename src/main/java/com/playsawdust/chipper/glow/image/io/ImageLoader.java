@@ -11,7 +11,7 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import com.google.common.io.ByteStreams;
-import com.playsawdust.chipper.glow.image.ClientImage;
+import com.playsawdust.chipper.glow.image.ImageData;
 
 public class ImageLoader {
 	
@@ -21,7 +21,7 @@ public class ImageLoader {
 	 * @return a ClientImage containing the decoded image
 	 * @throws IOException if there is a problem reading from the stream or decoding the image
 	 */
-	public static ClientImage load(InputStream in) throws IOException {
+	public static ImageData load(InputStream in) throws IOException {
 		byte[] array;
 		array = ByteStreams.toByteArray(in);
 		in.close();
@@ -67,7 +67,7 @@ public class ImageLoader {
 					g << 8 |
 					b;
 			}
-			ClientImage image = new ClientImage(width, height, data);
+			ImageData image = new ImageData(width, height, data);
 			MemoryUtil.memFree(imageBuf);
 			return image;
 		}

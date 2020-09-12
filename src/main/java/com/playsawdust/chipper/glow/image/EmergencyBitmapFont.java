@@ -16,7 +16,7 @@ public class EmergencyBitmapFont {
 
 
 	
-	public static void paint(ClientImage im, int x, int y, char ch, int color) {
+	public static void paint(ImageData im, int x, int y, char ch, int color) {
 		if (ch<0x21) return; //Unprintables plus space
 		int index = ch - 0x21;
 		if (index>FONT.length) return;
@@ -32,7 +32,7 @@ public class EmergencyBitmapFont {
 		}
 	}
 	
-	public static void paint(ClientImage im, int x, int y, CharSequence s, int color) {
+	public static void paint(ImageData im, int x, int y, CharSequence s, int color) {
 		for(int i=0; i<s.length(); i++) {
 			paint(im, x+(i*6), y, s.charAt(i), color);
 		}

@@ -10,8 +10,8 @@
 package com.playsawdust.chipper.glow;
 
 import java.nio.IntBuffer;
+import java.util.ArrayList;
 
-import org.joml.Vector2d;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
@@ -20,8 +20,12 @@ import org.lwjgl.system.MemoryStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.playsawdust.chipper.glow.control.ControlSet;
+import com.playsawdust.chipper.glow.control.MouseButton;
 import com.playsawdust.chipper.glow.event.BiConsumerEvent;
 import com.playsawdust.chipper.glow.event.KeyCallbackEvent;
+import com.playsawdust.chipper.glow.event.RunnableEvent;
+import com.playsawdust.chipper.glow.event.Vector2dEvent;
 import com.playsawdust.chipper.glow.util.AbstractGPUResource;
 
 public class Window extends AbstractGPUResource {
@@ -30,8 +34,15 @@ public class Window extends AbstractGPUResource {
 	private Logger glfwLog = LoggerFactory.getLogger("GLFW");
 	private long handle = -1;
 	
-	private KeyCallbackEvent onKey = new KeyCallbackEvent();
-	private BiConsumerEvent<Double, Double> onMouseMoved = new BiConsumerEvent<>();
+	private KeyCallbackEvent onRawKey = new KeyCallbackEvent();
+	
+	private Vector2dEvent onMouseMoved = new Vector2dEvent();
+	private BiConsumerEvent<MouseButton, Integer> onMousePressed = new BiConsumerEvent<>();
+	private BiConsumerEvent<MouseButton, Integer> onMouseReleased = new BiConsumerEvent<>();
+	private RunnableEvent onMouseEntered = new RunnableEvent();
+	private RunnableEvent onMouseLeft = new RunnableEvent();
+	
+	private ArrayList<ControlSet> controlSets = new ArrayList<>();
 	
 	private int framebufferWidth = 0;
 	private int framebufferHeight = 0;
@@ -41,6 +52,8 @@ public class Window extends AbstractGPUResource {
 	
 	private double mouseX = 0;
 	private double mouseY = 0;
+	
+	private boolean mouseGrabbed = false;
 	
 	/**
 	 * NOTE: CALL GLFWINIT BEFORE CREATING A WINDOW!
@@ -111,24 +124,77 @@ public class Window extends AbstractGPUResource {
 			this.onMouseMoved.fire(x, y);
 		});
 		
-		//TODO: Setup all other callbacks
+		GLFW.glfwSetMouseButtonCallback(handle, this::handleMouse);
+		
+		GLFW.glfwSetCursorEnterCallback(handle, (hWin, enter) -> {
+			if (enter) {
+				onMouseEntered.fire();
+			} else {
+				onMouseLeft.fire();
+			}
+		});
+		
+		
 	}
 	
 	private void handleKey(long window, int key, int scanCode, int action, int mods) {
-		//TODO: Invoke controls
+		for(ControlSet set : controlSets) {
+			set.handleKey(key, scanCode, action, mods);
+		}
 		
-		onKey.fire(window, key, scanCode, action, mods);
+		onRawKey.fire(window, key, scanCode, action, mods);
+	}
+	
+	private void handleMouse(long window, int button, int action, int mods) {
+		for(ControlSet set : controlSets) {
+			set.handleMouse(button, action, mods);
+		}
+		
+		if (action==GLFW.GLFW_PRESS) {
+			onMousePressed.fire(MouseButton.fromGLFW(button), mods);
+		} else if (action==GLFW.GLFW_RELEASE) {
+			onMouseReleased.fire(MouseButton.fromGLFW(button), mods);
+		}
+	}
+	
+	public void setVSync(boolean vsync) {
+		if (vsync) {
+			GLFW.glfwSwapInterval(1);
+		} else {
+			GLFW.glfwSwapInterval(0);
+		}
 	}
 	
 	/**
 	 * Returns an event which can be used to register "raw" key callbacks
 	 */
 	public KeyCallbackEvent onRawKey() {
-		return this.onKey;
+		return this.onRawKey;
 	}
 	
-	public BiConsumerEvent<Double, Double> onMouseMoved() {
+	/** Returns an event which is called whenever the mouse is moved within the window. Callers are given the mouse X and Y coordinates */
+	public Vector2dEvent onMouseMoved() {
 		return this.onMouseMoved;
+	}
+	
+	/** Returns an event which is called whenever a mouse button is pressed. The first argument supplied is the mouse button, and the second is a bitfield of modifiers */
+	public BiConsumerEvent<MouseButton, Integer> onMousePressed() {
+		return this.onMousePressed;
+	}
+	
+	/** Returns an event which is fired whenever a mouse button is released. The first argument supplied is the mouse button, and the secoind is a bitfield of modifiers */
+	public BiConsumerEvent<MouseButton, Integer> onMouseReleased() {
+		return this.onMouseReleased;
+	}
+	
+	/** Adds a ControlSet to this Window. Any controls included will update their state automatically as long as this window is polled. */
+	public void addControlSet(ControlSet set) {
+		controlSets.add(set);
+	}
+	
+	/** Removes a ControlSet from this Window. It's good practice to setEnabled(false) on the ControlSet before calling this method, so that any currently-pressed controls are released. */
+	public void removeControlSet(ControlSet set) {
+		controlSets.remove(set);
 	}
 	
 	public long handle() {
@@ -144,6 +210,22 @@ public class Window extends AbstractGPUResource {
 	public void hide() {
 		checkFreed();
 		GLFW.glfwHideWindow(handle);
+	}
+	
+	/**
+	 * Calling this with {@code true} grabs the mouse on behalf of this Window, hiding and recentering it automatically.
+	 * @param mouseGrab
+	 */
+	public void setMouseGrab(boolean mouseGrab) {
+		if (mouseGrab ^ this.mouseGrabbed) {
+			if (mouseGrab) {
+				GLFW.glfwSetInputMode(handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
+			} else {
+				GLFW.glfwSetInputMode(handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
+			}
+			
+			this.mouseGrabbed = mouseGrab;
+		}
 	}
 	
 	public void _free() {
@@ -164,17 +246,15 @@ public class Window extends AbstractGPUResource {
 	
 	public double getMouseX() { return mouseX; }
 	public double getMouseY() { return mouseY; }
+	public boolean isMouseGrabbed() { return mouseGrabbed; }
 	
 	
+	public void pollEvents() {
+		GLFW.glfwPollEvents();
+	}
 	
-	
-	/**
-	 * Asks GLFW to make this window's context current
-	 */
-	/*
-	public void makeContextCurrent() {
-		checkFreed();
-		GLFW.glfwMakeContextCurrent(handle);
-	}*/
-	
+	/** Swap the framebuffers so that any drawing which was just done becomes visible. */
+	public void swapBuffers() {
+		GLFW.glfwSwapBuffers(handle);
+	}
 }

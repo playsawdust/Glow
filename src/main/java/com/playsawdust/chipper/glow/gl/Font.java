@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.playsawdust.chipper.glow.image.AtlasImage;
-import com.playsawdust.chipper.glow.image.ClientImage;
+import com.playsawdust.chipper.glow.image.ImageData;
 import com.playsawdust.chipper.glow.text.Glyph;
 
 public class Font {
@@ -51,7 +51,7 @@ public class Font {
 	private class CodePage {
 		private AtlasImage atlas;
 		
-		public ClientImage getImage() {
+		public ImageData getImage() {
 			return atlas.getImage();
 		}
 	}

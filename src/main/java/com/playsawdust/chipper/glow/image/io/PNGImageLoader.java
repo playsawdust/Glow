@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.InflaterInputStream;
 
-import com.playsawdust.chipper.glow.image.ClientImage;
+import com.playsawdust.chipper.glow.image.ImageData;
 
 public class PNGImageLoader {
 	/** The first two bytes of a file or stream can be used to uniquely identify it as a PNG file. Specifically, these two bytes. */
@@ -24,7 +24,7 @@ public class PNGImageLoader {
 	private static final int COLORTYPE_RGBA = 6;
 	
 	
-	public static ClientImage load(InputStream in) throws IOException {
+	public static ImageData load(InputStream in) throws IOException {
 		try(in) {
 			DataInputStream data = new DataInputStream(in);
 			
@@ -32,14 +32,14 @@ public class PNGImageLoader {
 			if (magic!=PNG_MAGIC) throw new IOException("Not a valid PNG file");
 			
 			IHDRChunk ihdr = null;
-			ClientImage result = null;
+			ImageData result = null;
 			ByteArrayOutputStream imageDataStream = new ByteArrayOutputStream();
 			while(true) {
 				try {
 					PNGChunk chunk = PNGChunk.read(data);
 					if (chunk instanceof IHDRChunk) {
 						ihdr = (IHDRChunk) chunk;
-						result = new ClientImage(ihdr.width, ihdr.height);
+						result = new ImageData(ihdr.width, ihdr.height);
 						System.out.println("Size: "+ihdr.width+"x"+ihdr.height);
 						if (ihdr.compression!=0) throw new IOException("Unknown compression method");
 						if (ihdr.filterMethod!=0) throw new IOException("Image uses unknown extended filter types"); //0 = none/sub/up/average/paeth are allowed filter bytes

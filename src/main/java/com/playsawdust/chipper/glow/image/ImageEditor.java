@@ -3,15 +3,15 @@ package com.playsawdust.chipper.glow.image;
 public interface ImageEditor {
 	public static final double SRGB_GAMMA = 2.4;
 	
-	public static ImageEditor edit(ClientImage im) { return new ClientImageEditor(im); }
+	public static ImageEditor edit(ImageData im) { return new ImageDataEditor(im); }
 	
-	public ClientImage getImage();
+	public ImageData getImage();
 	
-	public default void drawImage(ClientImage im, int x, int y) {
+	public default void drawImage(ImageData im, int x, int y) {
 		drawImage(im, x, y, BlendMode.NORMAL);
 	}
 	
-	public default void drawImage(ClientImage im, int x, int y, BlendMode mode) {
+	public default void drawImage(ImageData im, int x, int y, BlendMode mode) {
 		for(int yi=0; yi<im.getHeight(); yi++) {
 			for(int xi=0; xi<im.getWidth(); xi++) {
 				paintPixel(xi+x, yi+y, im.getPixel(xi, yi), mode);
@@ -19,7 +19,7 @@ public interface ImageEditor {
 		}
 	}
 	
-	public default void drawImage(ClientImage im, int x, int y, BlendMode mode, double opacity) {
+	public default void drawImage(ImageData im, int x, int y, BlendMode mode, double opacity) {
 		for(int yi=0; yi<im.getHeight(); yi++) {
 			for(int xi=0; xi<im.getWidth(); xi++) {
 				paintPixel(xi+x, yi+y, im.getPixel(xi, yi), mode, opacity);
@@ -27,7 +27,7 @@ public interface ImageEditor {
 		}
 	}
 	
-	public default void drawTintImage(ClientImage im, int x, int y, int tintColor, double tintStrength, BlendMode mode, double opacity) {
+	public default void drawTintImage(ImageData im, int x, int y, int tintColor, double tintStrength, BlendMode mode, double opacity) {
 		tintColor |= 0xFF_000000;
 		
 		for(int yi=0; yi<im.getHeight(); yi++) {
@@ -47,7 +47,7 @@ public interface ImageEditor {
 	}
 	
 	public default void paintPixel(int x, int y, int argb, BlendMode mode, double opacity) {
-		ClientImage dest = getImage();
+		ImageData dest = getImage();
 		int oldPixel = dest.getPixel(x, y);
 		int newPixel = mode.blend(argb, oldPixel, opacity);
 		dest.setPixel(x, y, newPixel);

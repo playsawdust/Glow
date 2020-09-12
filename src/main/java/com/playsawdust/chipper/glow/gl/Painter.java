@@ -9,23 +9,23 @@ import org.lwjgl.opengl.GL20;
 import com.playsawdust.chipper.glow.Window;
 import com.playsawdust.chipper.glow.gl.VertexBuffer.Layout;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
-import com.playsawdust.chipper.glow.image.AtlasImage;
 import com.playsawdust.chipper.glow.model.Material;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.model.Vertex;
 import com.playsawdust.chipper.glow.util.AbstractCombinedResource;
+import com.playsawdust.chipper.glow.util.RectangleI;
 
 public class Painter extends AbstractCombinedResource {
 	protected Matrix4d ortho = new Matrix4d();//.setOrtho2DLH(0, window.width, window.height, 0);
 	
 	protected VertexBuffer buffer;
-	protected ClientVertexBuffer accumulator;
+	protected VertexBufferData accumulator;
 	protected ShaderProgram program;
 	protected Window window;
 	
 	public Painter(Layout layout, ShaderProgram program) {
 		buffer = VertexBuffer.createStreaming(layout);
-		accumulator = new ClientVertexBuffer();
+		accumulator = new VertexBufferData();
 		accumulator.layout = layout;
 		this.program = program;
 		
@@ -50,8 +50,8 @@ public class Painter extends AbstractCombinedResource {
 		
 	}
 	
-	public void paintTexture(Texture tex, AtlasImage.Tile tile, int x, int y, int color) {
-		paintTexture(tex, x, y, tile.getWidth(), tile.getHeight(), tile.getX(), tile.getY(), tile.getWidth(), tile.getHeight(), color);
+	public void paintTexture(Texture tex, RectangleI tile, int x, int y, int color) {
+		paintTexture(tex, x, y, tile.width(), tile.height(), tile.x(), tile.y(), tile.width(), tile.height(), color);
 	}
 	
 	public void paintTexture(Texture tex, int x, int y) {

@@ -1,19 +1,19 @@
 package com.playsawdust.chipper.glow.image;
 
-public class ClientImage {
+public class ImageData {
 	private int width = 0;
 	private int height = 0;
 	private int[] data = new int[0];
 	
-	public ClientImage() {}
+	public ImageData() {}
 	
-	public ClientImage(int width, int height) {
+	public ImageData(int width, int height) {
 		this.width = width;
 		this.height = height;
 		this.data = new int[width*height];
 	}
 	
-	public ClientImage(int width, int height, int[] data) {
+	public ImageData(int width, int height, int[] data) {
 		this.width = width;
 		this.height = height;
 		this.data = data;

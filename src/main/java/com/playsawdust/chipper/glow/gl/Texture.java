@@ -21,7 +21,7 @@ import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryUtil;
 
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
-import com.playsawdust.chipper.glow.image.ClientImage;
+import com.playsawdust.chipper.glow.image.ImageData;
 import com.playsawdust.chipper.glow.util.AbstractGPUResource;
 
 public class Texture extends AbstractGPUResource {
@@ -71,11 +71,6 @@ public class Texture extends AbstractGPUResource {
 		this.height = height;
 	}
 	
-	public void uploadImage(BufferedImage image) {
-		int[] argbData = image.getRGB(0, 0, image.getWidth(), image.getHeight(), new int[image.getWidth() * image.getHeight()], 0, image.getWidth());
-		uploadImage(argbData, image.getWidth(), image.getHeight());
-	}
-	
 	public void bind(ShaderProgram program, String name, int texunit) {
 		GL20.glActiveTexture(GL20.GL_TEXTURE0 + texunit);
 		GL20.glBindTexture(type, handle);
@@ -98,13 +93,7 @@ public class Texture extends AbstractGPUResource {
 		}
 	}
 	
-	public static Texture of(BufferedImage image) {
-		Texture result = new Texture();
-		result.uploadImage(image);
-		return result;
-	}
-	
-	public static Texture of(ClientImage image) {
+	public static Texture of(ImageData image) {
 		Texture result = new Texture();
 		result.uploadImage(image.getData(), image.getWidth(), image.getHeight());
 		return result;

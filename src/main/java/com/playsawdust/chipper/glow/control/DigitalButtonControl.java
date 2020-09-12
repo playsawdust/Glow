@@ -23,8 +23,8 @@ public class DigitalButtonControl {
 	private HashMap<Integer, Boolean> keys = new HashMap<>();
 	private HashMap<Integer, Boolean> codes = new HashMap<>();
 	private HashMap<Integer, Boolean> mouseButtons = new HashMap<>();
-	private RunnableEvent onPress = new RunnableEvent();
-	private RunnableEvent onRelease = new RunnableEvent();
+	private RunnableEvent onPressed = new RunnableEvent();
+	private RunnableEvent onReleased = new RunnableEvent();
 	private boolean pressed = false;
 	private boolean locked = false;
 	
@@ -98,9 +98,9 @@ public class DigitalButtonControl {
 		}
 		
 		if (oldPressed & !pressed) {
-			onRelease.fire();
+			onReleased.fire();
 		} else if (!oldPressed & pressed) {
-			onPress.fire();
+			onPressed.fire();
 		}
 	}
 	
@@ -149,8 +149,8 @@ public class DigitalButtonControl {
 		return name;
 	}
 	
-	public RunnableEvent onPress() { return onPress; }
-	public RunnableEvent onRelease() { return onRelease; }
+	public RunnableEvent onPressed() { return onPressed; }
+	public RunnableEvent onReleased() { return onReleased; }
 	
 	/** For internal use. Forces this control to release any pressed keys, and fires a single onRelease callback if doing so causes any keys to be released. */
 	public void deactivate() {
@@ -177,7 +177,7 @@ public class DigitalButtonControl {
 		}
 		this.locked = false;
 		
-		if (fireEvent) onRelease.fire();
+		if (fireEvent) onReleased.fire();
 	}
 	
 	/** Clears any existing mappings for this Control and bind to the named GLFW key-constant */

@@ -7,7 +7,7 @@ import org.lwjgl.system.MemoryUtil;
 import com.playsawdust.chipper.glow.gl.VertexBuffer.Layout;
 import com.playsawdust.chipper.glow.util.AbstractOffheapResource;
 
-public class ClientVertexBuffer extends AbstractOffheapResource {
+public class VertexBufferData extends AbstractOffheapResource {
 	Layout layout;
 	private ByteBuffer buf;
 	int numVertices = 0;

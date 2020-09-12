@@ -3,7 +3,7 @@ package com.playsawdust.chipper.glow.text;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.playsawdust.chipper.glow.image.ClientImage;
+import com.playsawdust.chipper.glow.image.ImageData;
 
 public final class PreparedString implements CharSequence {
 	private final String text;

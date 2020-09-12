@@ -24,7 +24,7 @@ import org.joml.Vector3dc;
 import com.playsawdust.chipper.glow.RenderScheduler;
 import com.playsawdust.chipper.glow.gl.BakedMesh;
 import com.playsawdust.chipper.glow.gl.BakedModel;
-import com.playsawdust.chipper.glow.gl.ClientVertexBuffer;
+import com.playsawdust.chipper.glow.gl.VertexBufferData;
 import com.playsawdust.chipper.glow.gl.MeshFlattener;
 import com.playsawdust.chipper.glow.gl.Texture;
 import com.playsawdust.chipper.glow.gl.VertexBuffer;
@@ -43,7 +43,7 @@ public class MeshPass extends AbstractCombinedResource implements RenderPass {
 	private ArrayList<BakedModelEntry> scheduled = new ArrayList<>();
 	private HashMap<Material, ArrayList<DynamicModelEntry>> dynamicSorted = new HashMap<>();
 	private VertexBuffer dynamicBuffer;
-	private ClientVertexBuffer dynamicClientBuffer = new ClientVertexBuffer();
+	private VertexBufferData dynamicClientBuffer = new VertexBufferData();
 	private MaterialAttributeContainer dynamicEnvironment = new SimpleMaterialAttributeContainer();
 	//private ArrayList<BakedMesh> scheduledForDeletion = new ArrayList<>();
 	/*

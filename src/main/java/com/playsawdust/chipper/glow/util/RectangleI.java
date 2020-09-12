@@ -52,16 +52,18 @@ public class RectangleI {
 		return x;
 	}
 	
+	/** Gets the X coordinate of the last pixel within the right edge of this Rectangle* */
 	public int getRight() {
-		return x+width;
+		return x+width-1;
 	}
 	
 	public int getTop() {
 		return y;
 	}
 	
+	/** Gets the Y coordinate of the last pixel within the bottom edge of this RectangleI */
 	public int getBottom() {
-		return y+height;
+		return y+height-1;
 	}
 	
 	public boolean intersects(RectangleI other) {

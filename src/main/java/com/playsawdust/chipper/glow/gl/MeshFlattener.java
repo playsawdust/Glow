@@ -37,7 +37,7 @@ public class MeshFlattener {
 	 * @return
 	 */
 	public static VertexBuffer uploadMesh(Mesh mesh, VertexBuffer.Layout layout) {
-		ClientVertexBuffer buf = new ClientVertexBuffer();
+		VertexBufferData buf = new VertexBufferData();
 		buf.layout = layout;
 		buf.ensureCapacity(bufferSize(mesh, layout));
 		
@@ -58,7 +58,7 @@ public class MeshFlattener {
 	 * @param mesh The mesh to write
 	 * @param layout The layout of vertex attributes
 	 */
-	public static void writeMesh(ClientVertexBuffer buf, Mesh mesh, VertexBuffer.Layout layout) {
+	public static void writeMesh(VertexBufferData buf, Mesh mesh, VertexBuffer.Layout layout) {
 		int vertexCount = 0;
 		int bytesPerVertex = layout.getByteCount();
 		
