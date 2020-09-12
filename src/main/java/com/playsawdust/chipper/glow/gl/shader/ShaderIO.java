@@ -33,7 +33,7 @@ public class ShaderIO {
 			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
 			//System.out.println(doc.getNodeName());
 			Enclosure<ShaderProgram> result = new Enclosure<>();
-			Enclosure<ShaderError> error = new Enclosure<>();
+			Enclosure<ShaderException> error = new Enclosure<>();
 			
 			HashMap<String, ShaderPass> passes = new HashMap<>();
 			Nodelet document = new Nodelet(doc);
@@ -94,12 +94,12 @@ public class ShaderIO {
 	
 	
 	
-	public static ShaderProgram loadOld(InputStream in) throws IOException, ShaderError {
+	public static ShaderProgram loadOld(InputStream in) throws IOException, ShaderException {
 		try {
 			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
 			//System.out.println(doc.getNodeName());
 			Enclosure<ShaderProgram> result = new Enclosure<>();
-			Enclosure<ShaderError> error = new Enclosure<>();
+			Enclosure<ShaderException> error = new Enclosure<>();
 			
 			foreach(doc, (node)->{
 				if (node.getNodeName().equals("root")) {
@@ -132,7 +132,7 @@ public class ShaderIO {
 									if (!result.isSet()) {
 										try {
 											result.set(new ShaderProgram(vertexShader.value(), fragmentShader.value()));
-										} catch (ShaderError e) {
+										} catch (ShaderException e) {
 											error.set(e);
 											return;
 										}
@@ -222,7 +222,7 @@ public class ShaderIO {
 		public String getVertex() { return vertex; }
 		public String getFragment() { return fragment; }
 		
-		public ShaderProgram compile() throws ShaderError {
+		public ShaderProgram compile() throws ShaderException {
 			return new ShaderProgram(vertex, fragment);
 		}
 	}

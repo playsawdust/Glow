@@ -35,7 +35,7 @@ public class ShaderProgram extends AbstractGPUResource {
 	
 	private ArrayList<Entry> uniforms = new ArrayList<>();
 	
-	public ShaderProgram(String vertex, String fragment) throws ShaderError {
+	public ShaderProgram(String vertex, String fragment) throws ShaderException {
 		vertexHandle = GL20.glCreateShader(GL20.GL_VERTEX_SHADER);
 		GL20.glShaderSource(vertexHandle, vertex);
 		GL20.glCompileShader(vertexHandle);
@@ -45,7 +45,7 @@ public class ShaderProgram extends AbstractGPUResource {
 		if (vertexStatus == GL20.GL_FALSE) {
 			String result = GL20.glGetShaderInfoLog(vertexHandle);
 			GL20.glDeleteShader(vertexHandle); //cleanup before exiting
-			throw new ShaderError("An error occurred compiling the vertex shader.", result);
+			throw new ShaderException("An error occurred compiling the vertex shader.", result);
 		} else {
 			//TODO: WARN somehow for any non-error shader logs?
 		}
@@ -60,7 +60,7 @@ public class ShaderProgram extends AbstractGPUResource {
 			String result = GL20.glGetShaderInfoLog(fragmentHandle);
 			GL20.glDeleteShader(vertexHandle); //cleanup *both* before exiting
 			GL20.glDeleteShader(fragmentHandle);
-			throw new ShaderError("An error occurred compiling the fragment shader.", result);
+			throw new ShaderException("An error occurred compiling the fragment shader.", result);
 		} else {
 			//TODO: WARN somehow for any non-error shader logs?
 		}
@@ -75,7 +75,7 @@ public class ShaderProgram extends AbstractGPUResource {
 			GL20.glDeleteShader(vertexHandle); //cleanup *all* before exiting
 			GL20.glDeleteShader(fragmentHandle);
 			GL20.glDeleteProgram(handle);
-			throw new ShaderError("An error occurred linking the shader program.", result);
+			throw new ShaderException("An error occurred linking the shader program.", result);
 		} else {
 			//TODO: WARN somehow for any non-error shader logs?
 		}

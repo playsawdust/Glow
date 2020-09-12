@@ -29,7 +29,7 @@ import com.playsawdust.chipper.glow.gl.OffheapResource;
 import com.playsawdust.chipper.glow.gl.Painter;
 import com.playsawdust.chipper.glow.gl.Texture;
 import com.playsawdust.chipper.glow.gl.VertexBuffer;
-import com.playsawdust.chipper.glow.gl.shader.ShaderError;
+import com.playsawdust.chipper.glow.gl.shader.ShaderException;
 import com.playsawdust.chipper.glow.gl.shader.ShaderIO;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
@@ -129,7 +129,7 @@ public class RenderScheduler extends AbstractCombinedResource {
 		return onPaint;
 	}
 	
-	public void attachShaders(Map<String, ShaderIO.ShaderPass> shaders) throws ShaderError {
+	public void attachShaders(Map<String, ShaderIO.ShaderPass> shaders) throws ShaderException {
 		for(RenderPass pass : passes) {
 			ShaderIO.ShaderPass ioPass = shaders.get(pass.getId());
 			if (ioPass==null) continue; //TODO: Should we throw?

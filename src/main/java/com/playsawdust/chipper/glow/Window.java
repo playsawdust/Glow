@@ -14,104 +14,167 @@ import java.nio.IntBuffer;
 import org.joml.Vector2d;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryStack;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class Window {
+import com.playsawdust.chipper.glow.event.BiConsumerEvent;
+import com.playsawdust.chipper.glow.event.KeyCallbackEvent;
+import com.playsawdust.chipper.glow.util.AbstractGPUResource;
+
+public class Window extends AbstractGPUResource {
 	private static final long NULL = 0;
 	
+	private Logger glfwLog = LoggerFactory.getLogger("GLFW");
+	private long handle = -1;
 	
-	private long handle;
+	private KeyCallbackEvent onKey = new KeyCallbackEvent();
+	private BiConsumerEvent<Double, Double> onMouseMoved = new BiConsumerEvent<>();
+	
+	private int framebufferWidth = 0;
+	private int framebufferHeight = 0;
+	
+	private int windowWidth = 0;
+	private int windowHeight = 0;
+	
+	private double mouseX = 0;
+	private double mouseY = 0;
 	
 	/**
 	 * NOTE: CALL GLFWINIT BEFORE CREATING A WINDOW!
 	 */
 	public Window(int width, int height, String title) {
+		if (!GLFW.glfwInit()) {
+			GLFW.glfwTerminate();
+			throw new RuntimeException("Unable to initialize GLFW");
+		}
+		
 		GLFW.glfwDefaultWindowHints();
 		GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_TRUE);
 		
+		this.framebufferWidth = width;
+		this.framebufferHeight = height;
+		
 		handle = GLFW.glfwCreateWindow(width, height, title, NULL, NULL);
 		if (handle==NULL) throw new RuntimeException("Window creation failed.");
-	}
-	
-	public long handle() {
-		return this.handle;
-	}
-	
-	public void show() {
-		GLFW.glfwShowWindow(handle);
-	}
-	
-	public void hide() {
-		GLFW.glfwHideWindow(handle);
-	}
-	
-	public void destroy() {
-		GLFW.glfwDestroyWindow(handle);
-	}
-	
-	/**
-	 * Asks GLFW to make this window's context current
-	 */
-	public void makeContextCurrent() {
-		GLFW.glfwMakeContextCurrent(handle);
-	}
-	
-	/**
-	 * This is almost never what you want! This is here so you can init GLFW, then create a Window and RenderScheduler, and then activate a simplified render
-	 * loop without ever listing GLFW as a direct dependency. However, you probably want to manually init GLFW, set up error streams and event loops how
-	 * YOU want them, etc.
-	 */
-	public static boolean initGLFW() {
-		GLFWErrorCallback.createPrint(System.err).set();
 		
-		if (GLFW.glfwInit()) {
-			return true;
-		} else {
-			GLFW.glfwTerminate();
-			return false;
-		}
-	}
-	
-	/*
-	public static void startMainLoop(Window window, RenderScheduler scheduler) throws WindowException {
-		GLFW.glfwSetKeyCallback(window.handle, (win, key, scancode, action, mods) -> {
-			if ( key == GLFW.GLFW_KEY_ESCAPE && action == GLFW.GLFW_RELEASE )
-				GLFW.glfwSetWindowShouldClose(window.handle, true);
-		});
-		
-		GLFW.glfwMakeContextCurrent(window.handle);
-		
-		GL.createCapabilities();
-		GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		
-		while ( !GLFW.glfwWindowShouldClose(window.handle) ) {
-			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT); 
-			
-			//TODO: Ask scheduler to render us up some frame
-			if (scheduler!=null) scheduler.render();
-			
-			GLFW.glfwSwapBuffers(window.handle);
-			
-			GLFW.glfwPollEvents();
-		}
-	}*/
-	
-	public static class WindowException extends Exception {
-		private static final long serialVersionUID = 1939033067467843576L;
-		
-		public WindowException(String message) {
-			super(message);
-		}
-	}
-
-	public Vector2d getSize(Vector2d sz) {
+		//Grab out the sizes of the content pane and the window
 		try (MemoryStack stack = MemoryStack.stackGet().push()) {
 			IntBuffer widthBuffer = stack.ints(1);
 			IntBuffer heightBuffer = stack.ints(1);
 			GLFW.glfwGetFramebufferSize(handle, widthBuffer, heightBuffer);
-			sz.set(widthBuffer.get(), heightBuffer.get());
+			this.framebufferWidth = widthBuffer.get();
+			this.framebufferHeight = heightBuffer.get();
+			
+			widthBuffer.clear();
+			heightBuffer.clear();
+			GLFW.glfwGetWindowSize(handle, widthBuffer, heightBuffer);
+			this.windowWidth = widthBuffer.get();
+			this.windowHeight = heightBuffer.get();
 		}
-		return sz;
+		
+		//TODO: Find a better way to test if capabilities have been created.
+		try {
+			GLFW.glfwMakeContextCurrent(handle);
+			GL.getCapabilities();
+		} catch (IllegalStateException ex) {
+			GL.createCapabilities();
+		}
+		
+		
+		GL11.glViewport(0, 0,framebufferWidth, framebufferHeight);
+		
+		GLFW.glfwSetErrorCallback( (err, desc)->{
+				String errorString = GLFWErrorCallback.getDescription(desc);
+				glfwLog.error(errorString, new RuntimeException()); //Exception created/included here in order to generate a stack trace which can be inspected and abbreviated by a Logger
+			});
+		
+		GLFW.glfwSetKeyCallback(handle, this::handleKey);
+		
+		GLFW.glfwSetFramebufferSizeCallback(handle, (hWin, qwidth, qheight) -> {
+			this.framebufferWidth = qwidth;
+			this.framebufferHeight = qheight;
+			
+			GL11.glViewport(0, 0, qwidth, qheight);
+		});
+		
+		GLFW.glfwSetWindowSizeCallback(handle, (hWin, qwidth, qheight) -> {
+			this.windowWidth = qwidth;
+			this.windowHeight = qheight;
+		});
+		
+		GLFW.glfwSetCursorPosCallback(handle, (hWin, x, y) -> {
+			this.mouseX = x;
+			this.mouseY = y;
+			this.onMouseMoved.fire(x, y);
+		});
+		
+		//TODO: Setup all other callbacks
 	}
+	
+	private void handleKey(long window, int key, int scanCode, int action, int mods) {
+		//TODO: Invoke controls
+		
+		onKey.fire(window, key, scanCode, action, mods);
+	}
+	
+	/**
+	 * Returns an event which can be used to register "raw" key callbacks
+	 */
+	public KeyCallbackEvent onRawKey() {
+		return this.onKey;
+	}
+	
+	public BiConsumerEvent<Double, Double> onMouseMoved() {
+		return this.onMouseMoved;
+	}
+	
+	public long handle() {
+		checkFreed();
+		return this.handle;
+	}
+	
+	public void show() {
+		checkFreed();
+		GLFW.glfwShowWindow(handle);
+	}
+	
+	public void hide() {
+		checkFreed();
+		GLFW.glfwHideWindow(handle);
+	}
+	
+	public void _free() {
+		if (handle!=-1) {
+			GLFW.glfwDestroyWindow(handle);
+			handle = -1;
+		}
+	}
+	
+	/** Returns the width of the <em>framebuffer</em> managed by this Window. The Window itself may be larger! */
+	public int getWidth() { return framebufferWidth; }
+	/** Returns the height of the <em>framebuffer</em> managed by this Window. The Window itself may be larger! */
+	public int getHeight() { return framebufferHeight; }
+	/** Returns the width of this <em>Window</em>. You can get the size of the drawable region using {@link #getWidth()} */
+	public int getWindowWidth() { return windowWidth; }
+	/** Returns the height of this <em>Window</em>. You can get the size of the drawable region using {@link #getHeight()} */
+	public int getWindowHeight() { return windowHeight; }
+	
+	public double getMouseX() { return mouseX; }
+	public double getMouseY() { return mouseY; }
+	
+	
+	
+	
+	/**
+	 * Asks GLFW to make this window's context current
+	 */
+	/*
+	public void makeContextCurrent() {
+		checkFreed();
+		GLFW.glfwMakeContextCurrent(handle);
+	}*/
 	
 }
