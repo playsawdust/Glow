@@ -2,24 +2,20 @@ package com.playsawdust.chipper.glow.gl;
 
 import java.util.ArrayList;
 
-import org.joml.Matrix3d;
 import org.joml.Matrix4d;
 import org.joml.Vector2d;
-import org.joml.Vector3d;
 import org.lwjgl.opengl.GL20;
 
 import com.playsawdust.chipper.glow.Window;
 import com.playsawdust.chipper.glow.gl.VertexBuffer.Layout;
-import com.playsawdust.chipper.glow.gl.shader.Destroyable;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
 import com.playsawdust.chipper.glow.image.AtlasImage;
-import com.playsawdust.chipper.glow.model.Face;
 import com.playsawdust.chipper.glow.model.Material;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
-import com.playsawdust.chipper.glow.model.Mesh;
 import com.playsawdust.chipper.glow.model.Vertex;
+import com.playsawdust.chipper.glow.util.AbstractCombinedResource;
 
-public class Painter implements Destroyable {
+public class Painter extends AbstractCombinedResource {
 	protected Matrix4d ortho = new Matrix4d();//.setOrtho2DLH(0, window.width, window.height, 0);
 	
 	protected VertexBuffer buffer;
@@ -79,17 +75,6 @@ public class Painter implements Destroyable {
 		writeVertex(x+width, y, (texX+texWidth) * texelX, texY * texelY, color);
 		writeVertex(x, y, texX * texelX, texY * texelY, color);
 		
-		/*
-		Vertex a = new Vertex(new Vector2d(x, y), new Vector2d(texX * texelX, texY * texelY));
-		Vertex b = new Vertex(new Vector2d(x+width, y), new Vector2d((texX+texWidth) * texelX, texY * texelY));
-		Vertex c = new Vertex(new Vector2d(x+width, y+height), new Vector2d((texX+texWidth) * texelX, (texY+texHeight) * texelY));
-		Vertex d = new Vertex(new Vector2d(x, y+height), new Vector2d(texX * texelX, (texY+texHeight) * texelY));
-		
-		Mesh mesh = new Mesh();
-		mesh.setMaterial(Material.BLANK);
-		mesh.addFace(new Face(a, d, c, b));
-		
-		MeshFlattener.writeMesh(accumulator, mesh, accumulator.layout);*/
 		accumulator.endWriting();
 		
 		buffer.uploadStreaming(accumulator.buffer(), accumulator.vertexCount());
@@ -100,6 +85,9 @@ public class Painter implements Destroyable {
 		buffer.draw(program);
 	}
 	
+	public void paintString(Font font, int x, int y, CharSequence str, int color) {
+		
+	}
 	
 	@SuppressWarnings("unused")
 	private void writeVertexSlow(double x, double y, double u, double v, int argb) {
@@ -122,10 +110,20 @@ public class Painter implements Destroyable {
 	}
 	
 	@Override
-	public void destroy() {
+	public void _free() {
 		if (buffer!=null) {
-			buffer.destroy();
+			buffer.free();
 			buffer = null;
+		}
+		
+		if (accumulator!=null) {
+			accumulator.free();
+			accumulator = null;
+		}
+		
+		if (program!=null) {
+			program.free();
+			program = null;
 		}
 	}
 

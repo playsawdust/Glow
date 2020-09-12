@@ -15,11 +15,12 @@ import org.joml.Vector3dc;
 
 import com.playsawdust.chipper.glow.RenderScheduler;
 import com.playsawdust.chipper.glow.gl.BakedMesh;
-import com.playsawdust.chipper.glow.gl.shader.Destroyable;
+import com.playsawdust.chipper.glow.gl.GPUResource;
+import com.playsawdust.chipper.glow.gl.OffheapResource;
 import com.playsawdust.chipper.glow.model.MaterialAttributeContainer;
 import com.playsawdust.chipper.glow.model.Mesh;
 
-public interface RenderPass extends Destroyable {
+public interface RenderPass extends GPUResource, OffheapResource {
 	public String getId();
 	
 	/**
@@ -44,4 +45,10 @@ public interface RenderPass extends Destroyable {
 	 * @param mesh The Mesh to flatten and upload
 	 */
 	public BakedMesh bake(Mesh mesh);
+	
+	/* Resolves the diamond problem with respect to Offheap and GPU resource */
+	@Override
+	default void close() throws Exception {
+		OffheapResource.super.close();
+	}
 }

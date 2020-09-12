@@ -16,11 +16,11 @@ import org.lwjgl.opengl.ARBTextureFloat;
 import org.lwjgl.opengl.ARBTextureRectangle;
 import org.lwjgl.opengl.GL20;
 
-import com.playsawdust.chipper.glow.gl.shader.Destroyable;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
 import com.playsawdust.chipper.glow.scene.Light;
+import com.playsawdust.chipper.glow.util.AbstractGPUResource;
 
-public class LightTexture implements Iterable<Light>, Destroyable {
+public class LightTexture extends AbstractGPUResource implements Iterable<Light> {
 	private static final int LIGHT_LENGTH = 12;
 	
 	private ArrayList<Light> lights = new ArrayList<>();
@@ -86,7 +86,7 @@ public class LightTexture implements Iterable<Light>, Destroyable {
 	}
 
 	@Override
-	public void destroy() {
+	public void _free() {
 		if (handle!=-1) {
 			GL20.glDeleteTextures(handle);
 			handle = -1;

@@ -22,8 +22,9 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryStack;
 
 import com.playsawdust.chipper.glow.gl.GLType;
+import com.playsawdust.chipper.glow.util.AbstractGPUResource;
 
-public class ShaderProgram {
+public class ShaderProgram extends AbstractGPUResource {
 	private int vertexHandle = -1;
 	private int fragmentHandle = -1;
 	private int handle = -1;
@@ -136,7 +137,7 @@ public class ShaderProgram {
 		if (handle!=-1) GL20.glUseProgram(handle);
 	}
 	
-	public void destroy() {
+	public void _free() {
 		if (handle==-1) return;
 		
 		//Should be covered by the DeleteProgram but just crossing the T's and dotting the I's

@@ -13,9 +13,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
-import com.playsawdust.chipper.glow.gl.shader.Destroyable;
+import com.playsawdust.chipper.glow.util.AbstractGPUResource;
 
-public class BakedModel implements Iterable<BakedMesh>, Destroyable {
+public class BakedModel extends AbstractGPUResource implements Iterable<BakedMesh> {
 	private ArrayList<BakedMesh> meshes = new ArrayList<>();
 	
 	public BakedModel(Collection<BakedMesh> meshes) {
@@ -23,9 +23,9 @@ public class BakedModel implements Iterable<BakedMesh>, Destroyable {
 	}
 	
 	@Override
-	public void destroy() {
+	public void _free() {
 		for(BakedMesh mesh : meshes) {
-			mesh.destroy();
+			mesh.free();
 		}
 		
 		meshes.clear();

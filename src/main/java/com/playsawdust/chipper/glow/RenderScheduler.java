@@ -25,10 +25,10 @@ import com.playsawdust.chipper.glow.event.ConsumerEvent;
 import com.playsawdust.chipper.glow.gl.BakedMesh;
 import com.playsawdust.chipper.glow.gl.BakedModel;
 import com.playsawdust.chipper.glow.gl.BufferWriter;
+import com.playsawdust.chipper.glow.gl.OffheapResource;
 import com.playsawdust.chipper.glow.gl.Painter;
 import com.playsawdust.chipper.glow.gl.Texture;
 import com.playsawdust.chipper.glow.gl.VertexBuffer;
-import com.playsawdust.chipper.glow.gl.shader.Destroyable;
 import com.playsawdust.chipper.glow.gl.shader.ShaderError;
 import com.playsawdust.chipper.glow.gl.shader.ShaderIO;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
@@ -39,8 +39,9 @@ import com.playsawdust.chipper.glow.model.MeshSupplier;
 import com.playsawdust.chipper.glow.model.Model;
 import com.playsawdust.chipper.glow.pass.MeshPass;
 import com.playsawdust.chipper.glow.pass.RenderPass;
+import com.playsawdust.chipper.glow.util.AbstractCombinedResource;
 
-public class RenderScheduler implements Destroyable {
+public class RenderScheduler extends AbstractCombinedResource {
 	private ArrayList<RenderPass> passes = new ArrayList<>();
 	private HashMap<String, Texture> textures = new HashMap<>();
 	private ConsumerEvent<Painter> onPaint = new ConsumerEvent<>();
@@ -230,14 +231,14 @@ public class RenderScheduler implements Destroyable {
 	}
 
 	@Override
-	public void destroy() {
+	public void _free() {
 		for(Texture t : textures.values()) {
-			t.destroy();
+			t.free();
 		}
 		textures.clear();
 		
 		for(RenderPass pass : passes) {
-			pass.destroy();
+			pass.free();
 		}
 	}
 	

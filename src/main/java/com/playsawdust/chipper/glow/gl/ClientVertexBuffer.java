@@ -5,15 +5,15 @@ import java.nio.ByteBuffer;
 import org.lwjgl.system.MemoryUtil;
 
 import com.playsawdust.chipper.glow.gl.VertexBuffer.Layout;
-import com.playsawdust.chipper.glow.gl.shader.Destroyable;
+import com.playsawdust.chipper.glow.util.AbstractOffheapResource;
 
-public class ClientVertexBuffer implements Destroyable {
+public class ClientVertexBuffer extends AbstractOffheapResource {
 	Layout layout;
 	private ByteBuffer buf;
 	int numVertices = 0;
 	
 	@Override
-	public void destroy() {
+	public void _free() {
 		if (buf!=null) MemoryUtil.memFree(buf);
 		buf = null;
 		numVertices = 0;

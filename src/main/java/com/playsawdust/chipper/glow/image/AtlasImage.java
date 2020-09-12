@@ -54,6 +54,10 @@ public class AtlasImage implements Iterable<AtlasImage.Tile> {
 		return tiles.get(index);
 	}
 	
+	public ClientImage getImage() {
+		return image;
+	}
+	
 	public ClientImage getAsImage(int index) {
 		Tile t = getTile(index);
 		ClientImage result = new ClientImage(t.getWidth(), t.getHeight());

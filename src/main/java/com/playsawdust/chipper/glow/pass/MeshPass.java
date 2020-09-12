@@ -36,8 +36,9 @@ import com.playsawdust.chipper.glow.model.Mesh;
 import com.playsawdust.chipper.glow.model.MeshSupplier;
 import com.playsawdust.chipper.glow.model.ModelSupplier;
 import com.playsawdust.chipper.glow.model.SimpleMaterialAttributeContainer;
+import com.playsawdust.chipper.glow.util.AbstractCombinedResource;
 
-public class MeshPass implements RenderPass {
+public class MeshPass extends AbstractCombinedResource implements RenderPass {
 	
 	private ArrayList<BakedModelEntry> scheduled = new ArrayList<>();
 	private HashMap<Material, ArrayList<DynamicModelEntry>> dynamicSorted = new HashMap<>();
@@ -67,7 +68,7 @@ public class MeshPass implements RenderPass {
 	public void setLayout(VertexBuffer.Layout layout) {
 		this.layout = layout;
 		if (dynamicBuffer!=null) {
-			dynamicBuffer.destroy();
+			dynamicBuffer.free();
 		}
 		
 		dynamicBuffer = VertexBuffer.createStreaming(layout);
@@ -245,7 +246,7 @@ public class MeshPass implements RenderPass {
 	}
 
 	@Override
-	public void destroy() {
+	public void _free() {
 		//bakedMeshes.invalidateAll();
 		//bakedMeshes.cleanUp();
 		//for(BakedMesh mesh : scheduledForDeletion) {

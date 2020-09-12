@@ -20,11 +20,11 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryUtil;
 
-import com.playsawdust.chipper.glow.gl.shader.Destroyable;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
 import com.playsawdust.chipper.glow.image.ClientImage;
+import com.playsawdust.chipper.glow.util.AbstractGPUResource;
 
-public class Texture implements Destroyable {
+public class Texture extends AbstractGPUResource {
 	private int handle = -1;
 	private int type = GL11.GL_TEXTURE_2D;
 	private int width = 0;
@@ -91,7 +91,7 @@ public class Texture implements Destroyable {
 	}
 	
 	@Override
-	public void destroy() {
+	public void _free() {
 		if (handle!=-1) {
 			GL11.glDeleteTextures(handle);
 			handle = -1;

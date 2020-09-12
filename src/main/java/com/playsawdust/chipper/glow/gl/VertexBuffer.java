@@ -17,11 +17,11 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
 import com.google.common.collect.ImmutableList;
-import com.playsawdust.chipper.glow.gl.shader.Destroyable;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
+import com.playsawdust.chipper.glow.util.AbstractGPUResource;
 
-public class VertexBuffer implements Destroyable {
+public class VertexBuffer extends AbstractGPUResource {
 	private int handle = 0;
 	private Layout layout;
 	private int vertexCount = 0;
@@ -46,7 +46,7 @@ public class VertexBuffer implements Destroyable {
 	public Layout getLayout() { return layout; }
 	
 	@Override
-	public void destroy() {
+	public void _free() {
 		if (handle==0) return;
 		GL20.glDeleteBuffers(handle);
 		handle = 0;

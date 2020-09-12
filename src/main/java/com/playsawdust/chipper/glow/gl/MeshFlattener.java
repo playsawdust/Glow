@@ -48,7 +48,7 @@ public class MeshFlattener {
 		buf.endWriting();
 		
 		VertexBuffer result = new VertexBuffer(buf.buffer(), layout, buf.numVertices);
-		buf.destroy();
+		buf.free();
 		return result;
 	}
 	

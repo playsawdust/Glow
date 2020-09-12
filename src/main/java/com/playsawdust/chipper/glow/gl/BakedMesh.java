@@ -11,13 +11,13 @@ package com.playsawdust.chipper.glow.gl;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import com.playsawdust.chipper.glow.gl.shader.Destroyable;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
 import com.playsawdust.chipper.glow.model.Material;
 import com.playsawdust.chipper.glow.pass.MeshPass;
 import com.playsawdust.chipper.glow.pass.RenderPass;
+import com.playsawdust.chipper.glow.util.AbstractGPUResource;
 
-public class BakedMesh implements Destroyable {
+public class BakedMesh extends AbstractGPUResource {
 	private Material material;
 	private VertexBuffer mesh;
 	private @Nullable RenderPass renderPass;
@@ -59,15 +59,15 @@ public class BakedMesh implements Destroyable {
 	public @Nullable RenderPass getRenderPass() {
 		return renderPass;
 	}
-	
-	@Override
-	public void destroy() {
-		if (mesh!=null) mesh.destroy();
-		mesh = null;
-	}
 
 	public void setRenderPass(MeshPass meshPass) {
 		this.renderPass = meshPass;
 		
+	}
+
+	@Override
+	protected void _free() {
+		if (mesh!=null) mesh.free();
+		mesh = null;
 	}
 }
