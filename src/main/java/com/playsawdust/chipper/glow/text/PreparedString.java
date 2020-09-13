@@ -10,9 +10,11 @@ public final class PreparedString implements CharSequence {
 	private ArrayList<Glyph> glyphs = new ArrayList<>();
 	private int width;
 	private int height;
+	private boolean stillPreparing = false;
 	
 	private PreparedString(String text) {
 		this.text = text;
+		stillPreparing = true;
 	}
 	
 	private PreparedString(String text, List<Glyph> glyphs, int width, int height) {
@@ -22,6 +24,7 @@ public final class PreparedString implements CharSequence {
 		}
 		this.width = width;
 		this.height = height;
+		stillPreparing = false; //Assume all glyphs presented are loaded
 	}
 	
 	public int getWidth() {
