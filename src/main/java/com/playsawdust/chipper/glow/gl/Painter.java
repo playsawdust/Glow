@@ -66,13 +66,13 @@ public class Painter extends AbstractCombinedResource {
 		double texelY = 1.0 / (double) tex.getHeight();
 		
 		
-		writeVertex(x, y+height, texX * texelX, (texY+texHeight) * texelY, color);
-		writeVertex(x+width, y+height, (texX+texWidth) * texelX, (texY+texHeight) * texelY, color);
-		writeVertex(x+width, y, (texX+texWidth) * texelX, texY * texelY, color);
+		writeVertex(x, y+height, texX * texelX, texY * texelY, color);
+		writeVertex(x+width, y+height, (texX+texWidth) * texelX, texY * texelY, color);
+		writeVertex(x+width, y, (texX+texWidth) * texelX, (texY+texHeight) * texelY, color);
 		
-		writeVertex(x, y+height, texX * texelX, (texY+texHeight) * texelY, color);
-		writeVertex(x+width, y, (texX+texWidth) * texelX, texY * texelY, color);
-		writeVertex(x, y, texX * texelX, texY * texelY, color);
+		writeVertex(x, y+height, texX * texelX, texY * texelY, color);
+		writeVertex(x+width, y, (texX+texWidth) * texelX, (texY+texHeight) * texelY, color);
+		writeVertex(x, y, texX * texelX, (texY+texHeight) * texelY, color);
 		
 		accumulator.endWriting();
 		

@@ -24,12 +24,12 @@ public class ImageData {
 	public int[] getData() { return this.data; }
 	
 	public void setPixel(int x, int y, int argb) {
-		if (x<0 || x>=width || y<0 || y>=width) return;
+		if (x<0 || x>=width || y<0 || y>=height) return;
 		data[y*width + x] = argb;
 	}
 	
 	public int getPixel(int x, int y) {
-		if (x<0 || x>=width || y<0 || y>=width) return 0;
+		if (x<0 || x>=width || y<0 || y>=height) return 0;
 		return data[y*width + x];
 	}
 }

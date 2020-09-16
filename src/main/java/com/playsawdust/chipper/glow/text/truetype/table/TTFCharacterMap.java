@@ -20,6 +20,19 @@ public class TTFCharacterMap extends TTFTable {
 	
 	public TTFCharacterMap(int offset, int length) { super(offset, length); }
 	
+	public int glyphForCodePoint(int codePoint) {
+		Integer glyphIndex = characterToGlyph.get(codePoint);
+		if (glyphIndex==null) return 0;
+		return glyphIndex;
+	}
+	
+	public int[] supportedCharacters(Character.UnicodeBlock block) {
+		//Character.
+		
+		return null;
+	}
+	
+	
 	@Override
 	public void load(TTFDataInput data, ClassToInstanceMap<TTFTable> tables) throws IOException {
 		

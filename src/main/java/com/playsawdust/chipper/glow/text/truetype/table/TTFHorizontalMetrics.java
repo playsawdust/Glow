@@ -23,15 +23,19 @@ public class TTFHorizontalMetrics extends TTFTable {
 		if (hheaTable==null) throw new IOException("Missing required table 'hhea'");
 		if (hheaTable.horizontalMetricsCount<0) throw new IOException("Broken horizontal metrics count");
 		
+		int lastAdvanceWidth = 0;
 		for(int i=0; i<hheaTable.horizontalMetricsCount; i++) {
 			GlyphMetrics glyphMetrics = new GlyphMetrics();
 			glyphMetrics.advanceWidth = data.readUInt16();
 			glyphMetrics.leftSideBearing = data.readInt16();
 			
 			metrics.add(glyphMetrics);
+			
+			lastAdvanceWidth = glyphMetrics.advanceWidth;
 		}
 		
 		//TODO: There MAY be an array of raw leftSideBearings here. But we need the glyph map to know!
+		//Basically though if there's extra room we should treat it as either padding or extra leftSideBearings using lastAdvanceWidth for width.
 	}
 
 	@Override
@@ -66,6 +70,14 @@ public class TTFHorizontalMetrics extends TTFTable {
 			result.put("leftSideBearing", json(leftSideBearing));
 			
 			return result;
+		}
+
+		public int getAdvanceWidth() {
+			return advanceWidth;
+		}
+		
+		public int getLeftSideBearing() {
+			return leftSideBearing;
 		}
 	}
 }

@@ -68,7 +68,36 @@ public interface ImageEditor {
 			xi += dx;
 			yi += dy;
 		}
+		paintPixel((int)xi, (int)yi, argb, mode);
 	}
+	
+	
+	public default void drawQuadraticCurve(double x1, double y1, double x2, double y2, double x3, double y3, int precision, int argb, BlendMode mode) {
+		double stepSize = 1.0 / precision;
+		double t = 0;
+		double lastX = x1;
+		double lastY = y1;
+		while(t<1) {
+			double x = quadratic(x1, x2, x3, t);
+			double y = quadratic(y1, y2, y3, t);
+			drawLine(lastX, lastY, x, y, argb, mode);
+			
+			t+= stepSize;
+			lastX = x;
+			lastY = y;
+		}
+		drawLine(lastX, lastY, x3, y3, argb, mode);
+	}
+	
+	//Used by drawQuadraticCurve to calculate quadratic bezier coordinates
+	private static double quadratic(double a, double b, double c, double t) {
+		double aTerm = c * Math.pow(t, 2);
+		double bTerm = b * 2 * t * (1 - t);
+		double cTerm = a * Math.pow((1 - t), 2);
+		
+		return aTerm + bTerm + cTerm;
+	}
+	
 	
 	public default void fillRect(int x1, int y1, int width, int height, int argb, BlendMode mode) {
 		for(int y = 0; y<height; y++) {

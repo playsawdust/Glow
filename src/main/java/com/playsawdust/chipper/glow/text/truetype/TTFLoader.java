@@ -21,6 +21,7 @@ import com.google.common.collect.MutableClassToInstanceMap;
 import com.google.common.io.ByteStreams;
 import com.playsawdust.chipper.glow.event.Timestep;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFCharacterMap;
+import com.playsawdust.chipper.glow.text.truetype.table.TTFGlyph;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFHead;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFHorizontalHeader;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFHorizontalMetrics;
@@ -97,11 +98,12 @@ public class TTFLoader {
 	}
 	
 	
-	public static void load(InputStream in) throws IOException {
+	public static TTFFile load(InputStream in) throws IOException {
 		long start = Timestep.now();
 		
 		//TTF somewhat requires random access, so if what we have is an InputStream, read it all in in advance
 		TTFDataInput data = new TTFDataInput(ByteStreams.toByteArray(in));
+		in.close();
 		
 		int scalerType = data.readUInt32Clamped();
 		if (scalerType!=0x10000 && scalerType!=0x74727565) {
@@ -109,7 +111,6 @@ public class TTFLoader {
 		}
 		
 		int numTables = data.readUInt16();
-		System.out.println("NumTables: "+numTables);
 		
 		/** Intended to facilitate binary searches of the table directory, which we don't care about */
 		int searchRange = data.readUInt16();
@@ -126,6 +127,7 @@ public class TTFLoader {
 		TTFMaximumProfile    maxpTable = null;
 		TTFName              nameTable = null;
 		TTFLocateGlyphs      locaTable = null;
+		TTFGlyph             glyphTable= null;
 		
 		for(int i=0; i<numTables; i++) {
 			Table table = new Table();
@@ -142,7 +144,7 @@ public class TTFLoader {
 		
 		for(Table table : tables) {
 			data.seek(table.offset);
-			System.out.println("Reading in Table "+debugTag(table.tag)+" ("+table.length+" bytes)");
+			//System.out.println("Reading in Table "+debugTag(table.tag)+" ("+table.length+" bytes)");
 			if (table.tag==TTFHead.TAG) {
 				
 				headTable = new TTFHead(table.offset, table.length);
@@ -185,8 +187,14 @@ public class TTFLoader {
 				locaTable.load(data, generatedTables);
 				generatedTables.put(TTFLocateGlyphs.class, locaTable);
 				
+			} else if (table.tag==TTFGlyph.TAG) {
+				
+				glyphTable = new TTFGlyph(table.offset, table.length);
+				glyphTable.load(data, generatedTables);
+				generatedTables.put(TTFGlyph.class, glyphTable);
+				
 			} else {
-				System.out.println("  Skipping unknown table type.");
+				//System.out.println("  Skipping unknown table type.");
 			}
 		}
 		
@@ -221,10 +229,12 @@ public class TTFLoader {
 		overview.put("loca", locaTable.toJson());
 		System.out.println("Overview: "+overview.toJson(JsonGrammar.JSON5));
 		*/
+		TTFFile result = new TTFFile(generatedTables);
 		
 		
-		in.close();
 		System.out.println("Finished loading, "+(Timestep.now()-start)+" msec elapsed");
+		
+		return result;
 	}
 	
 	private static JsonElement json(boolean b) {
@@ -244,33 +254,12 @@ public class TTFLoader {
 		return new JsonPrimitive(d);
 	}
 	
-	private static String debugTag(int tag) {
-		int a = (tag >> 24) & 0xFF;
-		int b = (tag >> 16) & 0xFF;
-		int c = (tag >>  8) & 0xFF;
-		int d = tag & 0xFF;
-		
-		return ""+(char)a+(char)b+(char)c+(char)d;
-	}
-	
-	private static int tagNameToInt(String tag) {
-		if (tag.length()!=4) throw new IllegalArgumentException("Not a valid tag name!");
-		int a = tag.charAt(0) & 0xFF;
-		int b = tag.charAt(1) & 0xFF;
-		int c = tag.charAt(2) & 0xFF;
-		int d = tag.charAt(3) & 0xFF;
-		
-		return a << 24 | b << 16 | c << 8 | d;
-	}
-	
 	private static class Table {
 		private int tag;
 		private int checksum;
 		private int offset;
 		private int length;
 	}
-	
-	
 	
 	public static @interface FontUnits {
 	}
@@ -354,95 +343,4 @@ public class TTFLoader {
 		formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
 		return formatter.format(calendar.getTime());
 	}
-	
-	/*
-	private static class RandomAccessData {
-		private static final double FIXED_CONVERSION_FACTOR = Math.pow(2.0, 16.0);
-		
-		private byte[] data;
-		private int pointer;
-		
-		public RandomAccessData(byte[] data) { this.data = data; }
-		
-		public void seek(int offset) { //TODO: Range check and throw
-			this.pointer = offset;
-		}
-		
-		public int offset() {
-			return this.pointer;
-		}
-		
-		public int readUByte() {
-			int result = data[pointer] & 0xFF;
-			pointer++;
-			return result;
-		}
-		
-		
-		public short readInt16() {
-			int hi = readUByte();
-			int lo = readUByte();
-			
-			return (short) (hi << 8 | lo);
-		}
-		
-		public int readUInt16() {
-			int hi = readUByte();
-			int lo = readUByte();
-			return hi << 8 | lo;
-		}
-		
-		public int readUInt32() {
-			long result = safeReadUInt32();
-			
-			return (result>Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) result;
-		}
-		
-		public long safeReadUInt32() {
-			long a = readUByte();
-			long b = readUByte();
-			long c = readUByte();
-			long d = readUByte();
-			
-			return a << 24 | b << 16 | c << 8 | d;
-		}
-		
-		public double readFixed32() {
-			long bits = safeReadUInt32();
-			long whole = bits >> 16;
-			double fractional = (bits & 0xFFFF) / FIXED_CONVERSION_FACTOR;
-			//System.out.println("Fractional : " + Integer.toHexString((int)bits & 0xFFFF));
-			return whole + fractional;
-			
-			//double bits = safeReadUInt32();
-			//return bits / FIXED_CONVERSION_FACTOR; //TODO: Probably bitshift values in so we don't gain phantom precision like this
-		}
-		
-		public long readInt64() {
-			long a = readUByte();
-			long b = readUByte();
-			long c = readUByte();
-			long d = readUByte();
-			
-			long e = readUByte();
-			long f = readUByte();
-			long g = readUByte();
-			long h = readUByte();
-			
-			return 
-				a << 56 |
-				b << 48 |
-				c << 40 |
-				d << 32 |
-				e << 24 |
-				f << 16 |
-				g <<  8 |
-				h;
-		}
-		
-		public long readLongDate() {
-			long timestamp = readInt64() * 1_000; //Seconds to millis
-			return timestamp;
-		}
-	}*/
 }

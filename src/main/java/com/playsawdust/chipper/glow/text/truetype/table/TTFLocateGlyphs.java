@@ -13,12 +13,18 @@ public class TTFLocateGlyphs extends TTFTable {
 	public static final int TAG = tagNameToInt(TAG_NAME);
 	
 	public static ArrayList<Integer> glyphOffsets = new ArrayList<>();
+	public static ArrayList<Integer> glyphLengths = new ArrayList<>();
 	
 	public TTFLocateGlyphs(int offset, int length) { super(offset, length); }
 	
 	public int getGlyphOffset(int glyphIndex) {
 		if (glyphIndex<0 || glyphIndex>=glyphOffsets.size()) return glyphOffsets.get(glyphOffsets.size()-1);
 		return glyphOffsets.get(glyphIndex);
+	}
+	
+	public int getGlyphLength(int glyphIndex) {
+		if (glyphIndex<0 || glyphIndex>=glyphLengths.size()) return glyphLengths.get(glyphLengths.size()-1);
+		return glyphLengths.get(glyphIndex);
 	}
 	
 	@Override
@@ -36,17 +42,25 @@ public class TTFLocateGlyphs extends TTFTable {
 		
 		if (headTable.indexToLocFormat==0) {
 			//"short" uint16 offsets that need to be multiplied by 2 and added to the offset of the 'glyf' table
+			int lastOffset = 0;
 			for(int i=0; i<maxGlyphs; i++) {
 				int offset = data.readUInt16() * 2;
+				if (!glyphOffsets.isEmpty()) glyphLengths.add(offset - lastOffset);
 				glyphOffsets.add(offset);
+				lastOffset = offset;
 			}
+			glyphLengths.add(1);//TODO: Figure out last glyph's length?
 			
 		} else if (headTable.indexToLocFormat==1) {
 			//"long" uint32 offsets that can be used directly relative to the start of the 'glyf' table
+			int lastOffset = 0;
 			for(int i=0; i<maxGlyphs; i++) {
 				int offset = data.readUInt32Clamped();
+				if (!glyphOffsets.isEmpty()) glyphLengths.add(offset - lastOffset);
 				glyphOffsets.add(offset);
+				lastOffset = offset;
 			}
+			glyphLengths.add(1); //TODO: Figure out last glyph's length?
 		}
 	}
 	
