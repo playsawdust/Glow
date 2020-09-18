@@ -17,8 +17,58 @@ public class TTFName extends TTFTable {
 	public static final String TAG_NAME = "name";
 	public static final int TAG = tagNameToInt(TAG_NAME);
 	
+	
+	/*
+	 * nameId constants for use with getNameById(int)
+	 */
+	public static final int COPYRIGHT_NOTICE = 0;
+	public static final int FONT_FAMILY = 1;
+	public static final int FONT_SUBFAMILY = 2;
+	public static final int UNIQUE_ID = 3;
+	public static final int FULL_FONT_NAME = 4;
+	public static final int VERSION = 5;
+	public static final int POSTSCRIPT_NAME = 6;
+	public static final int TRADEMARK = 7;
+	public static final int MANUFACTURER = 8;
+	public static final int DESIGNER = 9;
+	public static final int DESCRIPTION = 10;
+	public static final int VENDOR_URL = 11;
+	public static final int DESIGNER_URL = 12;
+	public static final int LICENSE = 13;
+	public static final int LICENS_URL = 14;
+	// 15 RESERVED
+	/** USE THIS ONE */
+	public static final int TYPOGRAPHIC_FAMILY_NAME = 16;
+	/** USE THIS ONE. If this one is missing, use FONT_SUBFAMILY */
+	public static final int TYPOGRAPHIC_SUBFAMILY_NAME = 17;
+	/** Compatible with what, you ask? When the FOND resource is constructed on MacOS, it uses this (if present) to make the menu/pulldown name for this font different from FULL_FONT_NAME. */
+	public static final int COMPATIBLE_FULL_NAME = 18;
+	public static final int SAMPLE_TEXT = 19;
+	
+	//Below here are OpenType-specific 'name' IDs
+	public static final int POSTSCRIPT_CID_FINDFONT_NAME = 20;
+	/**
+	 * This packages all options that aren't "regular", "italic", "bold", and "bold italic" into the family name instead of the subfamily name.
+	 * For example, if you had a font named "Quixotic Display Semi-Bold", FONT_FAMILY would contain "Quixotic", but WWS_FAMILY_NAME would contain "Quixotic Display".
+	 * (since "semi-bold" is a weight, it can go in the WWS RIBBI subfamily field.
+	 */
+	public static final int WWS_FAMILY_NAME = 21;
+	/**
+	 * This holds only subfamily qualities that are RIBBI - regular, italic, bold, bold-italic. That is, any weight information and any slant information.
+	 * So for "Quixotic" (sic), this would be "Regular". For "Quixotic Display Semi-Bold" this would be "Semibold"
+	 */
+	public static final int WWS_SUBFAMILY_NAME = 22;
+	public static final int LIGHT_BACKGROUND_PALETTE = 23;
+	public static final int DARK_BACKGROUND_PALETTE = 24;
+	public static final int VARIATIONS_POSTSCRIPT_NAME_INDEX = 25;
+	
 	public int format;
 	ArrayList<NameRecord> records = new ArrayList<>();
+	
+	public String copyrightString;
+	public String family;
+	public String subfamily;
+	
 	
 	public TTFName(int offset, int length) { super(offset, length); }
 	
@@ -60,6 +110,13 @@ public class TTFName extends TTFTable {
 				stringData[i] = data.readByte();
 			}
 			record.name = new String(stringData, encoding);
+			
+			switch(record.nameId) {
+			
+			default:
+				//do nothing
+				break;
+			}
 		}
 		
 	}

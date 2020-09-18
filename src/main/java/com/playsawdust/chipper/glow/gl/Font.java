@@ -17,7 +17,7 @@ import com.google.common.io.ByteStreams;
 import com.playsawdust.chipper.glow.event.Timestep;
 import com.playsawdust.chipper.glow.image.AtlasImage;
 import com.playsawdust.chipper.glow.image.ImageData;
-import com.playsawdust.chipper.glow.text.Glyph;
+import com.playsawdust.chipper.glow.text.VectorGlyph;
 
 public class Font {
 	protected Font fallback;
@@ -31,13 +31,13 @@ public class Font {
 	 * Holds the translation table from Strings to glyphs. **This must be populated ahead of time**, as it is otherwise
 	 * impossible to predict what will transform into a special glyph.
 	 */
-	protected HashMap<String, Glyph> extendedGraphemes = new HashMap<>();
+	protected HashMap<String, VectorGlyph> extendedGraphemes = new HashMap<>();
 	
 	protected HashMap<Integer, CodePage> codePages = new HashMap<>();
-	protected HashMap<Integer, Glyph> glyphs = new HashMap<>();
+	protected HashMap<Integer, VectorGlyph> glyphs = new HashMap<>();
 	private double spacing = 1;
 	
-	public Glyph getFirstGlyph(String s) {
+	public VectorGlyph getFirstGlyph(String s) {
 		for(String graphemeTrigger : extendedGraphemes.keySet()) {
 			if (s.startsWith(graphemeTrigger)) {
 				return extendedGraphemes.get(s);
@@ -56,7 +56,7 @@ public class Font {
 		return spacing;
 	}
 	
-	public double getGlyphSpacing(Glyph a, Glyph b) {
+	public double getGlyphSpacing(VectorGlyph a, VectorGlyph b) {
 		return spacing;
 	}
 	

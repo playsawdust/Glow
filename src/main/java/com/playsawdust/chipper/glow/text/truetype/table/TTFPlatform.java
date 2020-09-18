@@ -13,7 +13,7 @@ public class TTFPlatform {
 		/** This value was supposed to be used for ISO/IEC 10646, but that encoding and Unicode have identical character assignments, so this value MUST NOT be used. */
 		@Deprecated
 		ISO_EIC_10646(2, "ISO/EIC 10646 (deprecated)"),
-		MICROSOFT(3, "Microsoft"),
+		MICROSOFT(3, "Microsoft Windows"),
 		UNKNOWN(-1, "Unknown");
 		
 		private int value;
@@ -66,13 +66,16 @@ public class TTFPlatform {
 	
 	/** Represents a platformEncodingId or platformSpecificId within the MICROSOFT platformId */
 	public static enum Microsoft {
-		SYMBOL(0),
+		/* "All naming table strings for the Windows platform (platform ID 3) must be encoded in UTF-16BE."
+		 * -- Microsoft OTF spec, https://docs.microsoft.com/en-us/typography/opentype/spec/name
+		 */
+		SYMBOL(0, StandardCharsets.UTF_16BE),
 		UNICODE_BMP_ONLY_UCS2(1, StandardCharsets.UTF_16BE),
-		SHIFT_JIS(2),
-		PRC(3),
-		BIG_FIVE(4),
-		JOHAB(5),
-		UNICODE_UCS4(10),
+		SHIFT_JIS(2, StandardCharsets.UTF_16BE),
+		PRC(3, StandardCharsets.UTF_16BE),
+		BIG_FIVE(4, StandardCharsets.UTF_16BE),
+		JOHAB(5, StandardCharsets.UTF_16BE),
+		UNICODE_UCS4(10, StandardCharsets.UTF_16BE),
 		UNKNOWN(-1);
 		
 		private final int value;
@@ -114,8 +117,7 @@ public class TTFPlatform {
 	public static @Nullable Charset getPlatformCharset(int platformId, int platformSpecificId) {
 		Id platform = Id.of(platformId);
 		if (platform==Id.MICROSOFT) {
-			Microsoft microsoft = Microsoft.of(platformSpecificId);
-			return microsoft.charset();
+			return StandardCharsets.UTF_16BE;
 		}
 		return null;
 	}

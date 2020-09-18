@@ -2,15 +2,12 @@ package com.playsawdust.chipper.glow.util;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
-import org.joml.Intersectiond;
 import org.joml.Matrix3dc;
 import org.joml.Vector2d;
 import org.joml.Vector3d;
 
 import com.google.common.base.Preconditions;
-import com.playsawdust.chipper.glow.image.ImageData;
 
 
 /**
@@ -18,69 +15,6 @@ import com.playsawdust.chipper.glow.image.ImageData;
  */
 public class Contour implements Iterable<Contour.ShapeBoundary<?>> {
 	private ArrayList<ShapeBoundary<?>> boundary = new ArrayList<>();
-	private ArrayList<LineSegment> approximated = null;
-	
-	private double minX = 0;
-	private double minY = 0;
-	private double maxX = 0;
-	private double maxY = 0;
-	
-	private double curveAccuracyHint = 8;
-	
-	public boolean contains(double x, double y) {
-		checkApproximation();
-		int crossings = 0;
-		for(LineSegment segment : approximated) {
-			if (Intersectiond.intersectRayLineSegment(x, y, -1, 0, segment.x1, segment.y1, segment.x2, segment.y2) != -1.0) crossings++;
-		}
-		//think about it this way: no boundary crossings is exterior to the shape. one is interior. Two is exterior.
-		return (crossings & 0x01) == 1;
-	}
-	
-	//TODO: Move this into ImageEditor?
-	public void fill(ImageData image, int x, int y, int argb) {
-		checkApproximation();
-		//System.out.println("Filling from "+minX+","+minY+" to "+maxX+","+maxY);
-		
-		
-		for(int yi=(int)Math.floor(minY); yi<Math.ceil(maxY); yi++) {
-			for(int xi=(int)Math.floor(minX); xi<Math.ceil(maxX); xi++) {
-				if (contains(xi+0.5, yi+0.5)) {
-					image.setPixel(x+xi, y+yi, argb);
-				}
-			}
-		}
-	}
-	
-	private void markDirty() {
-		if (approximated!=null) approximated.clear();
-		approximated = null;
-	}
-	
-	private void checkApproximation() {
-		if (approximated!=null) return;
-		
-		approximated = new ArrayList<>();
-		for(ShapeBoundary<?> segment : boundary) {
-			if (segment instanceof LineSegment) {
-				approximated.add((LineSegment) segment.copy());
-			} else if (segment instanceof BezierLineSegment) {
-				((BezierLineSegment) segment).decompose(approximated, curveAccuracyHint);
-			}
-		}
-		
-		for(LineSegment segment : approximated) {
-			minX = Math.min(segment.x1, minX);
-			minX = Math.min(segment.x2, minX);
-			maxX = Math.max(segment.x1, maxX);
-			maxX = Math.max(segment.x2, maxX);
-			
-			minY = Math.min(segment.y1, minY);
-			minY = Math.min(segment.y2, minY);
-			maxY = Math.max(segment.y1, maxY);
-			maxY = Math.max(segment.y2, maxY);
-		}
-	}
 	
 	public void getApproximation(ArrayList<LineSegment> result, double curveAccuracyHint) {
 		for(ShapeBoundary<?> segment : boundary) {
@@ -92,18 +26,11 @@ public class Contour implements Iterable<Contour.ShapeBoundary<?>> {
 		}
 	}
 	
-	/** Hints that it's okay to decompose a curve into line segments "hint" units long for drawing. */
-	public void setCurveAccuracyHint(double hint) {
-		Preconditions.checkArgument(hint>0, "Hint cannot be <= 0, as that would be asking to produce impossible zero-length curve segments.");
-		this.curveAccuracyHint = hint;
-	}
-	
 	/** NOT FOR GENERAL USE! This just stuffs an arbitrary boundary part into the contour with no regard to whether it matches up with previous lines.
 	 * So don't use unless yo have a really good idea of what makes a valid contour!
 	 */
 	public void addBoundarySegment(ShapeBoundary<?> segment) {
 		boundary.add(segment);
-		markDirty();
 	}
 	
 	@Override
@@ -111,65 +38,18 @@ public class Contour implements Iterable<Contour.ShapeBoundary<?>> {
 		return boundary.iterator();
 	}
 	
-	/*
-	private void approximate() {
+	public Contour copy() {
+		Contour result = new Contour();
 		
-		ArrayList<ShapeBoundary<?>> work = new ArrayList<>();
 		for(ShapeBoundary<?> segment : boundary) {
-			work.add(segment);
+			result.addBoundarySegment(segment.copy());
 		}
 		
-		if (approximated==null) {
-			approximated = new ArrayList<>();
-		} else {
-			approximated.clear();
-		}
-		
-		while(!work.isEmpty()) {
-			subdivideOne(work, approximated);
-		}
-		
-		//cache the dimensions of the cached coords
-		for(LineSegment segment : approximated) {
-			minX = Math.min(segment.x1, minX);
-			minX = Math.min(segment.x2, minX);
-			maxX = Math.max(segment.x1, maxX);
-			maxX = Math.max(segment.x2, maxX);
-			
-			minY = Math.min(segment.y1, minY);
-			minY = Math.min(segment.y2, minY);
-			maxY = Math.max(segment.y1, maxY);
-			maxY = Math.max(segment.y2, maxY);
-		}
+		return result;
 	}
-	
-	private void subdivideOne(ArrayList<ShapeBoundary<?>> segmentWork, ArrayList<LineSegment> segments) {
-		ShapeBoundary<?> segment = segmentWork.remove(0);
-		if (segment instanceof LineSegment) {
-			//Already trivial
-			segments.add((LineSegment) segment);
-		} else if (segment instanceof BezierLineSegment) {
-			double len = segment.length();
-			if (len<=curveAccuracyHint) {
-				//Small enough that we don't care about the error
-				segments.add(((BezierLineSegment) segment).flatten());
-			} else {
-				//Split the bezier into two smaller beziers and stuff them back onto the front of the work queue *in order* (b before a so that a is first)
-				BezierLineSegment a = (BezierLineSegment) segment.copy();
-				BezierLineSegment b = a.copy();
-				((BezierLineSegment) segment).subdivide(a, b);
-				segmentWork.add(0, b);
-				segmentWork.add(0, a);
-			}
-		}
-	}*/
 	
 	/** Transforms THIS contour in-place! */
 	public void transform(Matrix3dc matrix) {
-		//Dump and GC the current approximation. The distances may have changed, requiring different accuracy!
-		if (approximated!=null) approximated.clear();
-		approximated = null;
-		
 		Vector3d vec = new Vector3d();
 		for(ShapeBoundary<?> segment : boundary) {
 			matrix.transform(segment.x1, segment.y1, 0, vec);

@@ -9,6 +9,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Map;
 import java.util.TimeZone;
 
 import org.lwjgl.stb.STBTTFontinfo;
@@ -20,6 +21,8 @@ import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.MutableClassToInstanceMap;
 import com.google.common.io.ByteStreams;
 import com.playsawdust.chipper.glow.event.Timestep;
+import com.playsawdust.chipper.glow.text.VectorFont;
+import com.playsawdust.chipper.glow.text.VectorGlyph;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFCharacterMap;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFGlyph;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFHead;
@@ -36,69 +39,7 @@ import blue.endless.jankson.JsonPrimitive;
 
 public class TTFLoader {
 	
-	public static void loadSTB() {
-		long start = Timestep.now();
-		System.out.println("Loading font");
-		try(MemoryStack stack = MemoryStack.stackPush()) {
-			STBTTFontinfo info = STBTTFontinfo.mallocStack();
-			FileInputStream in = new FileInputStream("Roboto-Medium.ttf");
-			byte[] fontData = ByteStreams.toByteArray(in);
-			ByteBuffer fontDataBuffer = MemoryUtil.memAlloc(fontData.length);
-			fontDataBuffer.put(fontData);
-			fontDataBuffer.flip();
-			
-			STBTruetype.stbtt_InitFont(info, fontDataBuffer);
-			
-			IntBuffer ascentBuf = stack.mallocInt(1);
-			IntBuffer descentBuf = stack.mallocInt(1);
-			IntBuffer lineGapBuf = stack.mallocInt(1);
-			
-			STBTruetype.stbtt_GetFontVMetrics(info, ascentBuf, descentBuf, lineGapBuf);
-			
-			double points = 12.0;
-			double ascent = ascentBuf.get();
-			double descent = descentBuf.get();
-			double lineGap = lineGapBuf.get();
-			double scalingFactor = points / (ascent - descent);
-			double scaledAscent = ascent * scalingFactor;
-			double scaledDescent = descent * scalingFactor;
-			double scaledLineGap = lineGap * scalingFactor;
-			
-			System.out.println("Font ascent: "+scaledAscent+" descent: "+scaledDescent+" lineGap: "+scaledLineGap);
-			
-			IntBuffer x0 = stack.mallocInt(1);
-			IntBuffer y0 = stack.mallocInt(1);
-			IntBuffer x1 = stack.mallocInt(1);
-			IntBuffer y1 = stack.mallocInt(1);
-			STBTruetype.stbtt_GetFontBoundingBox(info, x0, y0, x1, y1);
-			
-			double x1Scaled = x0.get() * scalingFactor;
-			double y1Scaled = y0.get() * scalingFactor;
-			double x2Scaled = x1.get() * scalingFactor;
-			double y2Scaled = y1.get() * scalingFactor;
-			
-			int widthScaled = (int) Math.ceil(x2Scaled-x1Scaled);
-			int heightScaled = (int) Math.ceil(y2Scaled-y1Scaled);
-			
-			System.out.println("All possible characters fit inside ("+x1Scaled+", "+y1Scaled+"), ("+widthScaled+" x "+heightScaled+")");
-			
-			IntBuffer advanceWidthBuf = stack.mallocInt(1);
-			IntBuffer leftSideBearingBuf = stack.mallocInt(1);
-			STBTruetype.stbtt_GetCodepointHMetrics(info, 'a', advanceWidthBuf, leftSideBearingBuf);
-			
-			System.out.println("'a' > advanceWidth: "+advanceWidthBuf.get()+" leftSideBearing: "+leftSideBearingBuf.get());
-			
-			
-			
-			MemoryUtil.memFree(fontDataBuffer);
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
-		System.out.println("Finished loading, "+(Timestep.now()-start)+" msec elapsed");
-	}
-	
-	
-	public static TTFFile load(InputStream in) throws IOException {
+	public static VectorFont load(InputStream in) throws IOException {
 		long start = Timestep.now();
 		
 		//TTF somewhat requires random access, so if what we have is an InputStream, read it all in in advance
@@ -229,8 +170,27 @@ public class TTFLoader {
 		overview.put("loca", locaTable.toJson());
 		System.out.println("Overview: "+overview.toJson(JsonGrammar.JSON5));
 		*/
-		TTFFile result = new TTFFile(generatedTables);
+		VectorFont result = new VectorFont();
+		result.setAscent(hheaTable.ascent);
+		result.setDescent(hheaTable.descent);
+		result.setEmSize(headTable.unitsPerEm);
+		result.setMaxAdvanceWidth(hheaTable.maxAdvanceWidth);
+		result.setLineSpacing(hheaTable.lineGap);
+		result.setLimits(headTable.xMin, headTable.yMin, headTable.xMax, headTable.yMax);
 		
+		for(int i=0; i<cmapTable.getLastGlyphIndex(); i++) {
+			int offset = locaTable.getGlyphOffset(i);
+			TTFGlyph.GlyphData ttfGlyph = glyphTable.readGlyph(offset);
+			TTFHorizontalMetrics.GlyphMetrics metrics = hmtxTable.metrics.get(i);
+			VectorGlyph glyph = new VectorGlyph(ttfGlyph.getShape(), metrics.getAdvanceWidth(), metrics.getLeftSideBearing());
+			result.addGlyph(glyph);
+		}
+		
+		for(Map.Entry<Integer, Integer> entry : cmapTable.getCharacterMap().entrySet()) {
+			result.setGlyphForCodePoint(entry.getKey(), entry.getValue());
+		}
+		
+		//TODO: Load in the PostScript table so we can set the font name!
 		
 		System.out.println("Finished loading, "+(Timestep.now()-start)+" msec elapsed");
 		

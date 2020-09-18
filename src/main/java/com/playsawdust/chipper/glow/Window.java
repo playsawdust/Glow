@@ -9,9 +9,12 @@
 
 package com.playsawdust.chipper.glow;
 
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.List;
 
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
@@ -56,7 +59,12 @@ public class Window extends AbstractGPUResource {
 	private boolean mouseGrabbed = false;
 	
 	/**
-	 * NOTE: CALL GLFWINIT BEFORE CREATING A WINDOW!
+	 * Creates a new Window, and initializes OpenGL and GLFW if needed. (You no longer have to do this manually before the Window is created).
+	 * 
+	 * When this window is freed, *the OpenGL context will be released*.
+	 * 
+	 * <p>Note on threading: Windows, like any GPUResource, MUST be created and used ONLY on the program's main thread. Additionally, on OSX, this must be
+	 * the very first thread spawned by the application, requiring the {@code -XstartOnFirstThread} JVM argument when running the application.
 	 */
 	public Window(int width, int height, String title) {
 		if (!GLFW.glfwInit()) {
@@ -233,6 +241,11 @@ public class Window extends AbstractGPUResource {
 			GLFW.glfwDestroyWindow(handle);
 			handle = -1;
 		}
+		
+		GL.destroy();
+		
+		GLFW.glfwTerminate();
+		GLFW.glfwSetErrorCallback(null).free();
 	}
 	
 	/** Returns the width of the <em>framebuffer</em> managed by this Window. The Window itself may be larger! */
@@ -257,4 +270,30 @@ public class Window extends AbstractGPUResource {
 	public void swapBuffers() {
 		GLFW.glfwSwapBuffers(handle);
 	}
+	
+	public Screen getPrimaryScreen() {
+		long monitorHandle = GLFW.glfwGetPrimaryMonitor();
+		
+		return new Screen(monitorHandle);
+	}
+	
+	public List<Screen> getScreens() {
+		ArrayList<Screen> result = new ArrayList<>();
+		
+		PointerBuffer monitorsBuffer = GLFW.glfwGetMonitors();
+		if (monitorsBuffer!=null) {
+			
+			
+			while(monitorsBuffer.hasRemaining()) {
+				long monitorHandle = monitorsBuffer.get();
+				Screen screen = new Screen(monitorHandle);
+				result.add(screen);
+			}
+		}
+		
+		
+		return result;
+		
+	}
+	
 }

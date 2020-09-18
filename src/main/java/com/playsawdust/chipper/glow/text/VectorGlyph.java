@@ -1,33 +1,36 @@
 package com.playsawdust.chipper.glow.text;
 
-import com.playsawdust.chipper.glow.gl.Font;
-import com.playsawdust.chipper.glow.gl.Texture;
-import com.playsawdust.chipper.glow.image.ImageData;
-import com.playsawdust.chipper.glow.util.RectangleI;
+import com.playsawdust.chipper.glow.util.VectorShape;
 
-public class Glyph {
-	protected String prefix;
-	protected Texture texture;
-	protected ImageData image;
-	protected RectangleI tile;
-	protected Font font;
-	protected int id;
+/**
+ * A character image in a VectorFont.
+ */
+public class VectorGlyph {
+	protected VectorShape shape;
+	protected @FontUnits int advanceWidth;
+	protected @FontUnits int leftSideBearing;
 	
-	public Font getFont() { return font; }
-	public String getPrefix() { return prefix; }
-	public Texture getTexture() { return texture; }
-	public ImageData getImage() { return image; }
-	public RectangleI getTile() { return tile; }
-	
-	public double getAdvanceWidth() {
-		return tile.width()+font.getGlyphSpacing();
+	public VectorGlyph(VectorShape shape, int advanceWidth, int leftSideBearing) {
+		this.shape = shape;
+		this.advanceWidth = advanceWidth;
+		this.leftSideBearing = leftSideBearing;
 	}
 	
-	public double getAdvanceWidth(Glyph nextGlyph) {
-		return tile.width()+font.getGlyphSpacing(this, nextGlyph);
+	/** Returns a deep copy of the VectorShape for this glyph. It is safe to transform the return value of this method. */
+	public VectorShape getShape() {
+		return shape.copy();
 	}
 	
-	public int getHeight() {
-		return tile.height();
+	/** Returns the distance from the origin of this glyph to the typical origin of the next glyph. */
+	public @FontUnits int getAdvanceWidth() {
+		return advanceWidth;
+	}
+	
+	/**
+	 * Returns the left-side-bearing of this glyph. This is the distance from the origin to the left side of this glyph's
+	 * bounding box.
+	 */
+	public @FontUnits int getLeftSideBearing() {
+		return leftSideBearing;
 	}
 }

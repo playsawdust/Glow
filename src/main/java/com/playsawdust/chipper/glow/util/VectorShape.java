@@ -6,7 +6,6 @@ import org.joml.Intersectiond;
 import org.joml.Matrix3d;
 
 import com.playsawdust.chipper.glow.image.ImageData;
-import com.playsawdust.chipper.glow.util.Contour.BezierLineSegment;
 import com.playsawdust.chipper.glow.util.Contour.LineSegment;
 
 public class VectorShape {
@@ -87,52 +86,12 @@ public class VectorShape {
 		}
 	}
 	
-	@Override
-	public String toString() {
-		checkDirty();
-		
-		StringBuilder result = new StringBuilder();
-		result.append("{\n  \"contours\": [\n");
-		
+	public VectorShape copy() {
+		VectorShape result = new VectorShape();
 		for(Contour contour : contours) {
-			result.append("    [\n");
-			
-			for(Contour.ShapeBoundary<?> segment : contour) {
-				result.append("      { \"type\": \"");
-				result.append((segment instanceof BezierLineSegment) ? "\"CURVE\"" : "\"LINE\"");
-				result.append(", \"x1\": ");
-				result.append(segment.x1);
-				result.append(", \"y1\": ");
-				result.append(segment.y1);
-				result.append(", \"x2\": ");
-				result.append(segment.x2);
-				result.append(", \"y2\": ");
-				result.append(segment.y2);
-				if (segment instanceof BezierLineSegment) {
-					result.append(", \"xc\": ");
-					result.append(((BezierLineSegment) segment).getControlX());
-					result.append(", \"yc\": ");
-					result.append(((BezierLineSegment) segment).getControlY());
-				}
-				result.append(" },\n");
-			}
-			/*
-			for(int i=0; i<approximated.size(); i++) {
-				LineSegment segment = approximated.get(i);
-				result.append("        { 'x1':");
-				result.append(segment.x1);
-				result.append(", 'y1': ");
-				result.append(segment.y1);
-				result.append(", 'x2': ");
-				result.append(segment.x2);
-				result.append(", 'y2': ");
-				result.append(segment.y2);
-				result.append(" },\n");
-			}*/
-			
-			result.append("    ],\n");
+			result.contours.add(contour.copy());
 		}
-		result.append("  ]\n}");
-		return result.toString();
+		result.dirty = true;
+		return result;
 	}
 }

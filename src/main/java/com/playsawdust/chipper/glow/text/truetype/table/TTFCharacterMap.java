@@ -3,6 +3,7 @@ package com.playsawdust.chipper.glow.text.truetype.table;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import com.google.common.collect.ClassToInstanceMap;
 import com.playsawdust.chipper.glow.text.truetype.TTFDataInput;
@@ -15,6 +16,7 @@ public class TTFCharacterMap extends TTFTable {
 	public static final int TAG = tagNameToInt(TAG_NAME);
 	
 	int version;
+	int lastGlyphIndex = 0;
 	ArrayList<CMapSubtable> encodings = new ArrayList<>();
 	HashMap<Integer, Integer> characterToGlyph = new HashMap<>();
 	
@@ -26,12 +28,13 @@ public class TTFCharacterMap extends TTFTable {
 		return glyphIndex;
 	}
 	
-	public int[] supportedCharacters(Character.UnicodeBlock block) {
-		//Character.
-		
-		return null;
+	public int getLastGlyphIndex() {
+		return lastGlyphIndex;
 	}
 	
+	public Map<Integer, Integer> getCharacterMap() {
+		return characterToGlyph;
+	}
 	
 	@Override
 	public void load(TTFDataInput data, ClassToInstanceMap<TTFTable> tables) throws IOException {
@@ -133,6 +136,10 @@ public class TTFCharacterMap extends TTFTable {
 					glyphCode++;
 				}
 			}
+		}
+		
+		for(int i : characterToGlyph.values()) {
+			if (i>lastGlyphIndex) lastGlyphIndex=i;
 		}
 		
 	}

@@ -7,7 +7,7 @@ import com.playsawdust.chipper.glow.image.ImageData;
 
 public final class PreparedString implements CharSequence {
 	private final String text;
-	private ArrayList<Glyph> glyphs = new ArrayList<>();
+	private ArrayList<VectorGlyph> glyphs = new ArrayList<>();
 	private int width;
 	private int height;
 	private boolean stillPreparing = false;
@@ -17,7 +17,7 @@ public final class PreparedString implements CharSequence {
 		stillPreparing = true;
 	}
 	
-	private PreparedString(String text, List<Glyph> glyphs, int width, int height) {
+	private PreparedString(String text, List<VectorGlyph> glyphs, int width, int height) {
 		this.text = text;
 		for(int i=0; i<glyphs.size(); i++) {
 			this.glyphs.add(glyphs.get(i));
