@@ -6,6 +6,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import com.google.common.collect.ClassToInstanceMap;
 import com.playsawdust.chipper.glow.text.truetype.TTFDataInput;
 
@@ -72,11 +74,22 @@ public class TTFName extends TTFTable {
 	
 	public TTFName(int offset, int length) { super(offset, length); }
 	
-	public String getName(int index) {
-		NameRecord record = records.get(index);
-		String result = record.name;
-		if (result==null) result = "";
-		return result;
+	public @Nullable String getName(int id) {
+		for (NameRecord record : records) {
+			if (record.nameId==id) {
+				if (record.name!=null) return record.name;
+			}
+		}
+		
+		return null;
+	}
+	
+	public boolean hasName(int id) {
+		for(NameRecord record : records) {
+			if (record.nameId==id && record.name!=null) return true;
+		}
+		
+		return false;
 	}
 	
 	@Override
@@ -110,13 +123,6 @@ public class TTFName extends TTFTable {
 				stringData[i] = data.readByte();
 			}
 			record.name = new String(stringData, encoding);
-			
-			switch(record.nameId) {
-			
-			default:
-				//do nothing
-				break;
-			}
 		}
 		
 	}

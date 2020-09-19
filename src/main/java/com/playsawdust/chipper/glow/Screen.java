@@ -85,6 +85,10 @@ public class Screen {
 		return (int)Math.max(dpiX, dpiY);
 	}
 	
+	public double getContentScale() {
+		return (int)Math.max(contentScaleX, contentScaleY);
+	}
+	
 	public double getDPIX() {
 		return dpiX;
 	}

@@ -38,7 +38,23 @@ public class VectorShape {
 	
 	protected void approximate() {
 		approximated.clear();
-		for(Contour contour : contours) contour.getApproximation(approximated, curveSegmentLengthHint);
+		
+		ArrayList<LineSegment> buffer = new ArrayList<>();
+		for(Contour contour : contours) {
+			contour.getApproximation(buffer, curveSegmentLengthHint);
+			double lastX = buffer.get(0).x1;
+			double lastY = buffer.get(0).y1;
+			for(LineSegment segment : buffer) {
+				if (segment.x1==segment.x2 && segment.y1==segment.y2) continue;
+				if (lastX!=segment.x1 || lastY!=segment.y1) {
+					System.out.println("Potential gap found!");
+				}
+				approximated.add(segment);
+				lastX = segment.x2;
+				lastY = segment.y2;
+			}
+			buffer.clear();
+		}
 		
 		for(LineSegment segment : approximated) {
 			minX = Math.min(segment.x1, minX);
@@ -79,11 +95,15 @@ public class VectorShape {
 		
 		for(int yi=(int)Math.floor(minY); yi<Math.ceil(maxY); yi++) {
 			for(int xi=(int)Math.floor(minX); xi<Math.ceil(maxX); xi++) {
-				if (contains(xi+0.5, yi+0.5)) {
+				if (contains(xi+0.1, yi+0.1)) {
 					image.setPixel(x+xi, y+yi, argb);
 				}
 			}
 		}
+	}
+	
+	public int contourCount() {
+		return contours.size();
 	}
 	
 	public VectorShape copy() {

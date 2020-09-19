@@ -38,6 +38,7 @@ public class Painter extends AbstractCombinedResource {
 	public void beginPainting() {
 		if (program!=null) program.bind();
 		ortho.setOrtho2D(0, window.getWidth(), window.getHeight(), 0);
+		GL20.glEnable(GL20.GL_BLEND);
 		GL20.glBlendFuncSeparate(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
 		
 		//ortho.identity();

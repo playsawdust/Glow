@@ -18,6 +18,7 @@ public class VectorGlyph {
 	
 	/** Returns a deep copy of the VectorShape for this glyph. It is safe to transform the return value of this method. */
 	public VectorShape getShape() {
+		if (shape==null) return new VectorShape();
 		return shape.copy();
 	}
 	

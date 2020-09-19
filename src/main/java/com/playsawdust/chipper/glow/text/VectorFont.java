@@ -120,6 +120,19 @@ public class VectorFont {
 		return pointSize / (double)emSize;
 	}
 	
+	/** Returns the scaling factor required to convert FontUnits into *pixels*.
+	 * 
+	 * @param pointSize The desired point size
+	 * @param screenDPI The DPI of the screen to display on, available from {@link com.playsawdust.chipper.glow.Screen#getDPI()}
+	 * @param contentScale The text dpi ratio, available from {@link com.playsawdust.chipper.glow.Screen#getContentScale()}. Or you can use 1.0 to ignore system settings.
+	 * @return a number to multiply FontUnits values by to convert them to pixels
+	 */
+	public double getScalingFactor(double pointSize, double screenDPI, double contentScale) {
+		double points = getScalingFactor(pointSize);
+		double pixels = points * (screenDPI / 96.0); //TODO: Keep tweaking. Technically a point should be 1/72 inch, but that produces really wrong-looking text, so I'm eyeballing it at 1/96 since that's the base size these days
+		return pixels * contentScale;
+	}
+	
 	public boolean isCodePointMapped(int codePoint) {
 		return codePointToGlyph.containsKey(codePoint);
 	}

@@ -18,6 +18,8 @@ public class Contour implements Iterable<Contour.ShapeBoundary<?>> {
 	
 	public void getApproximation(ArrayList<LineSegment> result, double curveAccuracyHint) {
 		for(ShapeBoundary<?> segment : boundary) {
+			if (segment.x1==segment.x2 && segment.y1==segment.y2) continue; //degenerate line
+			
 			if (segment instanceof LineSegment) {
 				result.add((LineSegment) segment.copy());
 			} else if (segment instanceof BezierLineSegment) {
@@ -210,13 +212,20 @@ public class Contour implements Iterable<Contour.ShapeBoundary<?>> {
 			while(t<1) {
 				double x = quadratic(x1, xc, x2, t);
 				double y = quadratic(y1, yc, y2, t);
-				lineSegments.add(new LineSegment(lastX, lastY, x, y));
-				
+				if (lastX==x && lastY==y) {
+					//Degenerate line, don't do anything
+				} else {
+					lineSegments.add(new LineSegment(lastX, lastY, x, y));
+				}
 				t+= stepSize;
 				lastX = x;
 				lastY = y;
 			}
-			lineSegments.add(new LineSegment(lastX, lastY, x2, y2));
+			if (lastX==x2 && lastY==y2) {
+				//Degenerate line, don't do anything
+			} else {
+				lineSegments.add(new LineSegment(lastX, lastY, x2, y2));
+			}
 		}
 		
 		/**

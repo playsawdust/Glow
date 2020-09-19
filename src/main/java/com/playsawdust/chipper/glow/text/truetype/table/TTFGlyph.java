@@ -42,6 +42,7 @@ public class TTFGlyph extends TTFTable {
 		glyphData.seek(offset);
 		
 		GlyphData result = new GlyphData();
+		
 		int numberOfContours = glyphData.readInt16();
 		result.xMin = glyphData.readFWord();
 		result.yMin = glyphData.readFWord();
@@ -50,6 +51,7 @@ public class TTFGlyph extends TTFTable {
 		
 		if (numberOfContours==0) {
 			//No contours
+			result.shape = new VectorShape();
 			return result;
 		} else if (numberOfContours>0) {
 			int[] endPointsOfContours = new int[numberOfContours];
@@ -177,7 +179,7 @@ public class TTFGlyph extends TTFTable {
 				}
 				
 				result.contours.add(contour);
-				System.out.println(contour.points.toString());
+				//System.out.println(contour.points.toString());
 				contourStart = contourEnd+1;
 			}
 			
@@ -233,7 +235,7 @@ public class TTFGlyph extends TTFTable {
 			return result;
 		} else {
 			//compound glyph
-			
+			//System.out.println("Returning empty glyph instead of compound");
 			int flags = glyphData.readUInt16();
 			//int glyphIndex = glyphData.readUInt16();
 			//TODO: Read words, bytes, points, whatever based on what's in flags.

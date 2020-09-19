@@ -32,6 +32,7 @@ import com.playsawdust.chipper.glow.text.truetype.table.TTFLocateGlyphs;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFMaximumProfile;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFName;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFTable;
+import com.playsawdust.chipper.glow.util.VectorShape;
 
 import blue.endless.jankson.JsonElement;
 import blue.endless.jankson.JsonObject;
@@ -178,19 +179,35 @@ public class TTFLoader {
 		result.setLineSpacing(hheaTable.lineGap);
 		result.setLimits(headTable.xMin, headTable.yMin, headTable.xMax, headTable.yMax);
 		
-		for(int i=0; i<cmapTable.getLastGlyphIndex(); i++) {
-			int offset = locaTable.getGlyphOffset(i);
-			TTFGlyph.GlyphData ttfGlyph = glyphTable.readGlyph(offset);
-			TTFHorizontalMetrics.GlyphMetrics metrics = hmtxTable.metrics.get(i);
-			VectorGlyph glyph = new VectorGlyph(ttfGlyph.getShape(), metrics.getAdvanceWidth(), metrics.getLeftSideBearing());
-			result.addGlyph(glyph);
-		}
-		
 		for(Map.Entry<Integer, Integer> entry : cmapTable.getCharacterMap().entrySet()) {
 			result.setGlyphForCodePoint(entry.getKey(), entry.getValue());
 		}
 		
-		//TODO: Load in the PostScript table so we can set the font name!
+		for(int i=0; i<=cmapTable.getLastGlyphIndex(); i++) {
+			int length = locaTable.getGlyphLength(i);
+			if (length==0) {
+				TTFHorizontalMetrics.GlyphMetrics metrics = hmtxTable.metrics.get(i);
+				VectorGlyph glyph = new VectorGlyph(new VectorShape(), metrics.getAdvanceWidth(), metrics.getLeftSideBearing());
+				result.addGlyph(glyph);
+			} else {
+				int offset = locaTable.getGlyphOffset(i);
+				TTFGlyph.GlyphData ttfGlyph = glyphTable.readGlyph(offset);
+				TTFHorizontalMetrics.GlyphMetrics metrics = hmtxTable.metrics.get(i);
+				VectorGlyph glyph = new VectorGlyph(ttfGlyph.getShape(), metrics.getAdvanceWidth(), metrics.getLeftSideBearing());
+				result.addGlyph(glyph);
+			}
+		}
+		
+		//System.out.println("TTFLoader L -> "+cmapTable.glyphForCodePoint('L'));
+		String typefaceName = nameTable.getName(TTFName.TYPOGRAPHIC_FAMILY_NAME);
+		if (typefaceName==null) typefaceName = nameTable.getName(TTFName.FONT_FAMILY);
+		if (typefaceName==null) typefaceName = "";
+		result.setTypefaceName(typefaceName);
+		
+		String variantName = nameTable.getName(TTFName.TYPOGRAPHIC_SUBFAMILY_NAME);
+		if (variantName==null) variantName = nameTable.getName(TTFName.FONT_SUBFAMILY);
+		if (variantName==null) variantName = "";
+		result.setVariantName(variantName);
 		
 		System.out.println("Finished loading, "+(Timestep.now()-start)+" msec elapsed");
 		

@@ -1,5 +1,7 @@
 package com.playsawdust.chipper.glow.image;
 
+import java.util.Arrays;
+
 public class ImageData {
 	private int width = 0;
 	private int height = 0;
@@ -31,5 +33,9 @@ public class ImageData {
 	public int getPixel(int x, int y) {
 		if (x<0 || x>=width || y<0 || y>=height) return 0;
 		return data[y*width + x];
+	}
+	
+	public void clear(int clearColor) {
+		Arrays.fill(data, clearColor);
 	}
 }
