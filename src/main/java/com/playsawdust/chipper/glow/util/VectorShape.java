@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 import org.joml.Intersectiond;
 import org.joml.Matrix3d;
+import org.joml.Vector2d;
+import org.joml.Vector3d;
 
 import com.playsawdust.chipper.glow.image.ImageData;
 import com.playsawdust.chipper.glow.util.Contour.LineSegment;
@@ -81,6 +83,29 @@ public class VectorShape {
 		return (crossings & 0x01) == 1;
 	}
 	
+	public double distanceFromBorder(double x, double y) {
+		checkDirty();
+		
+		double dSquared = Integer.MAX_VALUE;
+		Vector3d closestPoint = new Vector3d();
+		for(LineSegment segment : approximated) {
+			Intersectiond.findClosestPointOnLineSegment(segment.x1, segment.y1, 0, segment.x2, segment.y2, 0, x, y, 0, closestPoint);
+			double dx = closestPoint.x-x;
+			double dy = closestPoint.y-y;
+			double curD2 = dx*dx + dy*dy;
+			dSquared = Math.min(dSquared, curD2);
+			if (dSquared==0.0) return 0.0;
+		}
+		
+		return Math.sqrt(dSquared);
+	}
+	
+	public RectangleI getBoundingBox() {
+		checkDirty();
+		
+		return new RectangleI((int) minX, (int) minY, (int) Math.ceil(maxX-minX), (int) Math.ceil(maxY-minY));
+	}
+	
 	public void transform(Matrix3d matrix) {
 		for(Contour contour : contours) {
 			contour.transform(matrix);
@@ -88,6 +113,7 @@ public class VectorShape {
 		dirty = true;
 	}
 	
+	/*
 	//TODO: BlendMode!!
 	//TODO: Move this into ImageEditor?
 	public void fill(ImageData image, int x, int y, int argb) {
@@ -100,6 +126,14 @@ public class VectorShape {
 				}
 			}
 		}
+	}*/
+	
+	public boolean isEmpty() {
+		if (contours.size()==0) return true;
+		else return false;
+		
+		//for(Contour contour : contours) if (!contour.isEmpty()) return false;
+		//return true;
 	}
 	
 	public int contourCount() {

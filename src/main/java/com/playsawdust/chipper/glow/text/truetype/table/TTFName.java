@@ -2,9 +2,7 @@ package com.playsawdust.chipper.glow.text.truetype.table;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -12,7 +10,6 @@ import com.google.common.collect.ClassToInstanceMap;
 import com.playsawdust.chipper.glow.text.truetype.TTFDataInput;
 
 import blue.endless.jankson.JsonArray;
-import blue.endless.jankson.JsonGrammar;
 import blue.endless.jankson.JsonObject;
 
 public class TTFName extends TTFTable {

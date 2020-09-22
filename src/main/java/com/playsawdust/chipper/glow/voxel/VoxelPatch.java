@@ -11,7 +11,6 @@ package com.playsawdust.chipper.glow.voxel;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 import org.checkerframework.checker.nullness.qual.Nullable;

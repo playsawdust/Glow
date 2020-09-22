@@ -15,8 +15,8 @@ import org.lwjgl.system.MemoryUtil;
 
 import com.google.common.io.ByteStreams;
 import com.playsawdust.chipper.glow.event.Timestep;
-import com.playsawdust.chipper.glow.image.AtlasImage;
 import com.playsawdust.chipper.glow.image.ImageData;
+import com.playsawdust.chipper.glow.image.atlas.AbstractAtlas;
 import com.playsawdust.chipper.glow.text.VectorGlyph;
 
 public class Font {
@@ -124,10 +124,10 @@ public class Font {
 	
 	
 	private class CodePage {
-		private AtlasImage atlas;
+		private AbstractAtlas atlas;
 		
 		public ImageData getImage() {
-			return atlas.getImage();
+			return atlas;
 		}
 	}
 }

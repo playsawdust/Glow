@@ -7,28 +7,23 @@ import java.util.Map;
 import java.util.TreeSet;
 import java.util.function.Supplier;
 
+import com.playsawdust.chipper.glow.util.MathUtil;
 import com.playsawdust.chipper.glow.util.RectangleI;
 
 /**
  * Lays out rectangles for stitching into an AtlasImage. Note that AtlasImage does not support packing rotated sprites,
  * so some packing strategies are prohibited.
  * 
- * <p>Stitchers MAY cache previously-emitted Tiles and modify them, and MAY inspect existing Tiles on the destination
- * AtlasImage in order to discover gaps or areas which may be restitched. No notification is given to a Stitcher when
- * there are no more images to stitch, so when each call to stitch returns, the Tiles MUST be in a valid state to end
- * the stitching process and write all the ClientImages into the destination AtlasImage.
+ * <p>Stitchers MAY NOT cache tiles and rearrange them.
  */
 public interface Stitcher {
 	/**
-	 * @param area The total allowable area for layout. This method MUST be called with the same Rectangle every single time for the entire layout process.
-	 * @param image A rectangle which WILL be modified by the method to place it within the layout area. This rectangle MAY be cached and moved again to accomodate subsequent requests.
+	 * @param image A rectangle which WILL be modified by the method to place it within the layout area. The rectangle MAY NOT be cached and moved, and the image may be pasted in immediately.
 	 * @return true if the operation was successful, false if the Stitcher was unable to find sufficient layout space for the new Tile.
 	 */
-	public boolean stitch(RectangleI area, RectangleI image);
+	public boolean stitch(RectangleI rect);
 	
-	
-	
-	
+	/*
 	
 	public static AtlasImage createAtlas(Supplier<Stitcher> stitcherFactory, List<ImageData> sprites, int limit, HashMap<ImageData, Integer> indexMap) {
 		TreeSet<ImageData> sorted = new TreeSet<>(
@@ -44,7 +39,7 @@ public interface Stitcher {
 		
 		
 		LayoutArea initialArea = new LayoutArea();
-		int layoutSize = Math.max(256, nextPowerOf2(largestSize));
+		int layoutSize = Math.max(256, MathUtil.nextPowerOf2(largestSize));
 		if (layoutSize>limit) {
 			throw new IllegalArgumentException("Cannot specify a size limit smaller than the images to layout"); //TODO: Is there a better way to handle this?
 		}
@@ -114,18 +109,5 @@ public interface Stitcher {
 				return false;
 			}
 		}
-	}
-	
-	/** Lifted from geeks4geeks.org */
-	private static int nextPowerOf2(int n) { 
-		n--; 
-		n |= n >> 1; 
-		n |= n >> 2; 
-		n |= n >> 4; 
-		n |= n >> 8; 
-		n |= n >> 16; 
-		n++; 
-		
-		return n; 
-	}
+	}*/
 }

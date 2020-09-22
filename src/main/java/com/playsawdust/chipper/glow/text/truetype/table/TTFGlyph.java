@@ -2,12 +2,10 @@ package com.playsawdust.chipper.glow.text.truetype.table;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import com.google.common.collect.ClassToInstanceMap;
 import com.playsawdust.chipper.glow.image.BlendMode;
 import com.playsawdust.chipper.glow.image.ImageData;
-import com.playsawdust.chipper.glow.image.ImageDataEditor;
 import com.playsawdust.chipper.glow.image.ImageEditor;
 import com.playsawdust.chipper.glow.text.truetype.TTFDataInput;
 import com.playsawdust.chipper.glow.util.Contour;
