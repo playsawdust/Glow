@@ -178,4 +178,9 @@ public class RectangleI {
 		result = result * 31 + Integer.hashCode(height);
 		return result;
 	}
+	
+	@Override
+	public String toString() {
+		return "{RectangleI x:"+x+", y:"+y+", width:"+width+", height:"+height+"}";
+	}
 }

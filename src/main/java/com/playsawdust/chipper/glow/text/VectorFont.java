@@ -342,10 +342,11 @@ public class VectorFont {
 			glyphShape.transform(glyphTransform);
 			
 			RectangleI glyphBox = glyphShape.getBoundingBox();
+			//System.out.println(glyphBox);
 			int glyphWidth = glyphBox.width() + outlineSS + outlineSS;
 			int glyphHeight = glyphBox.height() + outlineSS + outlineSS;
-			int glyphLeft = -glyphBox.x(); //TODO: Pour this value into the atlas description!
-			int glyphTop = -glyphBox.y(); //TODO: " "
+			int glyphLeft = -glyphBox.x();
+			int glyphTop = -glyphBox.y();
 			
 			ImageData scratch = new ImageData(glyphWidth, glyphHeight); //glyphMaxHeight*2*2);
 			ImageEditor scratchEditor = ImageEditor.edit(scratch);
@@ -367,8 +368,10 @@ public class VectorFont {
 					
 					RasterGlyph rglyph = new RasterGlyph();
 					rglyph.advanceWidth = (int) Math.ceil(glyph.advanceWidth * scalingFactor);
-					rglyph.anchorX = (int) Math.ceil(glyphLeft * scalingFactor);
-					rglyph.anchorY = (int) Math.ceil(glyphTop * scalingFactor);
+					rglyph.anchorX = (int) Math.floor(glyphLeft/4.0);
+					rglyph.anchorY = (int) Math.floor(glyphTop/4.0);
+					
+					
 					rglyph.index = index;
 					rglyph.page = i;
 					font.addGlyph(rglyph);

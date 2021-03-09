@@ -40,6 +40,14 @@ public class ImageEditor {
 		}
 	}
 	
+	public void drawImage(ImageData im, int destx, int desty, int srcx, int srcy, int width, int height, BlendMode mode, double opacity) {
+		for(int yi=0; yi<height; yi++) {
+			for(int xi=0; xi<width; xi++) {
+				drawPixel(xi+destx, yi+desty, im.getPixel(xi+srcx, yi+srcy), mode, opacity);
+			}
+		}
+	}
+	
 	public void drawTintImage(ImageData im, int x, int y, int tintColor, double tintStrength, BlendMode mode, double opacity) {
 		tintColor |= 0xFF_000000;
 		
