@@ -40,8 +40,8 @@ public abstract class AbstractAtlas extends ImageData implements Atlas {
 		Preconditions.checkElementIndex(index, images.size());
 		
 		RectangleI t = getImageRegion(index);
-		for(int y=0; y<t.width(); y++) {
-			for(int x=0; x<t.height(); x++) {
+		for(int y=0; y<t.height(); y++) {
+			for(int x=0; x<t.width(); x++) {
 				setPixel(x+t.x(), y+t.y(), image.getPixel(x, y));
 			}
 		}

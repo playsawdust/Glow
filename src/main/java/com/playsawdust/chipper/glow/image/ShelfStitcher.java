@@ -8,13 +8,14 @@ public class ShelfStitcher implements Stitcher {
 	
 	protected int shelfHeight;
 	protected int totalHeight = 0;
-	protected int curPowerOf2 = 0;
+	protected int curPowerOf2 = 32;
 	protected int maxSize;
 	protected ArrayList<Shelf> shelves = new ArrayList<>();
 	
 	public ShelfStitcher(int minShelfHeight, int maxSize) {
 		this.shelfHeight = minShelfHeight;
 		this.maxSize = maxSize;
+		this.curPowerOf2 = 4;
 	}
 
 	@Override
@@ -39,6 +40,8 @@ public class ShelfStitcher implements Stitcher {
 			
 			shelf.add(rect);
 			
+			//System.out.println("STITCHER: New regular shelf with height "+shelf.height);
+			
 			return true;
 		} else {
 			//See if we can squeeze in a last row which is smaller than minShelfHeight
@@ -52,12 +55,15 @@ public class ShelfStitcher implements Stitcher {
 				
 				shelf.add(rect);
 				
+				//System.out.println("STITCHER: New \"short\" shelf with height "+shelf.height);
+				
 				return true;
 			}
 		}
 		
 		//Is expanding by a powerOf2 possible, and is it likely to fit the new rect in?
-		if (curPowerOf2 * 2 <= maxSize && curPowerOf2 >= rect.height()) {
+		if (curPowerOf2 * 2 <= maxSize) {
+			//System.out.println("STITCHER: Resize "+curPowerOf2+" -> "+(curPowerOf2*2));
 			curPowerOf2 *= 2;
 			//Then we'll probably only go one stack level deeper.
 			return stitch(rect);

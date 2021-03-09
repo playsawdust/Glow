@@ -74,6 +74,7 @@ public class Window extends AbstractGPUResource {
 		
 		GLFW.glfwDefaultWindowHints();
 		GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_TRUE);
+		GLFW.glfwWindowHint(GLFW.GLFW_DEPTH_BITS, 32);
 		
 		this.framebufferWidth = width;
 		this.framebufferHeight = height;

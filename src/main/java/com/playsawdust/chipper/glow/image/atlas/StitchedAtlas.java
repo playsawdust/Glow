@@ -16,7 +16,9 @@ public class StitchedAtlas extends AbstractAtlas {
 	public int stitch(ImageData subimage) {
 		RectangleI layout = new RectangleI(0, 0, subimage.getWidth(), subimage.getHeight());
 		boolean stitched = stitcher.stitch(layout);
-		if (!stitched) return -1;
+		if (!stitched) {
+			return -1;
+		}
 		
 		//Resize this image if the rectangle hangs off the right or bottom edge
 		if (layout.getRight()>=width || layout.getBottom()>=height) {
