@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.joml.Vector2d;
 
 import com.playsawdust.chipper.glow.event.Vector2dEvent;
+import com.playsawdust.chipper.glow.text.raster.RasterFont;
 import com.playsawdust.chipper.glow.util.MathUtil;
 import com.playsawdust.chipper.glow.util.RectangleI;
 import com.playsawdust.chipper.glow.util.VectorShape;
@@ -61,6 +62,10 @@ public class ImageEditor {
 				drawPixel(xi+x, yi+y, tintRGB, mode);
 			}
 		}
+	}
+	
+	public void drawString(RasterFont f, String s, int x, int y, BlendMode blendMode, double opacity) {
+		f.drawString(this, s, x, y, blendMode, opacity);
 	}
 	
 	public void drawPixel(int x, int y, int argb, BlendMode mode) {
