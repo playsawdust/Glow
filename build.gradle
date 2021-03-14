@@ -50,11 +50,13 @@ def lwjgl(String... modules) {
 repositories {
 	mavenCentral()
 	maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+	maven { url 'https://jitpack.io' }
 }
 
 dependencies {
 	api 'org.slf4j:slf4j-api:1.7.9'
 	api 'com.google.guava:guava:28.2-jre'
+	api 'com.github.falkreon:Splinter:-SNAPSHOT'
 	
 	compile lwjgl('glfw', 'openal', 'opengl', 'stb')
 	compile 'org.joml:joml:1.9.12'

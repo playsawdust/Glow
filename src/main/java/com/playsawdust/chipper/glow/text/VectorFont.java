@@ -148,6 +148,11 @@ public class VectorFont {
 		return pixels * contentScale;
 	}
 	
+	/**
+	 * Returns true if the given code point has an associated glyph index
+	 * @param codePoint the code point to search for
+	 * @return true if codePoint has an associated glyph index
+	 */
 	public boolean isCodePointMapped(int codePoint) {
 		return codePointToGlyph.containsKey(codePoint);
 	}
@@ -158,157 +163,38 @@ public class VectorFont {
 		return (index==null) ? 0 : index;
 	}
 	
+	/**
+	 * Gets the number of glyphs in this Font
+	 * @return the number of glyphs in the font, including the invalid character glyph and any unusued glyphs
+	 */
 	public int getGlyphCount() {
 		return glyphs.size();
 	}
 	
+	/**
+	 * Gets a glyph by its *glyph* index. To get this index, call {@link #getGlyphIndex(int)}
+	 * @param glyphIndex the index for the glyph to return
+	 * @return the glyph at this index
+	 */
 	public VectorGlyph getGlyph(int glyphIndex) {
 		return glyphs.get(glyphIndex);
 	}
 	
 	/**
-	 * Creates a Raster version of this font, suitable for uploading as a paintable GPUResource.
-	 * 
-	 * <p>This is a slow process. It's recommended to either do this conversion off-thread, or as part of a loading screen where some kind of feedback is given to the user about why they're waiting.
-	 * 
-	 * @param pointSize The desired point size
-	 * @param dpi The DPI of the screen to display on, available from {@link com.playsawdust.chipper.glow.Screen#getDPI()}
-	 * @param contentScale The text dpi ratio, available from {@link com.playsawdust.chipper.glow.Screen#getContentScale()}. Or you can use 1.0 to ignore system settings.
-	 * @return A rasterized version of this font.
+	 * Rasterizes this font into image tiles that can be used for fast rendering on common raster-based systems.
+	 * @param pointSize The point size of the rasterized font (e.g. 12.0)
+	 * @param dpi The dpi of the screen the font is expected to be rendered on. Use either 72.0 or 96.0 if you're not sure.
+	 * @param contentScale A parameter usually set by the user in their system to scale text and UI elements. Use 1.0 if you don't have access to a setting like this.
+	 * @param argbFill The fill color of the rasterized font, usually 0xFF_FFFFFF so that the text can be colored on the fly with a normal or multiply blend.
+	 * @param argbOutline The outline color of the rasterized font, usually either 0xFF_000000 so that the outline contrasts with the fill color, or 0x00_000000 for an invisible outline.
+	 * @param outlineWeight 1.0
+	 * @param maxTileSize
+	 * @param smoothness
+	 * @return
 	 */
-	public ImageData toRasterFont_(double pointSize, double dpi, double contentScale, int argbFill, int argbOutline, double outlineWeight) {
+	public RasterFont toRasterFont(double pointSize, double dpi, double contentScale, int argbFill, int argbOutline, double outlineWeight, int maxTileSize, double smoothness) {
 		double scalingFactor = getScalingFactor(pointSize, dpi, contentScale);
 		
-		int lineHeight = (int) Math.ceil((maxY-minY) * scalingFactor);
-		
-		//The biggest problem here is laying out all the glyphs onto a page.
-		ArrayList<ArrayList<VectorGlyph>> shelves = new ArrayList<>();
-		ArrayList<ArrayList<Integer>> indexShelves = new ArrayList<>(); //It's 'indices', I know.
-		ArrayList<Integer> shelfWidths = new ArrayList<>();
-		for(int glyphIndex=0; glyphIndex<glyphs.size(); glyphIndex++) {
-			VectorGlyph glyph = glyphs.get(glyphIndex);
-		//for(VectorGlyph glyph : glyphs) {
-			RectangleI glyphBox = glyph.getShape().getBoundingBox();
-			int glyphWidth = (int) Math.ceil((glyphBox.width() + (int)Math.ceil(outlineWeight)) * scalingFactor);
-			
-			boolean laidOut = false;
-			int atlasHeight = shelves.size() * (lineHeight + (int) Math.ceil(outlineWeight)); //The current atlas height is the width limit for each glyph row. Try to keep it square.
-			for(int i=0; i<shelves.size(); i++) {
-				ArrayList<VectorGlyph> shelf = shelves.get(i);
-				ArrayList<Integer> indexShelf = indexShelves.get(i);
-				int shelfWidth = shelfWidths.get(i);
-			//for(ArrayList<VectorGlyph> shelf : shelves) {
-				/*int shelfWidth = 0;
-				for(VectorGlyph shelvedGlyph : shelf) {
-					RectangleI box = shelvedGlyph.getShape().getBoundingBox();
-					shelfWidth += box.width() + Math.ceil(outlineWeight);
-				}*/
-				
-				if (shelfWidth+glyphWidth <= atlasHeight) {
-					shelf.add(glyph);
-					indexShelf.add(glyphIndex);
-					int existingSize = shelfWidths.get(i);
-					shelfWidths.set(i, existingSize+glyphWidth);
-					laidOut = true;
-					break;
-				}
-			}
-			
-			if (!laidOut) {
-				ArrayList<VectorGlyph> newShelf = new ArrayList<>();
-				newShelf.add(glyph);
-				shelves.add(newShelf);
-				shelfWidths.add(glyphWidth);
-				ArrayList<Integer> newIndexShelf = new ArrayList<>();
-				newIndexShelf.add(glyphIndex);
-				indexShelves.add(newIndexShelf);
-			}
-		}
-		
-		//Figure out the dimensions of the atlas
-		//int atlasWidth = 0;
-		int atlasHeight = shelves.size() * (lineHeight + (int) Math.ceil(outlineWeight));
-		/*
-		for(ArrayList<VectorGlyph> shelf : shelves) {
-			int shelfWidth = 0;
-			for(VectorGlyph shelvedGlyph : shelf) {
-				RectangleI box = shelvedGlyph.getShape().getBoundingBox();
-				shelfWidth += box.width() + Math.ceil(outlineWeight);
-			}
-			atlasWidth = Math.max(atlasWidth, shelfWidth);
-		}
-		System.out.println("Atlas will be "+atlasWidth+"x"+atlasHeight);*/
-		
-		atlasHeight = MathUtil.nextPowerOf2(atlasHeight);
-		ImageData atlas = new ImageData(atlasHeight, atlasHeight);
-		
-		RasterFont result = new RasterFont();
-		
-		ImageEditor atlasEditor = ImageEditor.edit(atlas);
-		
-		int glyphMaxWidth = (int) Math.ceil((maxX-minX) * scalingFactor) + (int) Math.ceil(outlineWeight);
-		int glyphMaxHeight = (int) Math.ceil((maxY-minY) * scalingFactor) + (int) Math.ceil(outlineWeight);
-		ImageData scratch = new ImageData(glyphMaxWidth * 2 * 2, glyphMaxHeight * 2 * 2);
-		ImageEditor scratchEditor = ImageEditor.edit(scratch);
-		int outlineSS = (int) Math.ceil(outlineWeight*2*2);
-		
-		Matrix3d glyphTransform = new Matrix3d().scale(scalingFactor*2*2, -scalingFactor*2*2, 1);
-		
-		
-		for(int shelfIndex = 0; shelfIndex < shelves.size(); shelfIndex++) {
-			int atlasY = shelfIndex * lineHeight;
-			int atlasX = 0;
-			ArrayList<VectorGlyph> shelf = shelves.get(shelfIndex);
-			ArrayList<Integer> indexShelf = indexShelves.get(shelfIndex);
-			for(int glyphIndex = 0; glyphIndex < shelf.size(); glyphIndex++) {
-				VectorGlyph glyph = shelf.get(glyphIndex);
-				VectorShape glyphShape = glyph.getShape();
-				if (glyphShape.isEmpty()) continue;
-				glyphShape.transform(glyphTransform);
-				
-				RectangleI glyphBox = glyphShape.getBoundingBox();
-				int glyphWidth = glyphBox.width() + (int)Math.ceil(outlineWeight);
-				int glyphLeft = -glyphBox.x(); //TODO: Pour this value into the atlas description!
-				int glyphTop = -glyphBox.y(); //TODO: " "
-				
-				scratch.clear(0x00_000000);
-				
-				
-				//int cursorGlyph = getGlyphIndex('C');
-				//int cursorWidth = (int) (emSize * scalingFactor);
-				//boolean isCursor = indexShelf.get(glyphIndex)==cursorGlyph;
-				//if (isCursor) {
-				//	scratchEditor.fillRect(0, 0, cursorWidth, glyphMaxHeight, 0xFF_FF00FF, BlendMode.NORMAL);
-					
-				//	System.out.println("Cursor glyph should layout at "+glyphLeft+", "+glyphTop);
-				//}
-				
-				
-				
-				if (outlineWeight>=0 && (argbOutline >>> 24 != 0)) scratchEditor.outlineShape(glyphShape, glyphLeft+outlineSS, glyphTop+outlineSS, argbOutline, BlendMode.NORMAL, outlineWeight*2*2);
-				scratchEditor.fillShape(glyphShape, glyphLeft+outlineSS, glyphTop+outlineSS, argbFill, BlendMode.NORMAL);
-				
-				ImageData sub1 = RasterUtil.supersample(scratch, 0.5);
-				ImageData sub2 = RasterUtil.supersample(sub1, 1.0);
-				
-				atlasEditor.drawImage(sub2, atlasX, atlasY, BlendMode.NORMAL);
-				
-				if (indexShelf.get(glyphIndex)<255) System.out.println("Painted Glyph: "+indexShelf.get(glyphIndex)+", x: "+atlasX+", y: "+atlasY+", FUW: "+glyphBox.width()+", FUH: "+glyphBox.height());
-				
-				atlasX += (glyphWidth/2/2) + (outlineSS/2/2);
-			}
-			
-			
-		}
-		
-		return atlas;
-	}
-	
-	public RasterFont toRasterFont(double pointSize, double dpi, double contentScale, int argbFill, int argbOutline, double outlineWeight, int maxTileSize) {
-		double scalingFactor = getScalingFactor(pointSize, dpi, contentScale);
-		
-		//int lineHeight = (int) Math.ceil((maxY-minY) * scalingFactor);
-		//int glyphMaxWidth = (int) Math.ceil((maxX-minX) * scalingFactor) + (int) Math.ceil(outlineWeight);
 		int glyphMaxHeight = (int) Math.ceil((maxY-minY) * scalingFactor) + (int) Math.ceil(outlineWeight);
 		int outlineSS = (int) Math.ceil(outlineWeight*2*2);
 		Matrix3d glyphTransform = new Matrix3d().scale(scalingFactor*2*2, -scalingFactor*2*2, 1);
@@ -319,10 +205,6 @@ public class VectorFont {
 		ArrayList<StitchedAtlas> atlases = new ArrayList<>(); //Temp list so we can keep track here
 		atlases.add(atlas);
 		font.addPage(atlas);
-		//ImageData scratch = new ImageData(glyphMaxWidth * 2 * 2, glyphMaxHeight * 2 * 2);
-		//ImageEditor scratchEditor = ImageEditor.edit(scratch);
-		
-		//System.out.println("GlyphMaxHeight: "+glyphMaxHeight);
 		
 		for(VectorGlyph glyph : glyphs) {
 			VectorShape glyphShape = glyph.getShape();
@@ -340,24 +222,22 @@ public class VectorFont {
 				continue;
 			}
 			glyphShape.transform(glyphTransform);
+			//glyphShape.gridFit();
 			
 			RectangleI glyphBox = glyphShape.getBoundingBox();
-			//System.out.println(glyphBox);
-			int glyphWidth = glyphBox.width() + outlineSS + outlineSS;
-			int glyphHeight = glyphBox.height() + outlineSS + outlineSS;
+			int glyphWidth = glyphBox.width() + outlineSS + outlineSS+4;
+			int glyphHeight = glyphBox.height() + outlineSS + outlineSS+4;
 			int glyphLeft = -glyphBox.x();
 			int glyphTop = -glyphBox.y();
 			
-			ImageData scratch = new ImageData(glyphWidth, glyphHeight); //glyphMaxHeight*2*2);
+			ImageData scratch = new ImageData(glyphWidth, glyphHeight);
 			ImageEditor scratchEditor = ImageEditor.edit(scratch);
-			
-			//scratch.clear(0x00_000000);
 			
 			if (outlineWeight>=0 && (argbOutline >>> 24 != 0)) scratchEditor.outlineShape(glyphShape, glyphLeft+outlineSS, glyphTop+outlineSS, argbOutline, BlendMode.NORMAL, outlineWeight*2*2);
 			scratchEditor.fillShape(glyphShape, glyphLeft+outlineSS, glyphTop+outlineSS, argbFill, BlendMode.NORMAL);
 			
-			ImageData sub1 = RasterUtil.supersample(scratch, 0.5);
-			ImageData sub2 = RasterUtil.supersample(sub1, 1.0);
+			ImageData sub1 = RasterUtil.supersample(scratch, smoothness);
+			ImageData sub2 = RasterUtil.supersample(sub1, smoothness);
 			
 			boolean stitched = false; 
 			for(int i=0; i<atlases.size(); i++) {

@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.playsawdust.chipper.glow.image.BlendMode;
-import com.playsawdust.chipper.glow.image.ImageData;
 import com.playsawdust.chipper.glow.image.ImageEditor;
 import com.playsawdust.chipper.glow.image.atlas.AbstractAtlas;
 import com.playsawdust.chipper.glow.util.RectangleI;

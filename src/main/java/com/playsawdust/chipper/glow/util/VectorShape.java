@@ -9,6 +9,7 @@ import org.joml.Vector3d;
 
 import com.playsawdust.chipper.glow.image.ImageData;
 import com.playsawdust.chipper.glow.util.Contour.LineSegment;
+import com.playsawdust.chipper.glow.util.Contour.ShapeBoundary;
 
 public class VectorShape {
 	protected double curveSegmentLengthHint = 3;
@@ -43,7 +44,9 @@ public class VectorShape {
 		
 		ArrayList<LineSegment> buffer = new ArrayList<>();
 		for(Contour contour : contours) {
+			
 			contour.getApproximation(buffer, curveSegmentLengthHint);
+			if (buffer.isEmpty()) continue;
 			double lastX = buffer.get(0).x1;
 			double lastY = buffer.get(0).y1;
 			for(LineSegment segment : buffer) {
@@ -71,6 +74,37 @@ public class VectorShape {
 		}
 		
 		dirty = false;
+	}
+	
+	/**
+	 * Fits the points to a supersample grid. HOWEVER, the correct way to do this is to iterate through the boundary twice, sliding a window of 3 ShapeBoundaries around the whole contour.
+	 * Gridfit two points at a time along a single axis. That's way more work than I envisioned going in, so this feature is semi-abandoned.
+	 */
+	public void gridFit() {
+		for(Contour contour : contours) {
+			ShapeBoundary<?> lastBoundary = null;
+			//Find the last boundary so we can wrap around
+			for(ShapeBoundary<?> boundary : contour) {
+				lastBoundary = boundary;
+			}
+			if (lastBoundary==null) continue;
+			
+			for (ShapeBoundary<?> boundary : contour) {
+				
+				if (boundary instanceof LineSegment || lastBoundary instanceof LineSegment) {
+					//if (boundary.x1==boundary.x2 || boundary.y1==boundary.y2 || lastBoundary.x1==lastBoundary.x2 || lastBoundary.y1==lastBoundary.y2) {
+					
+						boundary.x1 = Math.floor(boundary.x1/4)*4;
+						boundary.y1 = Math.floor(boundary.y1/4)*4;
+						lastBoundary.x2 = boundary.x1;
+						lastBoundary.y2 = boundary.y1;
+					//}
+				}
+				
+				lastBoundary = boundary;
+			}
+		}
+		dirty = true;
 	}
 	
 	public boolean contains(double x, double y) {
@@ -103,7 +137,7 @@ public class VectorShape {
 	public RectangleI getBoundingBox() {
 		checkDirty();
 		
-		return new RectangleI((int) minX, (int) minY, (int) Math.ceil(maxX-minX), (int) Math.ceil(maxY-minY));
+		return new RectangleI((int) Math.round(minX), (int) Math.round(minY), (int) Math.ceil(maxX-minX), (int) Math.ceil(maxY-minY));
 	}
 	
 	public void transform(Matrix3d matrix) {
