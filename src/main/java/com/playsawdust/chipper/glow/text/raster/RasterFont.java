@@ -21,7 +21,25 @@ public class RasterFont {
 	public void addGlyph(RasterGlyph glyph) {
 		glyphs.add(glyph);
 	}
-
+	
+	public int getPageCount() {
+		return pages.size();
+	}
+	
+	public AbstractAtlas getPage(int index) {
+		return pages.get(index);
+	}
+	
+	public RasterGlyph[] getGlyphs() {
+		return glyphs.toArray(new RasterGlyph[glyphs.size()]);
+	}
+	
+	public Map<Integer, Integer> getMappedCharacters() {
+		HashMap<Integer, Integer> result = new HashMap<>();
+		result.putAll(codePointToGlyph);
+		return result;
+	}
+	
 	public void mapCharacters(Map<Integer, Integer> glyphMap) {
 		for(Map.Entry<Integer, Integer> entry : glyphMap.entrySet()) {
 			codePointToGlyph.put(entry.getKey(), entry.getValue());

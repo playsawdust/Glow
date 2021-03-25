@@ -21,6 +21,10 @@ public abstract class AbstractAtlas extends ImageData implements Atlas {
 		return images.get(index);
 	}
 	
+	public RectangleI[] getImageRegions() {
+		return images.toArray(new RectangleI[images.size()]);
+	}
+	
 	@Override
 	public ImageData getImage(int index) {
 		Preconditions.checkElementIndex(index, images.size());

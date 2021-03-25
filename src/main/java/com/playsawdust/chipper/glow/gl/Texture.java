@@ -39,12 +39,12 @@ public class Texture extends AbstractGPUResource {
 	 * Upload image data in srgb format
 	 * @param image
 	 */
-	public void uploadImage(int[] image, int width, int height) {
+	public void uploadImage(int[] image, int width, int height, boolean upsideDown) {
 		type = GL11.GL_TEXTURE_2D;
 		ByteBuffer buf = MemoryUtil.memAlloc(width*height*4);
 		for(int y=0; y<height; y++) {
 			for(int x=0; x<width; x++) {
-				int sampledY = (height-y) - 1;
+				int sampledY = (upsideDown) ? (height-y) - 1 : y;
 				buf.putInt(image[sampledY*width + x]);
 			}
 		}
@@ -93,9 +93,25 @@ public class Texture extends AbstractGPUResource {
 		}
 	}
 	
+	/**
+	 * Creates this texture upside-down, often used for 3D
+	 * @param image
+	 * @return
+	 */
+	public static Texture ofFlipped(ImageData image) {
+		Texture result = new Texture();
+		result.uploadImage(image.getData(), image.getWidth(), image.getHeight(), true);
+		return result;
+	}
+	
+	/**
+	 * Creates a texture "rightside up", used primarily for 2D 
+	 * @param image
+	 * @return
+	 */
 	public static Texture of(ImageData image) {
 		Texture result = new Texture();
-		result.uploadImage(image.getData(), image.getWidth(), image.getHeight());
+		result.uploadImage(image.getData(), image.getWidth(), image.getHeight(), false);
 		return result;
 	}
 }

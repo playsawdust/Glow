@@ -233,7 +233,7 @@ public class VectorFont {
 			ImageData scratch = new ImageData(glyphWidth, glyphHeight);
 			ImageEditor scratchEditor = ImageEditor.edit(scratch);
 			
-			if (outlineWeight>=0 && (argbOutline >>> 24 != 0)) scratchEditor.outlineShape(glyphShape, glyphLeft+outlineSS, glyphTop+outlineSS, argbOutline, BlendMode.NORMAL, outlineWeight*2*2);
+			if (outlineWeight>0.0 && (argbOutline >>> 24 != 0)) scratchEditor.outlineShape(glyphShape, glyphLeft+outlineSS, glyphTop+outlineSS, argbOutline, BlendMode.NORMAL, outlineWeight*2*2);
 			scratchEditor.fillShape(glyphShape, glyphLeft+outlineSS, glyphTop+outlineSS, argbFill, BlendMode.NORMAL);
 			
 			ImageData sub1 = RasterUtil.supersample(scratch, smoothness);

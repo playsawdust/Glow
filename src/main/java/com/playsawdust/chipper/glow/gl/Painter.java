@@ -4,11 +4,13 @@ import java.util.ArrayList;
 
 import org.joml.Matrix4d;
 import org.joml.Vector2d;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
 import com.playsawdust.chipper.glow.Window;
 import com.playsawdust.chipper.glow.gl.VertexBuffer.Layout;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
+import com.playsawdust.chipper.glow.image.ImageData;
 import com.playsawdust.chipper.glow.model.Material;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.model.Vertex;
@@ -22,6 +24,7 @@ public class Painter extends AbstractCombinedResource {
 	protected VertexBufferData accumulator;
 	protected ShaderProgram program;
 	protected Window window;
+	protected Texture none;
 	
 	public Painter(Layout layout, ShaderProgram program) {
 		buffer = VertexBuffer.createStreaming(layout);
@@ -29,6 +32,10 @@ public class Painter extends AbstractCombinedResource {
 		accumulator.layout = layout;
 		this.program = program;
 		
+		
+		ImageData noneImage = new ImageData(1, 1);
+		noneImage.setPixel(0, 0, 0xFF_FFFFFF);
+		none = Texture.of(noneImage);
 	}
 	
 	public Layout getLayout() {
@@ -51,6 +58,8 @@ public class Painter extends AbstractCombinedResource {
 		
 	}
 	
+	//TODO: PaintRectangle / PaintRectangleBorder
+	
 	public void paintTexture(Texture tex, RectangleI tile, int x, int y, int color) {
 		paintTexture(tex, x, y, tile.width(), tile.height(), tile.x(), tile.y(), tile.width(), tile.height(), color);
 	}
@@ -67,13 +76,13 @@ public class Painter extends AbstractCombinedResource {
 		double texelY = 1.0 / (double) tex.getHeight();
 		
 		
-		writeVertex(x, y+height, texX * texelX, texY * texelY, color);
-		writeVertex(x+width, y+height, (texX+texWidth) * texelX, texY * texelY, color);
-		writeVertex(x+width, y, (texX+texWidth) * texelX, (texY+texHeight) * texelY, color);
+		writeVertex(x, y+height, texX * texelX, (texY+texHeight) * texelY, color);
+		writeVertex(x+width, y+height, (texX+texWidth) * texelX, (texY+texHeight) * texelY, color);
+		writeVertex(x+width, y, (texX+texWidth) * texelX, texY * texelY, color);
 		
-		writeVertex(x, y+height, texX * texelX, texY * texelY, color);
-		writeVertex(x+width, y, (texX+texWidth) * texelX, (texY+texHeight) * texelY, color);
-		writeVertex(x, y, texX * texelX, (texY+texHeight) * texelY, color);
+		writeVertex(x, y+height, texX * texelX, (texY+texHeight) * texelY, color);
+		writeVertex(x+width, y, (texX+texWidth) * texelX, texY * texelY, color);
+		writeVertex(x, y, texX * texelX, texY * texelY, color);
 		
 		accumulator.endWriting();
 		
@@ -85,8 +94,36 @@ public class Painter extends AbstractCombinedResource {
 		buffer.draw(program);
 	}
 	
-	public void paintString(Font font, int x, int y, CharSequence str, int color) {
+	public void paintRectangle(int x, int y, int width, int height, int color) {
+		accumulator.beginWriting();
 		
+		writeVertex(x,       y+height, 0, 0, color);
+		writeVertex(x+width, y+height, 0, 0, color);
+		writeVertex(x+width, y,        0, 0, color);
+		
+		writeVertex(x,       y+height, 0, 0, color);
+		writeVertex(x+width, y,        0, 0, color);
+		writeVertex(x, y,              0, 0, color);
+		
+		accumulator.endWriting();
+		
+		buffer.uploadStreaming(accumulator.buffer(), accumulator.vertexCount());
+		
+		program.setUniform("viewMatrix", ortho);
+		none.bind(program, "tex", 0);
+		
+		buffer.draw(program);
+	}
+	
+	public void paintRectangleBorder(int x, int y, int width, int height, int color) {
+		paintRectangle(x, y, width, 1, color);
+		paintRectangle(x, y+height-1, width, 1, color);
+		paintRectangle(x, y+1, 1, height-2, color);
+		paintRectangle(x+width-1, y+1, 1, height-2, color);
+	}
+	
+	public void paintString(BakedFont font, int x, int y, CharSequence str, int color) {
+		font.paintString(this, str, x, y, color);
 	}
 	
 	@SuppressWarnings("unused")
@@ -102,10 +139,11 @@ public class Painter extends AbstractCombinedResource {
 		accumulator.buffer().putFloat((float)y);
 		accumulator.buffer().putFloat((float)u);
 		accumulator.buffer().putFloat((float)v);
-		accumulator.buffer().put((byte)((argb >> 24) & 0xFF));
 		accumulator.buffer().put((byte)((argb >> 16) & 0xFF));
 		accumulator.buffer().put((byte)((argb >>  8) & 0xFF));
 		accumulator.buffer().put((byte)((argb      ) & 0xFF));
+		accumulator.buffer().put((byte)((argb >> 24) & 0xFF));
+		
 		accumulator.numVertices++;
 	}
 	
