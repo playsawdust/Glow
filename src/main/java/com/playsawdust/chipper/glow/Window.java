@@ -14,21 +14,26 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.joml.Vector2i;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.playsawdust.chipper.glimmer.ModalContextTree;
 import com.playsawdust.chipper.glow.control.ControlSet;
 import com.playsawdust.chipper.glow.control.MouseButton;
 import com.playsawdust.chipper.glow.event.BiConsumerEvent;
 import com.playsawdust.chipper.glow.event.KeyCallbackEvent;
 import com.playsawdust.chipper.glow.event.RunnableEvent;
 import com.playsawdust.chipper.glow.event.Vector2dEvent;
+import com.playsawdust.chipper.glow.scene.BoundingVolume;
+import com.playsawdust.chipper.glow.scene.Scene;
 import com.playsawdust.chipper.glow.util.AbstractGPUResource;
 
 public class Window extends AbstractGPUResource {
@@ -58,6 +63,10 @@ public class Window extends AbstractGPUResource {
 	
 	private boolean mouseGrabbed = false;
 	
+	private RenderScheduler scheduler;
+	private Scene scene;
+	private ModalContextTree contextTree = new ModalContextTree();
+	
 	/**
 	 * Creates a new Window, and initializes OpenGL and GLFW if needed. (You no longer have to do this manually before the Window is created).
 	 * 
@@ -66,7 +75,7 @@ public class Window extends AbstractGPUResource {
 	 * <p>Note on threading: Windows, like any GPUResource, MUST be created and used ONLY on the program's main thread. Additionally, on OSX, this must be
 	 * the very first thread spawned by the application, requiring the {@code -XstartOnFirstThread} JVM argument when running the application.
 	 */
-	public Window(int width, int height, String title) {
+	protected Window(int width, int height, String title, boolean special) {
 		if (!GLFW.glfwInit()) {
 			GLFW.glfwTerminate();
 			throw new RuntimeException("Unable to initialize GLFW");
@@ -74,7 +83,11 @@ public class Window extends AbstractGPUResource {
 		
 		GLFW.glfwDefaultWindowHints();
 		GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_TRUE);
-		GLFW.glfwWindowHint(GLFW.GLFW_DEPTH_BITS, 32);
+		if (special) {
+			GLFW.glfwWindowHint(GLFW.GLFW_TRANSPARENT_FRAMEBUFFER, GLFW.GLFW_TRUE);
+			GLFW.glfwWindowHint(GLFW.GLFW_DECORATED, GLFW.GLFW_FALSE);
+		}
+		
 		
 		this.framebufferWidth = width;
 		this.framebufferHeight = height;
@@ -97,7 +110,6 @@ public class Window extends AbstractGPUResource {
 			this.windowHeight = heightBuffer.get();
 		}
 		
-		//TODO: Find a better way to test if capabilities have been created.
 		try {
 			GLFW.glfwMakeContextCurrent(handle);
 			GL.getCapabilities();
@@ -107,6 +119,12 @@ public class Window extends AbstractGPUResource {
 		
 		
 		GL11.glViewport(0, 0,framebufferWidth, framebufferHeight);
+		GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		
+		GL11.glEnable(GL11.GL_DEPTH_TEST);
+		GL11.glDepthFunc(GL11.GL_LEQUAL);
+		GL11.glEnable(GL20.GL_MULTISAMPLE);
+		GL11.glEnable(GL11.GL_CULL_FACE);
 		
 		GLFW.glfwSetErrorCallback( (err, desc)->{
 				String errorString = GLFWErrorCallback.getDescription(desc);
@@ -143,7 +161,8 @@ public class Window extends AbstractGPUResource {
 			}
 		});
 		
-		
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+		GLFW.glfwSwapBuffers(handle);
 	}
 	
 	private void handleKey(long window, int key, int scanCode, int action, int mods) {
@@ -221,6 +240,49 @@ public class Window extends AbstractGPUResource {
 		GLFW.glfwHideWindow(handle);
 	}
 	
+	public void setPosition(int x, int y) {
+		GLFW.glfwSetWindowPos(handle, x, y);
+	}
+	
+	public Vector2i getPosition() { return getPosition(null); }
+	
+	public Vector2i getPosition(Vector2i dest) {
+		int[] x = new int[1];
+		int[] y = new int[1];
+		GLFW.glfwGetWindowPos(handle, x, y);
+		if (dest==null) dest = new Vector2i();
+		dest.x = x[0];
+		dest.y = y[0];
+		return dest;
+	}
+	
+	/** Gets the RenderScheduler used for this Window's built-in scene */
+	public RenderScheduler getRenderScheduler() {
+		return scheduler;
+	}
+	
+	/** Sets the RenderScheduler that will be used for this Window's built-in scene */
+	public void setRenderScheduler(RenderScheduler scheduler) {
+		this.scheduler = scheduler;
+	}
+	
+	public Scene getScene() {
+		return scene;
+	}
+	
+	public void setScene(Scene scene) {
+		this.scene = scene;
+	}
+	
+	public void setClearColor(int color) {
+		int a = (color >> 24) & 0xFF;
+		int r = (color >> 16) & 0xFF;
+		int g = (color >>  8) & 0xFF;
+		int b =  color        & 0xFF;
+		
+		GL11.glClearColor(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+	}
+	
 	/**
 	 * Calling this with {@code true} grabs the mouse on behalf of this Window, hiding and recentering it automatically.
 	 * @param mouseGrab
@@ -295,6 +357,22 @@ public class Window extends AbstractGPUResource {
 		
 		return result;
 		
+	}
+	
+	public static Window create(int width, int height, String title) {
+		Window result = new Window(width, height, title, false);
+		result.scheduler = RenderScheduler.createDefaultScheduler();
+		result.scene = new Scene();
+		//TODO: Set up and wire everything else
+		return result;
+	}
+	
+	public static Window createBare(int width, int height, String title) {
+		return new Window(width, height, title, false);
+	}
+	
+	public static Window createNonRectangular(int width, int height, String title) {
+		return new Window(width, height, title, true);
 	}
 	
 }

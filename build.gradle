@@ -22,8 +22,9 @@ archivesBaseName = 'Glow'
 version = '0.0.1'
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_11
-	targetCompatibility = JavaVersion.VERSION_11
+	toolchain {
+        languageVersion = JavaLanguageVersion.of(15)
+    }
 }
 
 def lwjgl(String... modules) {
@@ -57,10 +58,10 @@ dependencies {
 	api 'org.slf4j:slf4j-api:1.7.9'
 	api 'com.google.guava:guava:28.2-jre'
 	api 'com.github.falkreon:Splinter:-SNAPSHOT'
+	api 'blue.endless:jankson:1.2.0'
+	api 'org.joml:joml:1.9.12'
 	
-	compile lwjgl('glfw', 'openal', 'opengl', 'stb')
-	compile 'org.joml:joml:1.9.12'
-	compile 'blue.endless:jankson:1.2.0'
+	implementation lwjgl('glfw', 'openal', 'opengl', 'stb')
 }
 
 license {

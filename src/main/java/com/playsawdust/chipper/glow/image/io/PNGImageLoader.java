@@ -1,3 +1,12 @@
+/*
+ * Glow - GL Object Wrapper
+ * Copyright (C) 2020 the Chipper developers
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 package com.playsawdust.chipper.glow.image.io;
 
 import java.io.ByteArrayInputStream;
@@ -40,7 +49,7 @@ public class PNGImageLoader {
 					if (chunk instanceof IHDRChunk) {
 						ihdr = (IHDRChunk) chunk;
 						result = new ImageData(ihdr.width, ihdr.height);
-						System.out.println("Size: "+ihdr.width+"x"+ihdr.height);
+						//System.out.println("Size: "+ihdr.width+"x"+ihdr.height);
 						if (ihdr.compression!=0) throw new IOException("Unknown compression method");
 						if (ihdr.filterMethod!=0) throw new IOException("Image uses unknown extended filter types"); //0 = none/sub/up/average/paeth are allowed filter bytes
 						if (ihdr.colorType!=COLORTYPE_RGB && ihdr.colorType!=COLORTYPE_RGBA) throw new IOException("Image uses non-RGB/RGBA colorType");
