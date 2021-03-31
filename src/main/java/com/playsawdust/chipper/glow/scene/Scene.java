@@ -20,6 +20,8 @@ import com.playsawdust.chipper.glow.gl.LightTexture;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.model.SimpleMaterialAttributeContainer;
+import com.playsawdust.chipper.glow.pass.MeshPass;
+import com.playsawdust.chipper.glow.pass.RenderPass;
 
 public class Scene extends BoundingVolume {
 	public static final Vector3dc WORLDSPACE_UP = new Vector3d(0, 1, 0);
@@ -38,8 +40,11 @@ public class Scene extends BoundingVolume {
 		
 		environment.putMaterialAttribute(MaterialAttribute.AMBIENT_LIGHT, new Vector3d(0.40, 0.40, 0.60));
 		
+		//environment.putMaterialAttribute(MaterialAttribute.AMBIENT_LIGHT, new Vector3d(0.00, 0.00, 0.00));
+		
+		
 		sunLight.setColor("#ffc");
-		sunLight.setIntensity(2.0);
+		sunLight.setIntensity(1.0);
 		sunLight.setPosition(32, 32, 32);
 		sunLight.setRadius(100);
 		lights.addLight(sunLight);
@@ -58,13 +63,21 @@ public class Scene extends BoundingVolume {
 		this.projectionMatrix.set(projection);
 	}
 	
+	public Matrix4dc getProjectionMatrix() {
+		return this.projectionMatrix;
+	}
+	
 	public long getElapsed() {
 		return (System.nanoTime() / 1_000_000L) - globalStart;
 	}
 	
-	public void render(RenderScheduler scheduler, ShaderProgram solidShader) { //TODO: Find a better way to bind the lights texture, possibly by scheduling it(!)
+	public void schedule(RenderScheduler scheduler) {
 		if (globalStart==-1) globalStart = System.nanoTime() / 1_000_000L;
-		//sunLight.setPosition(32, 16, 32+Math.sin(globalElapsed/1_000.0)*16);
+		long globalElapsed = getElapsed();
+		
+		
+		
+		sunLight.setPosition(128, 128, 256+Math.sin(globalElapsed/5_000.0)*256);
 		
 		for(Actor actor : this) {
 			Object renderObject = actor.getRenderObject(camera);
@@ -74,14 +87,20 @@ public class Scene extends BoundingVolume {
 			scheduler.schedule(renderObject, pos, orientation, environment);
 		}
 		
-		solidShader.bind();
-		lights.upload();
-		lights.bind(solidShader, 1);
+		//We can maybe resolve these by scheduling the light texture on the scheduler and letting it mutate the program
+		RenderPass solidPass = scheduler.getPass("solid"); //TODO: bad assumptions about pass name
+		if (solidPass instanceof MeshPass) {
+			ShaderProgram solidShader = ((MeshPass) solidPass).getProgram();
+			solidShader.bind();
+			lights.upload();
+			lights.bind(solidShader, 1); //TODO: bad assumptions about texture unit
+		}
 		
+		/*
 		Matrix4d viewMatrix = new Matrix4d(projectionMatrix);
 		viewMatrix.mul(new Matrix4d(camera.getOrientation(null)));
 		viewMatrix.translate(camera.getPosition(null).mul(-1));
-		scheduler.render(viewMatrix);
+		scheduler.render(viewMatrix);*/
 	}
 	
 	public Light getSun() {

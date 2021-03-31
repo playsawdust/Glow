@@ -14,6 +14,7 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.joml.Matrix4d;
 import org.joml.Vector2i;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFW;
@@ -29,9 +30,11 @@ import com.playsawdust.chipper.glimmer.ModalContextTree;
 import com.playsawdust.chipper.glow.control.ControlSet;
 import com.playsawdust.chipper.glow.control.MouseButton;
 import com.playsawdust.chipper.glow.event.BiConsumerEvent;
+import com.playsawdust.chipper.glow.event.ConsumerEvent;
 import com.playsawdust.chipper.glow.event.KeyCallbackEvent;
 import com.playsawdust.chipper.glow.event.RunnableEvent;
 import com.playsawdust.chipper.glow.event.Vector2dEvent;
+import com.playsawdust.chipper.glow.gl.Painter;
 import com.playsawdust.chipper.glow.scene.BoundingVolume;
 import com.playsawdust.chipper.glow.scene.Scene;
 import com.playsawdust.chipper.glow.util.AbstractGPUResource;
@@ -201,7 +204,7 @@ public class Window extends AbstractGPUResource {
 	}
 	
 	/** Returns an event which is called whenever the mouse is moved within the window. Callers are given the mouse X and Y coordinates */
-	public Vector2dEvent onMouseMoved() {
+	public Vector2dEvent onPostMouseMoved() {
 		return this.onMouseMoved;
 	}
 	
@@ -213,6 +216,10 @@ public class Window extends AbstractGPUResource {
 	/** Returns an event which is fired whenever a mouse button is released. The first argument supplied is the mouse button, and the secoind is a bitfield of modifiers */
 	public BiConsumerEvent<MouseButton, Integer> onMouseReleased() {
 		return this.onMouseReleased;
+	}
+	
+	public ConsumerEvent<Painter> onPaint() {
+		return scheduler.onPaint();
 	}
 	
 	/** Adds a ControlSet to this Window. Any controls included will update their state automatically as long as this window is polled. */
@@ -329,6 +336,34 @@ public class Window extends AbstractGPUResource {
 		GLFW.glfwPollEvents();
 	}
 	
+	/**
+	 * Renders the Scene in this window and makes it visible. This causes many things to happen:
+	 * 
+	 * <ul>
+	 *   <li>Schedules the Scene on the RenderScheduler
+	 *   <li>Triggers an onSchedule event
+	 *   <li>Flushes the RenderScheduler to render the scene to the framebuffer or a texture
+	 *   <li>Runs any post-process shaders and dumps the result into this Window's framebuffer
+	 *   <li>Renders elements in the ModalContextTree
+	 *   <li>Triggers an onPaint event
+	 *   <li>Swaps this window's buffers, making the content visible on-screen.
+	 * </ul>
+	 */
+	public void render() {
+		//TODO: Trigger onPreSchedule
+		scene.schedule(scheduler);
+		//TODO: Trigger onPostSchedule
+		
+		
+		Matrix4d viewMatrix = new Matrix4d(scene.getProjectionMatrix());
+		viewMatrix.mul(new Matrix4d(scene.getCamera().getOrientation(null)));
+		viewMatrix.translate(scene.getCamera().getPosition(null).mul(-1));
+		scheduler.render(viewMatrix); //also triggers painter
+		//TODO: maybe split Painter off a little more, get more events in there and allow postprocess shaders
+		
+		swapBuffers();
+	}
+	
 	/** Swap the framebuffers so that any drawing which was just done becomes visible. */
 	public void swapBuffers() {
 		GLFW.glfwSwapBuffers(handle);
@@ -362,6 +397,7 @@ public class Window extends AbstractGPUResource {
 	public static Window create(int width, int height, String title) {
 		Window result = new Window(width, height, title, false);
 		result.scheduler = RenderScheduler.createDefaultScheduler();
+		result.scheduler.getPainter().setWindow(result);
 		result.scene = new Scene();
 		//TODO: Set up and wire everything else
 		return result;

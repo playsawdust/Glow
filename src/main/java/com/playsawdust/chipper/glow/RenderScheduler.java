@@ -29,6 +29,7 @@ import com.playsawdust.chipper.glow.gl.OffheapResource;
 import com.playsawdust.chipper.glow.gl.Painter;
 import com.playsawdust.chipper.glow.gl.Texture;
 import com.playsawdust.chipper.glow.gl.VertexBuffer;
+import com.playsawdust.chipper.glow.gl.shader.BuiltinShaders;
 import com.playsawdust.chipper.glow.gl.shader.ShaderException;
 import com.playsawdust.chipper.glow.gl.shader.ShaderIO;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
@@ -123,6 +124,7 @@ public class RenderScheduler extends AbstractCombinedResource {
 		}
 		painter.beginPainting();
 		onPaint.fire(painter);
+		painter.endPainting(); //no-op
 	}
 	
 	public ConsumerEvent<Painter> onPaint() {
@@ -148,6 +150,7 @@ public class RenderScheduler extends AbstractCombinedResource {
 		RenderScheduler result = new RenderScheduler();
 		
 		MeshPass solidPass = new MeshPass("solid");
+		solidPass.setShader(BuiltinShaders.createSolidShader());
 		VertexBuffer.Layout layout = new VertexBuffer.Layout();
 		
 		VertexBuffer.Layout.Entry<Vector3dc> positionEntry =
@@ -214,7 +217,7 @@ public class RenderScheduler extends AbstractCombinedResource {
 				.withWriter(BufferWriter.WRITE_INT_TO_INT);
 		painterLayout.addVertexAttribute(painterColorEntry);
 		
-		result.painter = new Painter(painterLayout, null);
+		result.painter = new Painter(painterLayout, BuiltinShaders.createPainterShader());
 		
 		return result;
 	}
