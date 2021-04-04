@@ -31,6 +31,15 @@ public class VoxelPatch {
 	
 	private boolean lossless = true;
 	
+	public VoxelPatch() {}
+	
+	public VoxelPatch(int xsize, int ysize, int zsize) {
+		this.xSize = xsize;
+		this.ySize = ysize;
+		this.zSize = zsize;
+		this.voxels = new int[xSize*ySize*zSize];
+	}
+	
 	public VoxelShape getShape(int x, int y, int z) {
 		MeshableVoxel voxel = getVoxel(x, y, z);
 		if (voxel==null) return VoxelShape.EMPTY;

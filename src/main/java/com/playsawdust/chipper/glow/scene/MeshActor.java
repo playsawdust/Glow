@@ -10,13 +10,30 @@
 package com.playsawdust.chipper.glow.scene;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.joml.Vector3dc;
 
 import com.playsawdust.chipper.glow.gl.BakedModel;
+import com.playsawdust.chipper.glow.model.Face;
+import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.model.Mesh;
+import com.playsawdust.chipper.glow.model.Model;
+import com.playsawdust.chipper.glow.model.Vertex;
 
 public class MeshActor extends AbstractActor {
 	protected Mesh detailedCollision;
 	protected BakedModel renderObject;
+	
+	public MeshActor() {}
+	
+	public MeshActor(Model model, BakedModel baked) {
+		detailedCollision = new Mesh();
+		for(Mesh mesh : model) {
+			detailedCollision.combineFrom(mesh);
+		}
+		setCollisionMesh(detailedCollision); //generates sphere volume
+		
+		this.renderObject = baked;
+	}
 	
 	@Override
 	public @Nullable Object getRenderObject(Camera camera) {
@@ -29,5 +46,17 @@ public class MeshActor extends AbstractActor {
 	
 	public void setCollisionMesh(Mesh collisionMesh) {
 		this.detailedCollision = collisionMesh;
+		
+		//Figure out the bounding sphere
+		double furthestD2 = 0.0;
+		for(Face face : collisionMesh.faces()) {
+			for(Vertex v : face) {
+				Vector3dc pos = v.getMaterialAttribute(MaterialAttribute.POSITION);
+				double d = pos.distanceSquared(0, 0, 0);
+				if (d>furthestD2) furthestD2 = d;
+			}
+		}
+		
+		this.collisionVolume = new CollisionVolume.Sphere(0,0,0, Math.sqrt(furthestD2));
 	}
 }

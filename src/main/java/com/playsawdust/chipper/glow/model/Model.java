@@ -13,6 +13,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import javax.annotation.Nonnull;
+
+import org.joml.AABBd;
+import org.joml.Matrix4dc;
+import org.joml.Vector3d;
+
 import com.google.common.collect.AbstractIterator;
 
 public class Model implements ModelSupplier, Iterable<Mesh> {
@@ -77,6 +83,37 @@ public class Model implements ModelSupplier, Iterable<Mesh> {
 		}
 		
 		meshes.add(other.copy());
+	}
+	
+	public void transform(Matrix4dc matrix) {
+		for(Mesh mesh : meshes) {
+			mesh.transform(matrix);
+		}
+	}
+	
+	public @Nonnull AABBd getBounds() {
+		AABBd bounds = null;
+		for(Mesh mesh : meshes) {
+			AABBd cur = mesh.getBounds();
+			if (bounds==null) bounds = new AABBd(cur);
+			bounds = bounds.union(cur);
+		}
+		
+		if (bounds==null) bounds = new AABBd(0,0,0,0,0,0);
+		
+		return bounds;
+	}
+	
+	public Vector3d getCenter() {
+		AABBd bounds = getBounds();
+		
+		Vector3d result = new Vector3d();
+		
+		result.x = (bounds.maxX+bounds.minX)/2.0;
+		result.y = (bounds.maxY+bounds.minY)/2.0;
+		result.z = (bounds.maxZ+bounds.minZ)/2.0;
+		
+		return result;
 	}
 
 	@Override

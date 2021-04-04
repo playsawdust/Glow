@@ -40,20 +40,19 @@ public class Scene extends BoundingVolume {
 		camera.setPosition(0,32,0);
 		camera.lookAt(32, 32, 32);
 		
-		environment.putMaterialAttribute(MaterialAttribute.AMBIENT_LIGHT, new Vector3d(0.40, 0.40, 0.60));
+		//environment.putMaterialAttribute(MaterialAttribute.AMBIENT_LIGHT, new Vector3d(0.40, 0.40, 0.60));
+		environment.putMaterialAttribute(MaterialAttribute.AMBIENT_LIGHT, new Vector3d(0.0, 0.0, 0.0));
+		//environment.putMaterialAttribute(MaterialAttribute.DIFFUSE_COLOR, new Vector3d(1, 0, 0));
 		
-		//environment.putMaterialAttribute(MaterialAttribute.AMBIENT_LIGHT, new Vector3d(0.00, 0.00, 0.00));
-		
-		
-		sunLight.setColor("#ffc");
+		//sunLight.setColor("#ffc");
 		sunLight.setIntensity(1.0);
 		sunLight.setPosition(32, 32, 32);
 		sunLight.setRadius(100);
 		lights.addLight(sunLight);
 		
-		Light test = new Light();
-		test.setPosition(10, 8, 1);
-		test.setIntensity(0.6);
+		//Light test = new Light();
+		//test.setPosition(10, 8, 1);
+		//test.setIntensity(0.6);
 		//lights.addLight(test);
 	}
 	
