@@ -42,6 +42,9 @@ import com.playsawdust.chipper.glow.util.AbstractGPUResource;
 public class Window extends AbstractGPUResource {
 	private static final long NULL = 0;
 	
+	/** 60 degrees in radians */
+	private static final double SIXTY_DEGREES = 60.0 * (Math.PI/180.0);
+	
 	private Logger glfwLog = LoggerFactory.getLogger("GLFW");
 	private long handle = -1;
 	
@@ -350,6 +353,10 @@ public class Window extends AbstractGPUResource {
 	 * </ul>
 	 */
 	public void render() {
+		Matrix4d projection = new Matrix4d();
+		projection.setPerspective(SIXTY_DEGREES, framebufferWidth/(double)framebufferHeight, 1, 1000); //TODO: Let user configure near and far clip planes
+		scene.setProjectionMatrix(projection);
+		
 		//TODO: Trigger onPreSchedule
 		scene.schedule(scheduler);
 		//TODO: Trigger onPostSchedule

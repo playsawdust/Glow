@@ -9,9 +9,11 @@
 
 package com.playsawdust.chipper.glow.scene;
 
+import org.joml.FrustumIntersection;
 import org.joml.Matrix3d;
 import org.joml.Matrix4d;
 import org.joml.Matrix4dc;
+import org.joml.Matrix4f;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
@@ -75,16 +77,43 @@ public class Scene extends BoundingVolume {
 		if (globalStart==-1) globalStart = System.nanoTime() / 1_000_000L;
 		long globalElapsed = getElapsed();
 		
-		
-		
 		sunLight.setPosition(128, 128, 256+Math.sin(globalElapsed/5_000.0)*256);
 		
+		//Get the rotated/translated view matrix
+		Matrix4d viewMatrix = new Matrix4d(projectionMatrix);
+		viewMatrix.mul(new Matrix4d(camera.getOrientation(null)));
+		viewMatrix.translate(camera.getPosition(null).mul(-1));
+		Matrix4f viewFloats = new Matrix4f(viewMatrix);
+		
+		FrustumIntersection frustumTest = new FrustumIntersection(viewFloats);
+		Vector3d collisionCenter = new Vector3d();
+		double collisionRadius = 0.0;
+		
 		for(Actor actor : this) {
-			Object renderObject = actor.getRenderObject(camera);
-			if (renderObject==null) continue;
-			Vector3d pos = actor.getPosition(null);
-			Matrix3d orientation = actor.getOrientation(null);
-			scheduler.schedule(renderObject, pos, orientation, environment);
+			//Frustum Cull
+			boolean intersects = true;
+			CollisionVolume collision = actor.getCollision();
+			
+			if (collision!=null) {
+				//18mul + 18add for sphere-frustum
+				//18mul + 12add + 18 conditional moves + 6 compares
+				//So we go with spheres for coarse passes, always
+				collision.getSphereOffset(collisionCenter);
+				collisionCenter = collisionCenter.add(actor.getPosition(null));
+				collisionRadius = collision.getSphereRadius();
+				
+				intersects = frustumTest.testSphere((float) collisionCenter.x, (float) collisionCenter.y, (float) collisionCenter.z, (float) collisionRadius);
+			}
+			
+			if (intersects) {
+			
+				Object renderObject = actor.getRenderObject(camera);
+				if (renderObject==null) continue;
+				Vector3d pos = actor.getPosition(null);
+				Matrix3d orientation = actor.getOrientation(null);
+				scheduler.schedule(renderObject, pos, orientation, environment);
+			
+			}
 		}
 		
 		//We can maybe resolve these by scheduling the light texture on the scheduler and letting it mutate the program

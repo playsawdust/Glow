@@ -9,17 +9,36 @@
 
 package com.playsawdust.chipper.glow.scene;
 
+import org.joml.Vector3d;
+
 //import org.joml.Vector3d;
 
-public class CollisionVolume {
-	public static class Capsule extends CollisionVolume {
-		//private Vector3d a = new Vector3d();
-		public boolean collidesWith(CollisionVolume other) {
-			if (other instanceof Capsule) {
-				
-			}
-			
-			return false;
+public abstract class CollisionVolume {
+	protected double sphereX = 0;
+	protected double sphereY = 0;
+	protected double sphereZ = 0;
+	protected double sphereRadius = 0;
+	
+	public static class Sphere extends CollisionVolume {
+		public Sphere(double x, double y, double z, double radius) {
+			this.sphereX = x;
+			this.sphereY = y;
+			this.sphereZ = z;
+			this.sphereRadius = radius;
 		}
+	}
+	
+	/**
+	 * If this collision volume is a sphere
+	 * @param dest
+	 * @return
+	 */
+	public Vector3d getSphereOffset(Vector3d dest) {
+		dest.set(sphereX, sphereY, sphereZ);
+		return dest;
+	}
+	
+	public double getSphereRadius() {
+		return sphereRadius;
 	}
 }
