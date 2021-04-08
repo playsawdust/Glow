@@ -12,22 +12,25 @@ package com.playsawdust.chipper.glow.model.io;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
-import com.playsawdust.chipper.glow.model.Model;
+import com.playsawdust.chipper.glow.voxel.MeshableVoxel;
+import com.playsawdust.chipper.glow.voxel.VoxelPatch;
 
-public interface ModelLoader {
+public interface VoxelLoader {
 	/**
 	 * Verifies that this data matches the format of this Loader and load it.
 	 * <ul>
-	 *   <li>If the file cannot be verified as a match for this Loader, null is returned. (e.g. the Loader loads wavefront .obj files, but the file starts with unprintable characters)
+	 *   <li>If the file cannot be verified as a match for this Loader, null is returned. (e.g. the Loader loads MagicaVoxel .vox files, but the first byte of the file is anything except the ascii character 'V')
 	 *   <li>If the file type is detected to match this Loader but is malformed, an IOException is thrown.
-	 *   <li>If the file type matches and the data is loaded successfully, a Model is returned representing the file contents.
+	 *   <li>If the file type matches and the data is loaded successfully, a VoxelPatch is returned representing the file contents.
 	 * </ul>
 	 * 
-	 * <p>ModelLoaders MUST be threadsafe.
+	 * <p>VoxelLoaders MUST be threadsafe.
 	 * @param in an InputStream containing the data to be read.
+	 * @param colorToVoxel a map function turning an int ARGB color into a MeshableVoxel.
 	 * @param progressConsumer an object which will receive progress reports, in whole percents. 0 means the operation is starting, 100 means the operation is about to complete.
-	 * @return the Model represented by this InputStream
+	 * @return the VoxelPatch represented by this InputStream
 	 */
-	public Model tryModelLoad(InputStream in, Consumer<Integer> progressConsumer) throws IOException;
+	public VoxelPatch tryVoxelLoad(InputStream in, Function<Integer, MeshableVoxel> colorToVoxel, Consumer<Integer> progressConsumer) throws IOException;
 }

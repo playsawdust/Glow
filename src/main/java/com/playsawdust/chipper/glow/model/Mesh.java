@@ -102,6 +102,20 @@ public class Mesh implements MeshSupplier {
 		return new AABBd(minX, minY, minZ, maxX, maxY, maxZ);
 	}
 	
+	public double getSphereRadius() {
+		double d2 = 0.0;
+		for(Face face : faces) {
+			for(Vertex vertex : face) {
+				Vector3dc pos = vertex.getMaterialAttribute(MaterialAttribute.POSITION);
+				double curD2 = pos.x()*pos.x() + pos.y()*pos.y() + pos.z()*pos.z();
+				
+				d2 = Math.max(d2, curD2);
+			}
+		}
+		
+		return Math.sqrt(d2);
+	}
+	
 	public void transform(Matrix4dc matrix) {
 		Set<Vertex> processed = new HashSet<Vertex>(faces.size()*3); //Meshes frequently contain duplicate vertices. Make sure they only get processed once!
 		for(Face face : faces) {

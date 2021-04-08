@@ -30,32 +30,32 @@ public class QBLoader implements ModelLoader {
 	private static final MeshableVoxel VOXEL_EMPTY = new MeshableVoxel.SimpleMeshableVoxel().setShape(VoxelShape.EMPTY);
 	
 	@Override
-	public Model tryLoad(InputStream in, Consumer<Integer> progressConsumer) throws IOException {
+	public Model tryModelLoad(InputStream in, Consumer<Integer> progressConsumer) throws IOException {
 		// Header
 		int version = readInt32(in);
-		System.out.println("Version: "+version+((version==VERSION_CURRENT)?" (current)":""));
+		//System.out.println("Version: "+version+((version==VERSION_CURRENT)?" (current)":""));
 		if ((version & VERSION_MAJOR_MASK) != (VERSION_CURRENT & VERSION_MAJOR_MASK)) throw new IOException("Version mismatch");
 		
 		int colorFormat = readInt32(in);
 		if (colorFormat==0) {
-			System.out.println("Color Format: RGBA");
+			//System.out.println("Color Format: RGBA");
 		} else if (colorFormat==1) {
-			System.out.println("ColorFormat: BGRA");
+			//System.out.println("ColorFormat: BGRA");
 		} else {
-			System.out.println("Color Format: Unknown");
+			//System.out.println("Color Format: Unknown");
 		}
 		
 		int orientation = readInt32(in);
-		System.out.println("Z-Axis Orientation: "+((orientation==0) ? "Left-handed" : "Right-handed"));
+		//System.out.println("Z-Axis Orientation: "+((orientation==0) ? "Left-handed" : "Right-handed"));
 		
 		boolean compression = readInt32(in)==1;
-		System.out.println("Compressed: "+compression);
+		//System.out.println("Compressed: "+compression);
 		
 		boolean visibilityMask = readInt32(in)==1;
-		System.out.println("Visibility Mask Encoded: "+visibilityMask);
+		//System.out.println("Visibility Mask Encoded: "+visibilityMask);
 		
 		int matrixCount = readInt32(in);
-		System.out.println("Matrix Count: "+matrixCount);
+		//System.out.println("Matrix Count: "+matrixCount);
 		
 		Model result = new Model();
 		
@@ -64,7 +64,7 @@ public class QBLoader implements ModelLoader {
 			byte[] stringBytes = new byte[len];
 			for(int j=0; j<len; j++) stringBytes[j] = (byte)(in.read() & 0xFF);
 			String matrixName = new String(stringBytes, StandardCharsets.US_ASCII);
-			System.out.println("Matrix Name: "+matrixName);
+			//System.out.println("Matrix Name: "+matrixName);
 			int xsize = readInt32(in);
 			int ysize = readInt32(in);
 			int zsize = readInt32(in);
@@ -73,8 +73,8 @@ public class QBLoader implements ModelLoader {
 			int ypos = readInt32(in);
 			int zpos = readInt32(in);
 			
-			System.out.println("Size: "+xsize+" x "+ysize+" x "+zsize);
-			System.out.println("Pos: "+xpos+", "+ypos+", "+zpos);
+			//System.out.println("Size: "+xsize+" x "+ysize+" x "+zsize);
+			//System.out.println("Pos: "+xpos+", "+ypos+", "+zpos);
 			
 			VoxelPatch patch = new VoxelPatch(xsize, ysize, zsize);
 			HashMap<Integer, MeshableVoxel> colorMaterials = new HashMap<>();
@@ -91,8 +91,8 @@ public class QBLoader implements ModelLoader {
 								Material colorMaterial = new Material.Generic()
 									.with(MaterialAttribute.DIFFUSE_COLOR, colorVector(col))
 									.with(MaterialAttribute.DIFFUSE_TEXTURE_ID, "none")
-									.with(MaterialAttribute.SPECULARITY, 0.3)
-									.with(MaterialAttribute.EMISSIVITY, 0.5);
+									.with(MaterialAttribute.SPECULARITY, 0.4)
+									.with(MaterialAttribute.EMISSIVITY, 0.0);
 								voxel = new MeshableVoxel.SimpleMeshableVoxel()
 										.setShape(VoxelShape.CUBE)
 										.setMaterial(colorMaterial);

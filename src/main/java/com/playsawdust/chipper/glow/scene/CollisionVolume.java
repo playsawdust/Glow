@@ -9,6 +9,8 @@
 
 package com.playsawdust.chipper.glow.scene;
 
+import javax.annotation.Nullable;
+
 import org.joml.Vector3d;
 
 //import org.joml.Vector3d;
@@ -29,15 +31,17 @@ public abstract class CollisionVolume {
 	}
 	
 	/**
-	 * If this collision volume is a sphere
-	 * @param dest
-	 * @return
+	 * Gets the center of the collision sphere relative to the Actor. Not yet supported.
 	 */
-	public Vector3d getSphereOffset(Vector3d dest) {
+	public Vector3d getSphereOffset(@Nullable Vector3d dest) {
+		if (dest==null) dest = new Vector3d();
 		dest.set(sphereX, sphereY, sphereZ);
 		return dest;
 	}
 	
+	/**
+	 * Gets the radius of the sphere representing the Actor's coarse collision area.
+	 */
 	public double getSphereRadius() {
 		return sphereRadius;
 	}

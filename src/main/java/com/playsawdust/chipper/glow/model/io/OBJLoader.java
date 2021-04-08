@@ -50,7 +50,7 @@ public class OBJLoader implements ModelLoader {
 	}
 	
 	@Override
-	public Model tryLoad(InputStream in, Consumer<Integer> progressConsumer) throws IOException {
+	public Model tryModelLoad(InputStream in, Consumer<Integer> progressConsumer) throws IOException {
 		ProgressReport progress = new ProgressReport(progressConsumer);
 		ArrayList<Vector3d> positions = new ArrayList<>();
 		ArrayList<Vector3d> normals = new ArrayList<>();

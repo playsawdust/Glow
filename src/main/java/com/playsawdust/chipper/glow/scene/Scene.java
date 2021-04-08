@@ -76,7 +76,8 @@ public class Scene extends BoundingVolume {
 		if (globalStart==-1) globalStart = System.nanoTime() / 1_000_000L;
 		long globalElapsed = getElapsed();
 		
-		sunLight.setPosition(128, 128, 256+Math.sin(globalElapsed/5_000.0)*256);
+		//sunLight.setPosition(128, 128, 256+Math.sin(globalElapsed/5_000.0)*256);
+		lights.upload();
 		
 		//Get the rotated/translated view matrix
 		Matrix4d viewMatrix = new Matrix4d(projectionMatrix);

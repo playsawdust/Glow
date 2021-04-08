@@ -34,7 +34,7 @@ public class ModelIO {
 		byte[] inBuffer = ByteStreams.toByteArray(in);
 		for(ModelLoader loader : loaders) {
 			ByteArrayInputStream bais = new ByteArrayInputStream(inBuffer);
-			Model m = loader.tryLoad(bais, progressConsumer);
+			Model m = loader.tryModelLoad(bais, progressConsumer);
 			if (m!=null) return m;
 		}
 		

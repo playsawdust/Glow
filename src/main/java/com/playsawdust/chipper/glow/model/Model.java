@@ -91,6 +91,15 @@ public class Model implements ModelSupplier, Iterable<Mesh> {
 		}
 	}
 	
+	public double getSphereRadius() {
+		double d = 0.0;
+		for(Mesh mesh : meshes) {
+			d = Math.max(d, mesh.getSphereRadius());
+		}
+		
+		return d;
+	}
+	
 	public @Nonnull AABBd getBounds() {
 		AABBd bounds = null;
 		for(Mesh mesh : meshes) {
