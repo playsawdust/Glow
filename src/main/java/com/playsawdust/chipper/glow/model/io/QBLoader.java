@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.joml.AABBd;
 import org.joml.Matrix4d;
@@ -18,7 +19,7 @@ import com.playsawdust.chipper.glow.voxel.MeshableVoxel;
 import com.playsawdust.chipper.glow.voxel.VoxelPatch;
 import com.playsawdust.chipper.glow.voxel.VoxelShape;
 
-public class QBLoader implements ModelLoader {
+public class QBLoader implements ModelLoader, VoxelLoader {
 	private static final int VERSION_CURRENT = 
 			(1 <<  0) | //MAJOR
 			(1 <<  8) | //MINOR
@@ -31,6 +32,49 @@ public class QBLoader implements ModelLoader {
 	
 	@Override
 	public Model tryModelLoad(InputStream in, Consumer<Integer> progressConsumer) throws IOException {
+		VoxelPatch patch = tryVoxelLoad(in, (Integer col)->{
+			if ((col & 0xFF000000) == 0) {
+				return VOXEL_EMPTY;
+			} else {
+				Material colorMaterial = new Material.Generic()
+						.with(MaterialAttribute.DIFFUSE_COLOR, colorVector(col))
+						.with(MaterialAttribute.DIFFUSE_TEXTURE_ID, "none")
+						.with(MaterialAttribute.SPECULARITY, 0.4)
+						.with(MaterialAttribute.EMISSIVITY, 0.0);
+				return new MeshableVoxel.SimpleMeshableVoxel()
+						.setShape(VoxelShape.CUBE)
+						.setMaterial(colorMaterial);
+			}
+		}, progressConsumer);
+		
+		Model result = VoxelMesher.mesh(0, 0, 0, patch.xSize(), patch.ySize(), patch.zSize(), patch::getShape, patch::getMaterial, 0.05);
+		
+		//Recenter model
+		Vector3d translate = result.getCenter().mul(-1);
+		Matrix4d op = new Matrix4d().translate(translate);
+		result.transform(op);
+		
+		return result;
+	}
+	
+	private static int readInt32(InputStream in) throws IOException {
+		return
+			 (in.read() & 0xFF)         |
+			((in.read() & 0xFF) <<  8 ) |
+			((in.read() & 0xFF) << 16 ) |
+			((in.read() & 0xFF) << 24 );
+	}
+	
+	private static Vector3d colorVector(int col) {
+		int r = (col >> 16) & 0xFF;
+		int g = (col >>  8) & 0xFF;
+		int b = (col      ) & 0xFF;
+		
+		return new Vector3d(r / 255.0, g / 255.0, b / 255.0);
+	}
+
+	@Override
+	public VoxelPatch tryVoxelLoad(InputStream in, Function<Integer, MeshableVoxel> colorToVoxel, Consumer<Integer> progressConsumer) throws IOException {
 		// Header
 		int version = readInt32(in);
 		//System.out.println("Version: "+version+((version==VERSION_CURRENT)?" (current)":""));
@@ -73,9 +117,6 @@ public class QBLoader implements ModelLoader {
 			int ypos = readInt32(in);
 			int zpos = readInt32(in);
 			
-			//System.out.println("Size: "+xsize+" x "+ysize+" x "+zsize);
-			//System.out.println("Pos: "+xpos+", "+ypos+", "+zpos);
-			
 			VoxelPatch patch = new VoxelPatch(xsize, ysize, zsize);
 			HashMap<Integer, MeshableVoxel> colorMaterials = new HashMap<>();
 			patch.setVoxel(0, 0, 0, VOXEL_EMPTY, true);
@@ -109,32 +150,8 @@ public class QBLoader implements ModelLoader {
 				}
 			}
 			
-			Model cur = VoxelMesher.mesh(0, 0, 0, xsize, ysize, zsize, patch::getShape, patch::getMaterial, 0.05);
-			
-			//Recenter model
-			Vector3d translate = cur.getCenter().mul(-1);
-			Matrix4d op = new Matrix4d().translate(translate);
-			cur.transform(op);
-			
-			result.combineFrom(cur);
+			return patch;
 		}
-		
-		return result;
-	}
-	
-	private static int readInt32(InputStream in) throws IOException {
-		return
-			 (in.read() & 0xFF)         |
-			((in.read() & 0xFF) <<  8 ) |
-			((in.read() & 0xFF) << 16 ) |
-			((in.read() & 0xFF) << 24 );
-	}
-	
-	private static Vector3d colorVector(int col) {
-		int r = (col >> 16) & 0xFF;
-		int g = (col >>  8) & 0xFF;
-		int b = (col      ) & 0xFF;
-		
-		return new Vector3d(r / 255.0, g / 255.0, b / 255.0);
+		return null; //TODO: If there are multiple models, adjust offsets and combine the patches.
 	}
 }

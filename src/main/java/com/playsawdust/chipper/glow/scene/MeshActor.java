@@ -9,7 +9,6 @@
 
 package com.playsawdust.chipper.glow.scene;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.joml.Vector3dc;
 
 import com.playsawdust.chipper.glow.gl.BakedModel;
@@ -19,9 +18,9 @@ import com.playsawdust.chipper.glow.model.Mesh;
 import com.playsawdust.chipper.glow.model.Model;
 import com.playsawdust.chipper.glow.model.Vertex;
 
-public class MeshActor extends AbstractActor {
+public class MeshActor extends Actor {
 	protected Mesh detailedCollision;
-	protected BakedModel renderObject;
+	//protected BakedModel renderObject;
 	
 	public MeshActor() {}
 	
@@ -33,11 +32,6 @@ public class MeshActor extends AbstractActor {
 		setCollisionMesh(detailedCollision); //generates sphere volume
 		
 		this.renderObject = baked;
-	}
-	
-	@Override
-	public @Nullable Object getRenderObject(Camera camera) {
-		return renderObject;
 	}
 	
 	public void setRenderModel(BakedModel renderModel) {

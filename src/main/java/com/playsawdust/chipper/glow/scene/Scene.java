@@ -18,6 +18,9 @@ import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
 import com.playsawdust.chipper.glow.RenderScheduler;
+import com.playsawdust.chipper.glow.event.ConsumerEvent;
+import com.playsawdust.chipper.glow.event.FixedTimestep;
+import com.playsawdust.chipper.glow.event.Timestep;
 import com.playsawdust.chipper.glow.gl.LightTexture;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
@@ -29,11 +32,14 @@ public class Scene extends BoundingVolume {
 	public static final Vector3dc WORLDSPACE_UP = new Vector3d(0, 1, 0);
 	
 	private Camera camera = new Camera();
+	private Timestep timestep = FixedTimestep.ofTPS(5);
+	
 	private Matrix4d projectionMatrix = new Matrix4d();
 	private SimpleMaterialAttributeContainer environment = new SimpleMaterialAttributeContainer();
 	private LightTexture lights = new LightTexture();
 	private Light sunLight = new Light();
-	private long globalStart = -1L;
+	//private long globalStart = -1L;
+	private ConsumerEvent<Integer> onTick = new ConsumerEvent<>();
 	
 	public Scene() {
 		camera.collisionVolume = null;
@@ -54,6 +60,33 @@ public class Scene extends BoundingVolume {
 		//test.setPosition(10, 8, 1);
 		//test.setIntensity(0.6);
 		//lights.addLight(test);
+		
+		timestep.onTick().register(this::onTickHandler);
+	}
+	
+	public ConsumerEvent<Integer> onTick() {
+		return onTick;
+	}
+	
+	private void onTickHandler(int delta) {
+		Vector3d pos = new Vector3d();
+		for(Actor actor : this) {
+			actor.setLastPosition(actor.getPosition(pos)); //Discard previous frame
+			
+			//TODO: move actors if they have velocity, collide them if they have colliders
+		}
+		
+		//Fire the window onTick
+		onTick.fire(delta);
+	}
+	
+	public void setTimestep(Timestep timestep) {
+		if (this.timestep!=null) {
+			timestep.onTick().unregister(this::onTickHandler); //TODO: Make sure non-interned this::onTick == some other this::onTick; depends on lambdaMetafactory behavior
+		}
+		
+		this.timestep = timestep;
+		this.timestep.onTick().register(this::onTickHandler);
 	}
 	
 	public Camera getCamera() {
@@ -68,13 +101,15 @@ public class Scene extends BoundingVolume {
 		return this.projectionMatrix;
 	}
 	
-	public long getElapsed() {
-		return (System.nanoTime() / 1_000_000L) - globalStart;
-	}
+	//public long getElapsed() {
+	//	return (System.nanoTime() / 1_000_000L) - globalStart;
+	//}
 	
 	public void schedule(RenderScheduler scheduler) {
-		if (globalStart==-1) globalStart = System.nanoTime() / 1_000_000L;
-		long globalElapsed = getElapsed();
+		double tickProgress = timestep.poll();
+		
+		//if (globalStart==-1) globalStart = System.nanoTime() / 1_000_000L;
+		//long globalElapsed = getElapsed();
 		
 		//sunLight.setPosition(128, 128, 256+Math.sin(globalElapsed/5_000.0)*256);
 		lights.upload();
@@ -86,10 +121,18 @@ public class Scene extends BoundingVolume {
 		Matrix4f viewFloats = new Matrix4f(viewMatrix);
 		
 		FrustumIntersection frustumTest = new FrustumIntersection(viewFloats);
+		//Reuse vectors to cut down on eden pressure
 		Vector3d collisionCenter = new Vector3d();
+		Vector3d last = new Vector3d();
+		Vector3d cur = new Vector3d();
 		double collisionRadius = 0.0;
 		
 		for(Actor actor : this) {
+			//Get current position
+			actor.getLastPosition(last);
+			actor.getPosition(cur);
+			Vector3d lerped = last.lerp(cur, tickProgress);
+			
 			//Frustum Cull
 			boolean intersects = true;
 			CollisionVolume collision = actor.getCollision();
@@ -99,7 +142,7 @@ public class Scene extends BoundingVolume {
 				//18mul + 12add + 18 conditional moves + 6 compares
 				//So we go with spheres for coarse passes, always
 				collision.getSphereOffset(collisionCenter);
-				collisionCenter = collisionCenter.add(actor.getPosition(null));
+				collisionCenter = collisionCenter.add(lerped);
 				collisionRadius = collision.getSphereRadius();
 				
 				intersects = frustumTest.testSphere((float) collisionCenter.x, (float) collisionCenter.y, (float) collisionCenter.z, (float) collisionRadius);
@@ -109,9 +152,8 @@ public class Scene extends BoundingVolume {
 			
 				Object renderObject = actor.getRenderObject(camera);
 				if (renderObject==null) continue;
-				Vector3d pos = actor.getPosition(null);
 				Matrix3d orientation = actor.getOrientation(null);
-				scheduler.schedule(renderObject, pos, orientation, environment);
+				scheduler.schedule(renderObject, lerped, orientation, environment);
 			
 			}
 		}

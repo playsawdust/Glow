@@ -9,55 +9,18 @@
 
 package com.playsawdust.chipper.glow.scene;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.joml.Matrix3d;
-import org.joml.Matrix3dc;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
-public class Light implements Actor {
-	private static final Vector3dc UP = new Vector3d(0, 1, 0);
-	
-	private Vector3d position = new Vector3d(0, 0, 0);
+public class Light extends Actor {
 	private Vector3d direction = new Vector3d(0, 0, 0);
 	private Vector3d color = new Vector3d(1, 1, 1);
 	private double radius = 16.0;
 	private double angle = 2.0;
 	private double intensity = 1.0;
-
-	@Override
-	public Vector3d getPosition(Vector3d result) {
-		if (result!=null) {
-			result.set(position);
-			return result;
-		} else {
-			return new Vector3d(position);
-		}
-	}
 	
 	public Vector3dc getDirection() {
 		return direction;
-	}
-	
-	@Override
-	public Matrix3d getOrientation(Matrix3d result) {
-		if (result!=null) {
-			result.setLookAlong(direction, UP);
-			return result;
-		} else {
-			return new Matrix3d().setLookAlong(direction, UP);
-		}
-	}
-	
-	@Override
-	public void setOrientation(Matrix3dc orientation) {
-		this.direction.set(orientation.transform(new Vector3d(0, 0, -1)));
-	}
-	
-	/** Always returns null. Lights do not participate in collisions. */
-	@Override
-	public @Nullable CollisionVolume getCollision() {
-		return null;
 	}
 	
 	public Vector3dc getColor() {
@@ -74,15 +37,6 @@ public class Light implements Actor {
 	
 	public double getAngle() {
 		return angle;
-	}
-
-	@Override
-	public void setPosition(Vector3dc position) {
-		this.position.set(position);
-	}
-	
-	public void setPosition(double x, double y, double z) {
-		this.position.set(x, y, z);
 	}
 
 	public void setColor(Vector3dc color) {
@@ -147,10 +101,5 @@ public class Light implements Actor {
 
 	public void setIntensity(double intensity) {
 		this.intensity = intensity;
-	}
-
-	@Override
-	public @Nullable Object getRenderObject(Camera camera) {
-		return null;
 	}
 }

@@ -15,49 +15,122 @@ import org.joml.Matrix3dc;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
-public interface Actor { //TODO: Lerp position and rotation stuff
-	/**
-	 * Gets the position of this Actor in the Scene
-	 * @param result a Vector to place the result into, or null to create a new Vector
-	 * @return the position of this object in the Scene
-	 */
-	public Vector3d getPosition(Vector3d result);
+public abstract class Actor {
+	protected Vector3d position = new Vector3d();
+	protected Vector3d lastPosition = new Vector3d();
+	protected Matrix3d orientation = new Matrix3d();
+	protected Matrix3d lastOrientation = new Matrix3d();
+	protected Vector3d velocity = new Vector3d();
+	protected CollisionVolume collisionVolume = null;
+	protected Object renderObject = null;
 	
-	/**
-	 * Gets a matrix representing the rotated orientation of this Actor.
-	 * 
-	 * <p>If you multiply any object-space vector by the matrix this function yields, it will
-	 * rotate around the origin into the same orientation this Actor is rendered in.
-	 * 
-	 * @param result a Matrix to place the result into, or null to create a new Matrix
-	 * @return a Matrix representing the rotation of this Actor
-	 */
-	public Matrix3d getOrientation(Matrix3d result);
+	protected boolean visible = true;
+	protected boolean doPhysics = false;
+	protected boolean doCollision = false;
 	
-	/**
-	 * Gets an Object which can be understood by the RenderScheduler, such as a BakedModel,
-	 * to represent this Actor in the Scene.
-	 * @return An object for use with {@link com.playsawdust.chipper.glow.RenderScheduler#schedule(Object, Vector3dc, Matrix3dc, com.playsawdust.chipper.glow.model.MaterialAttributeContainer) RenderScheduler.schedule()}
-	 */
-	public @Nullable Object getRenderObject(Camera camera);
+	public Object getRenderObject(Camera camera) {
+		return renderObject;
+	}
 	
-	/**
-	 * Gets a CollisionVolume which represents a physics shape for this Actor, or null if this Actor cannot take part in collisions or physical interactions.
-	 * @return a CollisionVolume which represents a physics shape for this Actor, or null if this Actor cannot take part in collisions or physical interactions.
-	 */
-	public @Nullable CollisionVolume getCollision();
+	public void setRenderObject(Object obj) {
+		renderObject = obj;
+	}
 	
-	/**
-	 * Unconditionally sets the position of this Actor in the Scene. The new location is not checked for collisions, and the Actor does not
-	 * travel through any of the intervening space between its old position and the new one.
-	 * @param position the new location in the Scene for this Actor.
-	 */
-	public void setPosition(Vector3dc position);
+	public Vector3d getPosition(Vector3d result) {
+		if (result==null) {
+			return new Vector3d(position);
+		} else {
+			return result.set(position);
+		}
+	}
 	
-	/**
-	 * Unconditionally sets the orientation of this Actor for rendering in the Scene. Depending on the Actor and CollisionShape, this may also affect its CollisionShape orientation.
-	 * The Actor does not pass through any of the intervening orientations on the way to its new rotation, and the new orientation is not checked for collisions.
-	 * @param orientation
-	 */
-	public void setOrientation(Matrix3dc orientation);
+	public void setPosition(Vector3dc position) {
+		this.position.set(position);
+	}
+	
+	public void setPosition(double x, double y, double z) {
+		this.position.set(x, y, z);
+	}
+	
+	public Matrix3d getOrientation(Matrix3d result) {
+		if (result==null) {
+			return new Matrix3d(orientation);
+		} else {
+			return result.set(orientation);
+		}
+	}
+	
+	public void setOrientation(Matrix3dc orientation) {
+		this.orientation.set(orientation);
+	}
+	
+	public void setOrientation(Vector3dc lookVec) {
+		setOrientation(lookVec.x(), lookVec.y(), lookVec.z());
+	}
+	
+	public void setOrientation(double x, double y, double z) {
+		this.orientation.setLookAlong(x, y, z, 0, 1, 0);
+	}
+	
+	public Matrix3d getLastOrientation(Matrix3d result) {
+		if (result==null) result = new Matrix3d();
+		return result.set(lastOrientation);
+	}
+	
+	public void setLastOrientation(Matrix3dc orientation) {
+		lastOrientation.set(orientation);
+	}
+	
+	public Vector3d getLastPosition(Vector3d result) {
+		if (result==null) result = new Vector3d();
+		return result.set(lastPosition);
+	}
+	
+	public void setLastPosition(Vector3dc position) {
+		this.lastPosition.set(position);
+	}
+	
+	/** Sets last position to current position */
+	public void clearLastPosition() {
+		this.lastPosition.set(this.position);
+	}
+	
+	public Vector3d getVelocity(Vector3d result) {
+		if (result==null) result = new Vector3d();
+		return result.set(velocity);
+	}
+	
+	public void setVelocity(Vector3dc velocity) {
+		this.velocity.set(velocity);
+	}
+	
+	public @Nullable CollisionVolume getCollision() {
+		return collisionVolume;
+	}
+	
+	public void lookAlong(double x, double y, double z) {
+		//TODO: Can I turn this into axisAngles? I can!
+		//double yRot = 0;
+		double yRot = - Math.atan2(z, x) - Math.PI/2;
+		double xRot = Math.atan2(y, Math.sqrt(x*x + z*z));
+		//double xRot = 0;
+		orientation
+			.identity()
+			
+			.rotate(yRot, 0, 1, 0)
+			.rotate(xRot, 1, 0, 0);
+	}
+	
+	public void lookAt(double x, double y, double z) {
+		//TODO: Can I turn this into axisAngles? I can!
+		/*double yRot = Math.atan2(z, x);
+		double xRot = Math.atan2(y, z);
+		
+		new Matrix3d()
+			.identity();
+			.rotate(xRot, 1, 0, 0);
+			.rotate(yRot, 0, 1, 0);*/
+		Vector3d lookVec = new Vector3d(x, y, z).sub(position).normalize();
+		setOrientation(lookVec);
+	}
 }
