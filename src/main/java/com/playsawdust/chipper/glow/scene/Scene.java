@@ -32,7 +32,7 @@ public class Scene extends BoundingVolume {
 	public static final Vector3dc WORLDSPACE_UP = new Vector3d(0, 1, 0);
 	
 	private Camera camera = new Camera();
-	private Timestep timestep = FixedTimestep.ofTPS(5);
+	private Timestep timestep = FixedTimestep.ofTPS(20);
 	
 	private Matrix4d projectionMatrix = new Matrix4d();
 	private SimpleMaterialAttributeContainer environment = new SimpleMaterialAttributeContainer();
@@ -44,10 +44,11 @@ public class Scene extends BoundingVolume {
 	public Scene() {
 		camera.collisionVolume = null;
 		camera.setPosition(0,32,0);
+		camera.clearLastPosition();
 		camera.lookAt(32, 32, 32);
 		
-		//environment.putMaterialAttribute(MaterialAttribute.AMBIENT_LIGHT, new Vector3d(0.40, 0.40, 0.60));
-		environment.putMaterialAttribute(MaterialAttribute.AMBIENT_LIGHT, new Vector3d(0.0, 0.0, 0.0));
+		environment.putMaterialAttribute(MaterialAttribute.AMBIENT_LIGHT, new Vector3d(0.05, 0.05, 0.1));
+		//environment.putMaterialAttribute(MaterialAttribute.AMBIENT_LIGHT, new Vector3d(0.0, 0.0, 0.0));
 		//environment.putMaterialAttribute(MaterialAttribute.DIFFUSE_COLOR, new Vector3d(1, 0, 0));
 		
 		//sunLight.setColor("#ffc");
@@ -70,8 +71,13 @@ public class Scene extends BoundingVolume {
 	
 	private void onTickHandler(int delta) {
 		Vector3d pos = new Vector3d();
+		camera.clearLastPosition();
+		for(Light light : lights) {
+			light.clearLastPosition();
+		}
 		for(Actor actor : this) {
-			actor.setLastPosition(actor.getPosition(pos)); //Discard previous frame
+			actor.clearLastPosition();
+			//actor.setLastPosition(actor.getPosition(pos)); //Discard previous frame
 			
 			//TODO: move actors if they have velocity, collide them if they have colliders
 		}
@@ -108,16 +114,17 @@ public class Scene extends BoundingVolume {
 	public void schedule(RenderScheduler scheduler) {
 		double tickProgress = timestep.poll();
 		
-		//if (globalStart==-1) globalStart = System.nanoTime() / 1_000_000L;
-		//long globalElapsed = getElapsed();
-		
-		//sunLight.setPosition(128, 128, 256+Math.sin(globalElapsed/5_000.0)*256);
-		lights.upload();
+		lights.upload(tickProgress);
 		
 		//Get the rotated/translated view matrix
 		Matrix4d viewMatrix = new Matrix4d(projectionMatrix);
 		viewMatrix.mul(new Matrix4d(camera.getOrientation(null)));
-		viewMatrix.translate(camera.getPosition(null).mul(-1));
+		
+		Vector3d cameraLast = camera.getLastPosition(null);
+		Vector3d cameraCur = camera.getPosition(null);
+		Vector3d cameraLerped = cameraLast.lerp(cameraCur, tickProgress); //overwrites cameraLast
+		
+		viewMatrix.translate(cameraLerped.mul(-1));
 		Matrix4f viewFloats = new Matrix4f(viewMatrix);
 		
 		FrustumIntersection frustumTest = new FrustumIntersection(viewFloats);
@@ -163,7 +170,7 @@ public class Scene extends BoundingVolume {
 		if (solidPass instanceof MeshPass) {
 			ShaderProgram solidShader = ((MeshPass) solidPass).getProgram();
 			solidShader.bind();
-			lights.upload();
+			//lights.upload();
 			lights.bind(solidShader, 1); //TODO: bad assumptions about texture unit
 		}
 		
@@ -176,5 +183,9 @@ public class Scene extends BoundingVolume {
 	
 	public Light getSun() {
 		return sunLight;
+	}
+
+	public Timestep getTimestep() {
+		return timestep;
 	}
 }

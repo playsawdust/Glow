@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.joml.Matrix4d;
 import org.joml.Vector2i;
+import org.joml.Vector3d;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -364,7 +365,12 @@ public class Window extends AbstractGPUResource {
 		
 		Matrix4d viewMatrix = new Matrix4d(scene.getProjectionMatrix());
 		viewMatrix.mul(new Matrix4d(scene.getCamera().getOrientation(null)));
-		viewMatrix.translate(scene.getCamera().getPosition(null).mul(-1));
+		
+		Vector3d cameraLast = scene.getCamera().getLastPosition(null);
+		Vector3d cameraCur = scene.getCamera().getPosition(null);
+		Vector3d cameraLerped = cameraLast.lerp(cameraCur, scene.getTimestep().poll()); //overwrites cameraLast
+		
+		viewMatrix.translate(cameraLerped.mul(-1));
 		scheduler.render(viewMatrix); //also triggers painter
 		//TODO: maybe split Painter off a little more, get more events in there and allow postprocess shaders
 		

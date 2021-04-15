@@ -12,6 +12,7 @@ package com.playsawdust.chipper.glow.gl;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import org.joml.Vector3d;
 import org.lwjgl.opengl.ARBTextureFloat;
 import org.lwjgl.opengl.ARBTextureRectangle;
 import org.lwjgl.opengl.GL20;
@@ -42,7 +43,7 @@ public class LightTexture extends AbstractGPUResource implements Iterable<Light>
 		return lights.get(index);
 	}
 	
-	public void upload() {
+	public void upload(double deltaTime) {
 		if (handle!=-1) {
 			GL20.glDeleteTextures(handle); //TODO: Resize and use glTexSubImage!	
 			handle = -1;
@@ -51,11 +52,20 @@ public class LightTexture extends AbstractGPUResource implements Iterable<Light>
 		if (lightCount==0) lightCount = 1;
 		int dataLength = lightCount*LIGHT_LENGTH;
 		float[] data = new float[dataLength];
+		
+		
+		
 		for(int i=0; i<lights.size(); i++) {
 			Light cur = lights.get(i);
-			data[LIGHT_LENGTH*i + 0] = (float) cur.getPosition(null).x();
-			data[LIGHT_LENGTH*i + 1] = (float) cur.getPosition(null).y();
-			data[LIGHT_LENGTH*i + 2] = (float) cur.getPosition(null).z();
+			
+			//Interpolate light position so moving lights+camera doesn't get flickery
+			Vector3d lastPos = cur.getLastPosition(null);
+			Vector3d curPos = cur.getPosition(null);
+			Vector3d lerpPos = lastPos.lerp(curPos, deltaTime);
+			
+			data[LIGHT_LENGTH*i + 0] = (float) lerpPos.x();
+			data[LIGHT_LENGTH*i + 1] = (float) lerpPos.y();
+			data[LIGHT_LENGTH*i + 2] = (float) lerpPos.z();
 			data[LIGHT_LENGTH*i + 3] = (float) cur.getRadius();
 			
 			data[LIGHT_LENGTH*i + 4] = (float) cur.getDirection().x();

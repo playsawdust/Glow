@@ -32,20 +32,7 @@ public class QBLoader implements ModelLoader, VoxelLoader {
 	
 	@Override
 	public Model tryModelLoad(InputStream in, Consumer<Integer> progressConsumer) throws IOException {
-		VoxelPatch patch = tryVoxelLoad(in, (Integer col)->{
-			if ((col & 0xFF000000) == 0) {
-				return VOXEL_EMPTY;
-			} else {
-				Material colorMaterial = new Material.Generic()
-						.with(MaterialAttribute.DIFFUSE_COLOR, colorVector(col))
-						.with(MaterialAttribute.DIFFUSE_TEXTURE_ID, "none")
-						.with(MaterialAttribute.SPECULARITY, 0.4)
-						.with(MaterialAttribute.EMISSIVITY, 0.0);
-				return new MeshableVoxel.SimpleMeshableVoxel()
-						.setShape(VoxelShape.CUBE)
-						.setMaterial(colorMaterial);
-			}
-		}, progressConsumer);
+		VoxelPatch patch = tryVoxelLoad(in, progressConsumer);
 		
 		Model result = VoxelMesher.mesh(0, 0, 0, patch.xSize(), patch.ySize(), patch.zSize(), patch::getShape, patch::getMaterial, 0.05);
 		

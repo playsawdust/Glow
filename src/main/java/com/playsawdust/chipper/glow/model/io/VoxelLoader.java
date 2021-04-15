@@ -14,10 +14,17 @@ import java.io.InputStream;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.joml.Vector3d;
+
+import com.playsawdust.chipper.glow.model.Material;
+import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.voxel.MeshableVoxel;
 import com.playsawdust.chipper.glow.voxel.VoxelPatch;
+import com.playsawdust.chipper.glow.voxel.VoxelShape;
 
 public interface VoxelLoader {
+	public static final MeshableVoxel VOXEL_EMPTY = new MeshableVoxel.SimpleMeshableVoxel().setShape(VoxelShape.EMPTY);
+	
 	/**
 	 * Verifies that this data matches the format of this Loader and load it.
 	 * <ul>
@@ -33,4 +40,33 @@ public interface VoxelLoader {
 	 * @return the VoxelPatch represented by this InputStream
 	 */
 	public VoxelPatch tryVoxelLoad(InputStream in, Function<Integer, MeshableVoxel> colorToVoxel, Consumer<Integer> progressConsumer) throws IOException;
+	
+	
+	public default VoxelPatch tryVoxelLoad(InputStream in, Consumer<Integer> progressConsumer) throws IOException {
+		return this.tryVoxelLoad(in,
+			(Integer col)->{
+				if ((col & 0xFF000000) == 0) {
+					return VOXEL_EMPTY;
+				} else {
+					int r = (col >> 16) & 0xFF;
+					int g = (col >>  8) & 0xFF;
+					int b = (col      ) & 0xFF;
+					
+					Vector3d colorVector = new Vector3d(r / 255.0, g / 255.0, b / 255.0);
+					
+					Material colorMaterial = new Material.Generic()
+							.with(MaterialAttribute.DIFFUSE_COLOR, colorVector)
+							.with(MaterialAttribute.DIFFUSE_TEXTURE_ID, "none")
+							.with(MaterialAttribute.SPECULARITY, 0.4)
+							.with(MaterialAttribute.EMISSIVITY, 0.0);
+					return new MeshableVoxel.SimpleMeshableVoxel()
+							.setShape(VoxelShape.CUBE)
+							.setMaterial(colorMaterial);
+				}
+			}, progressConsumer);
+	}
+	
+	public default VoxelPatch tryVoxelLoad(InputStream in) throws IOException {
+		return tryVoxelLoad(in, (it)->{});
+	}
 }

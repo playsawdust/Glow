@@ -30,4 +30,8 @@ public interface ModelLoader {
 	 * @return the Model represented by this InputStream
 	 */
 	public Model tryModelLoad(InputStream in, Consumer<Integer> progressConsumer) throws IOException;
+	
+	public default Model tryModelLoad(InputStream in) throws IOException {
+		return tryModelLoad(in, (it)->{});
+	}
 }
