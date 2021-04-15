@@ -56,6 +56,7 @@ public class Window extends AbstractGPUResource {
 	private BiConsumerEvent<MouseButton, Integer> onMouseReleased = new BiConsumerEvent<>();
 	private RunnableEvent onMouseEntered = new RunnableEvent();
 	private RunnableEvent onMouseLeft = new RunnableEvent();
+	private RunnableEvent onCloseRequested = new RunnableEvent();
 	
 	private ArrayList<ControlSet> controlSets = new ArrayList<>();
 	
@@ -168,6 +169,10 @@ public class Window extends AbstractGPUResource {
 			}
 		});
 		
+		GLFW.glfwSetWindowCloseCallback(handle, (hWin)->{
+			onCloseRequested.fire();
+		});
+		
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		GLFW.glfwSwapBuffers(handle);
 	}
@@ -220,6 +225,10 @@ public class Window extends AbstractGPUResource {
 	/** Returns an event which is fired whenever a mouse button is released. The first argument supplied is the mouse button, and the secoind is a bitfield of modifiers */
 	public BiConsumerEvent<MouseButton, Integer> onMouseReleased() {
 		return this.onMouseReleased;
+	}
+	
+	public RunnableEvent onCloseRequested() {
+		return this.onCloseRequested;
 	}
 	
 	public ConsumerEvent<Painter> onPaint() {
