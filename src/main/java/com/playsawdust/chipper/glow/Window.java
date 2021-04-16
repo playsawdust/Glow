@@ -368,7 +368,8 @@ public class Window extends AbstractGPUResource {
 		scene.setProjectionMatrix(projection);
 		
 		//TODO: Trigger onPreSchedule
-		scene.schedule(scheduler);
+		double tickProgress = scene.getTimestep().poll();
+		scene.schedule(scheduler, tickProgress);
 		//TODO: Trigger onPostSchedule
 		
 		
@@ -377,7 +378,7 @@ public class Window extends AbstractGPUResource {
 		
 		Vector3d cameraLast = scene.getCamera().getLastPosition(null);
 		Vector3d cameraCur = scene.getCamera().getPosition(null);
-		Vector3d cameraLerped = cameraLast.lerp(cameraCur, scene.getTimestep().poll()); //overwrites cameraLast
+		Vector3d cameraLerped = cameraLast.lerp(cameraCur, tickProgress); //overwrites cameraLast
 		
 		viewMatrix.translate(cameraLerped.mul(-1));
 		scheduler.render(viewMatrix); //also triggers painter

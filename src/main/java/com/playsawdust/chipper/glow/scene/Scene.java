@@ -112,7 +112,11 @@ public class Scene extends BoundingVolume {
 	//}
 	
 	public void schedule(RenderScheduler scheduler) {
-		double tickProgress = timestep.poll();
+		schedule(scheduler, timestep.poll());
+	}
+	
+	public void schedule(RenderScheduler scheduler, double tickProgress) {
+		//double tickProgress = timestep.poll();
 		
 		lights.upload(tickProgress);
 		
