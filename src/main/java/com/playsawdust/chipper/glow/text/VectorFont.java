@@ -21,12 +21,12 @@ import com.playsawdust.chipper.glow.image.ImageEditor;
 import com.playsawdust.chipper.glow.image.atlas.AbstractAtlas;
 import com.playsawdust.chipper.glow.image.atlas.Atlas;
 import com.playsawdust.chipper.glow.image.atlas.StitchedAtlas;
+import com.playsawdust.chipper.glow.image.vector.RectangleI;
+import com.playsawdust.chipper.glow.image.vector.VectorShape;
 import com.playsawdust.chipper.glow.text.raster.RasterFont;
 import com.playsawdust.chipper.glow.text.raster.RasterGlyph;
 import com.playsawdust.chipper.glow.text.raster.RasterUtil;
 import com.playsawdust.chipper.glow.util.MathUtil;
-import com.playsawdust.chipper.glow.util.RectangleI;
-import com.playsawdust.chipper.glow.util.VectorShape;
 
 import blue.endless.jankson.JsonObject;
 

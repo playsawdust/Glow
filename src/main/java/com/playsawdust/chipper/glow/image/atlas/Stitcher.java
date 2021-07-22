@@ -7,9 +7,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package com.playsawdust.chipper.glow.image;
+package com.playsawdust.chipper.glow.image.atlas;
 
-import com.playsawdust.chipper.glow.util.RectangleI;
+import com.playsawdust.chipper.glow.image.vector.RectangleI;
 
 /**
  * Lays out rectangles for stitching into an AtlasImage. Note that AtlasImage does not support packing rotated sprites,

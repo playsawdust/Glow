@@ -7,11 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package com.playsawdust.chipper.glow.image;
+package com.playsawdust.chipper.glow.image.atlas;
 
 import java.util.ArrayList;
 
-import com.playsawdust.chipper.glow.util.RectangleI;
+import com.playsawdust.chipper.glow.image.vector.RectangleI;
 
 public class ShelfStitcher implements Stitcher {
 	

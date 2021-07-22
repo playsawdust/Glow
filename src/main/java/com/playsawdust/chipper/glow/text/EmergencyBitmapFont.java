@@ -7,7 +7,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package com.playsawdust.chipper.glow.image;
+package com.playsawdust.chipper.glow.text;
+
+import com.playsawdust.chipper.glow.image.ImageData;
 
 public class EmergencyBitmapFont {
 	private static final int[] FONT = {

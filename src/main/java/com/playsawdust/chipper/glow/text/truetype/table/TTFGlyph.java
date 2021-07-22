@@ -16,9 +16,9 @@ import com.google.common.collect.ClassToInstanceMap;
 import com.playsawdust.chipper.glow.image.BlendMode;
 import com.playsawdust.chipper.glow.image.ImageData;
 import com.playsawdust.chipper.glow.image.ImageEditor;
+import com.playsawdust.chipper.glow.image.vector.Contour;
+import com.playsawdust.chipper.glow.image.vector.VectorShape;
 import com.playsawdust.chipper.glow.text.truetype.TTFDataInput;
-import com.playsawdust.chipper.glow.util.Contour;
-import com.playsawdust.chipper.glow.util.VectorShape;
 
 import blue.endless.jankson.JsonObject;
 

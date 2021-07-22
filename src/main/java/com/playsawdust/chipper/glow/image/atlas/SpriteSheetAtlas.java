@@ -10,7 +10,7 @@
 package com.playsawdust.chipper.glow.image.atlas;
 
 import com.playsawdust.chipper.glow.image.ImageData;
-import com.playsawdust.chipper.glow.util.RectangleI;
+import com.playsawdust.chipper.glow.image.vector.RectangleI;
 
 /**
  * Represents an Atlas image where the source is a prearranged image, already containing all of the subimages to be

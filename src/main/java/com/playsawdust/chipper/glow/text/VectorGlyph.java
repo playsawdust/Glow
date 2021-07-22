@@ -9,7 +9,7 @@
 
 package com.playsawdust.chipper.glow.text;
 
-import com.playsawdust.chipper.glow.util.VectorShape;
+import com.playsawdust.chipper.glow.image.vector.VectorShape;
 
 /**
  * A character image in a VectorFont.

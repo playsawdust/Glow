@@ -12,9 +12,9 @@ package com.playsawdust.chipper.glow.gl;
 import java.util.Map;
 
 import com.playsawdust.chipper.glow.image.atlas.AbstractAtlas;
+import com.playsawdust.chipper.glow.image.vector.RectangleI;
 import com.playsawdust.chipper.glow.text.raster.RasterFont;
 import com.playsawdust.chipper.glow.text.raster.RasterGlyph;
-import com.playsawdust.chipper.glow.util.RectangleI;
 
 public class BakedFont implements GPUResource {
 	protected RegionPage[] regions;

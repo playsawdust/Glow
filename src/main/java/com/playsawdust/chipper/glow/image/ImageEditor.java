@@ -13,11 +13,9 @@ import java.util.Arrays;
 
 import org.joml.Vector2d;
 
-import com.playsawdust.chipper.glow.event.Vector2dEvent;
+import com.playsawdust.chipper.glow.image.vector.RectangleI;
+import com.playsawdust.chipper.glow.image.vector.VectorShape;
 import com.playsawdust.chipper.glow.text.raster.RasterFont;
-import com.playsawdust.chipper.glow.util.MathUtil;
-import com.playsawdust.chipper.glow.util.RectangleI;
-import com.playsawdust.chipper.glow.util.VectorShape;
 
 public class ImageEditor {
 	public static final double SRGB_GAMMA = 2.4;
@@ -180,12 +178,9 @@ public class ImageEditor {
 	}
 	
 	public void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3, int argb, BlendMode mode) {
-		//int minX = MathUtil.min(x1, x2, x3);
-		//int maxX = MathUtil.max(x1, x2, x3);
-		int minY = MathUtil.min(y1, y2, y3);
-		int maxY = MathUtil.max(y1, y2, y3);
+		int minY = min(y1, y2, y3);
+		int maxY = max(y1, y2, y3);
 		
-		//int dx = maxX-minX;
 		int dy = maxY-minY;
 		
 		int[] xStart = new int[dy];
@@ -227,10 +222,8 @@ public class ImageEditor {
 	}
 	
 	public void fillQuad(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int argb, BlendMode mode) {
-		//int minX = MathUtil.min(x1, x2, x3, x4);
-		//int maxX = MathUtil.max(x1, x2, x3, x4);
-		int minY = MathUtil.min(y1, y2, y3, y4);
-		int maxY = MathUtil.max(y1, y2, y3, y4);
+		int minY = min(y1, y2, y3, y4);
+		int maxY = max(y1, y2, y3, y4);
 		
 		//int dx = maxX-minX;
 		int dy = maxY-minY;
@@ -336,7 +329,12 @@ public class ImageEditor {
 	}
 	
 	
-	protected void bresenham(double x1, double y1, double x2, double y2, Vector2dEvent.Handler consumer) {
+	
+	protected interface DoubleBiConsumer {
+		void accept(double a, double b);
+	}
+	
+	protected void bresenham(double x1, double y1, double x2, double y2, DoubleBiConsumer consumer) {
 		double dx = x2-x1;
 		double dy = y2-y1;
 		double scale = Math.max(Math.abs(dx), Math.abs(dy));
@@ -352,5 +350,21 @@ public class ImageEditor {
 			yi += dy;
 		}
 		consumer.accept(xi, yi);
+	}
+	
+	private static int min(int i1, int i2, int i3) {
+		return Math.min(i1, Math.min(i2, i3));
+	}
+	
+	private static int min(int i1, int i2, int i3, int i4) {
+		return Math.min(Math.min(i1, i2), Math.min(i3, i4));
+	}
+	
+	private static int max(int i1, int i2, int i3) {
+		return Math.max(i1, Math.max(i2, i3));
+	}
+	
+	private static int max(int i1, int i2, int i3, int i4) {
+		return Math.max(Math.max(i1, i2), Math.max(i3, i4));
 	}
 }

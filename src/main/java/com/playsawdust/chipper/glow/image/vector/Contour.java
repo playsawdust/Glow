@@ -7,7 +7,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package com.playsawdust.chipper.glow.util;
+package com.playsawdust.chipper.glow.image.vector;
 
 import java.util.ArrayList;
 import java.util.Iterator;

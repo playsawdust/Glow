@@ -62,7 +62,7 @@ public class MaterialAttribute<T> {
 	 * This is a simple lighting model which basically any renderer/pass/shader will support.
 	 */
 	
-	public static MaterialAttribute<Vector3dc> DIFFUSE_COLOR = new MaterialAttribute<>("diffuseColor", Vector3dc.class, new Vector3d(0,0,0));
+	public static MaterialAttribute<Vector3dc> DIFFUSE_COLOR = new MaterialAttribute<>("diffuseColor", Vector3dc.class, new Vector3d(1,1,1));
 	/** color-with-alpha in the sRGB colorspace */
 	public static MaterialAttribute<Integer> ARGB_COLOR = new MaterialAttribute<>("color", Integer.class, 0xFF_FFFFFF);
 	public static MaterialAttribute<Double> SPECULARITY = new MaterialAttribute<>("specularity", Double.class, 0.0);

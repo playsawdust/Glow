@@ -164,8 +164,12 @@ public class PNGImageLoader {
 				} catch (EOFException ex) {
 					if (result==null) throw new IOException("Image file did not contain an IHDR chunk!");
 					return result;
+				} finally {
+					data.close(); // Technically unnecessary but suppresses some warnings
 				}
 			}
+		} finally {
+			in.close();
 		}
 	}
 	

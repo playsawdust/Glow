@@ -53,4 +53,12 @@ public class MeshActor extends Actor {
 		
 		this.collisionVolume = new CollisionVolume.Sphere(0,0,0, Math.sqrt(furthestD2));
 	}
+	
+	public void setCollisionModel(Model collisionModel) {
+		detailedCollision = new Mesh();
+		for(Mesh mesh : collisionModel) {
+			detailedCollision.combineFrom(mesh);
+		}
+		setCollisionMesh(detailedCollision);
+	}
 }

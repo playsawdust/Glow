@@ -11,10 +11,8 @@ package com.playsawdust.chipper.glow.image.atlas;
 
 import com.google.common.base.Preconditions;
 import com.playsawdust.chipper.glow.image.ImageData;
-import com.playsawdust.chipper.glow.image.ShelfStitcher;
-import com.playsawdust.chipper.glow.image.Stitcher;
+import com.playsawdust.chipper.glow.image.vector.RectangleI;
 import com.playsawdust.chipper.glow.util.MathUtil;
-import com.playsawdust.chipper.glow.util.RectangleI;
 
 public class StitchedAtlas extends AbstractAtlas {
 	protected Stitcher stitcher;

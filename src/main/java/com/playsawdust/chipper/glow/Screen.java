@@ -16,7 +16,7 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.system.MemoryStack;
 
-import com.playsawdust.chipper.glow.util.RectangleI;
+import com.playsawdust.chipper.glow.image.vector.RectangleI;
 
 /**
  * This object isn't a GPUResource, but creating it invokes GPU methods, so this object MUST only be created on the main thread.

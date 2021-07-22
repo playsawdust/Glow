@@ -20,11 +20,11 @@ import com.playsawdust.chipper.glow.Window;
 import com.playsawdust.chipper.glow.gl.VertexBuffer.Layout;
 import com.playsawdust.chipper.glow.gl.shader.ShaderProgram;
 import com.playsawdust.chipper.glow.image.ImageData;
+import com.playsawdust.chipper.glow.image.vector.RectangleI;
 import com.playsawdust.chipper.glow.model.Material;
 import com.playsawdust.chipper.glow.model.MaterialAttribute;
 import com.playsawdust.chipper.glow.model.Vertex;
 import com.playsawdust.chipper.glow.util.AbstractCombinedResource;
-import com.playsawdust.chipper.glow.util.RectangleI;
 
 public class Painter extends AbstractCombinedResource {
 	protected Matrix4d ortho = new Matrix4d();//.setOrtho2DLH(0, window.width, window.height, 0);

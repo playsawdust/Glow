@@ -10,6 +10,8 @@
 package com.playsawdust.chipper.glow.text.truetype;
 
 import com.google.common.collect.ClassToInstanceMap;
+import com.playsawdust.chipper.glow.image.vector.Contour;
+import com.playsawdust.chipper.glow.image.vector.VectorShape;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFCharacterMap;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFGlyph;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFGlyph.GlyphData;
@@ -18,8 +20,6 @@ import com.playsawdust.chipper.glow.text.truetype.table.TTFHorizontalHeader;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFHorizontalMetrics;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFLocateGlyphs;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFTable;
-import com.playsawdust.chipper.glow.util.Contour;
-import com.playsawdust.chipper.glow.util.VectorShape;
 
 public class TTFFile {
 	private ClassToInstanceMap<TTFTable> tables;

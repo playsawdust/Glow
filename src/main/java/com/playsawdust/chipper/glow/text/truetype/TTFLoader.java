@@ -30,6 +30,7 @@ import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.MutableClassToInstanceMap;
 import com.google.common.io.ByteStreams;
 import com.playsawdust.chipper.glow.event.Timestep;
+import com.playsawdust.chipper.glow.image.vector.VectorShape;
 import com.playsawdust.chipper.glow.text.VectorFont;
 import com.playsawdust.chipper.glow.text.VectorGlyph;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFCharacterMap;
@@ -41,7 +42,6 @@ import com.playsawdust.chipper.glow.text.truetype.table.TTFLocateGlyphs;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFMaximumProfile;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFName;
 import com.playsawdust.chipper.glow.text.truetype.table.TTFTable;
-import com.playsawdust.chipper.glow.util.VectorShape;
 
 import blue.endless.jankson.JsonElement;
 import blue.endless.jankson.JsonObject;

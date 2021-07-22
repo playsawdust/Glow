@@ -7,7 +7,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package com.playsawdust.chipper.glow.util;
+package com.playsawdust.chipper.glow.image.vector;
 
 import java.util.ArrayList;
 
@@ -17,8 +17,8 @@ import org.joml.Vector2d;
 import org.joml.Vector3d;
 
 import com.playsawdust.chipper.glow.image.ImageData;
-import com.playsawdust.chipper.glow.util.Contour.LineSegment;
-import com.playsawdust.chipper.glow.util.Contour.ShapeBoundary;
+import com.playsawdust.chipper.glow.image.vector.Contour.LineSegment;
+import com.playsawdust.chipper.glow.image.vector.Contour.ShapeBoundary;
 
 public class VectorShape {
 	protected double curveSegmentLengthHint = 3;

@@ -10,7 +10,7 @@
 package com.playsawdust.chipper.glow.image.atlas;
 
 import com.playsawdust.chipper.glow.image.ImageData;
-import com.playsawdust.chipper.glow.util.RectangleI;
+import com.playsawdust.chipper.glow.image.vector.RectangleI;
 
 public interface Atlas {
 	/** Gets the number of images in this Atlas */

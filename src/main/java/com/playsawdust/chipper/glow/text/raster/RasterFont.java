@@ -16,7 +16,7 @@ import java.util.Map;
 import com.playsawdust.chipper.glow.image.BlendMode;
 import com.playsawdust.chipper.glow.image.ImageEditor;
 import com.playsawdust.chipper.glow.image.atlas.AbstractAtlas;
-import com.playsawdust.chipper.glow.util.RectangleI;
+import com.playsawdust.chipper.glow.image.vector.RectangleI;
 
 public class RasterFont {
 	protected ArrayList<AbstractAtlas> pages = new ArrayList<>();

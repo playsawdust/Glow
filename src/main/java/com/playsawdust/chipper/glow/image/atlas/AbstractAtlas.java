@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 import com.google.common.base.Preconditions;
 import com.playsawdust.chipper.glow.image.ImageData;
-import com.playsawdust.chipper.glow.util.RectangleI;
+import com.playsawdust.chipper.glow.image.vector.RectangleI;
 
 public abstract class AbstractAtlas extends ImageData implements Atlas {
 	protected ArrayList<RectangleI> images = new ArrayList<>();
